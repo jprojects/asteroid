@@ -1,0 +1,317 @@
+{
+  "menu": {
+    "main": "Gestió",
+    "admin": "Administració"
+  },
+  "logout": "Surt",
+  "login": {
+    "title": "Inicia la sessió",
+    "username": "Usuari",
+    "password": "Contrasenya",
+    "language": "Idioma",
+    "submit": "Entra",
+    "invalid": "Usuari o contrasenya incorrectes",
+    "locked": "Compte bloquejat temporalment per massa intents fallits. Torna-ho a provar més tard.",
+    "inactive": "Aquest usuari està desactivat",
+    "logged_out": "Has tancat la sessió"
+  },
+  "home": {
+    "title": "Inici",
+    "welcome": "Hola, {name}",
+    "intro": "Selecciona una secció per començar.",
+    "empty": "No tens accés a cap secció. Contacta amb un administrador."
+  },
+  "page": {
+    "new_record": "Nou registre",
+    "record": "Registre #{id}",
+    "editing": "Edició",
+    "viewing": "Consulta",
+    "creating": "Alta",
+    "breadcrumbs": "Ruta de navegació"
+  },
+  "actions": {
+    "new": "Nou",
+    "edit": "Edita",
+    "view": "Mostra",
+    "delete": "Elimina",
+    "save": "Desa",
+    "save_close": "Desa i tanca",
+    "back": "Torna",
+    "clear": "Neteja",
+    "search": "Cerca…",
+    "permissions": "Permisos"
+  },
+  "table": {
+    "loading": "Carregant…",
+    "empty": "No hi ha registres",
+    "error": "Error en carregar les dades",
+    "info": "{from}–{to} de {total}",
+    "per_page": "per pàgina",
+    "first": "Primera pàgina",
+    "prev": "Pàgina anterior",
+    "next": "Pàgina següent",
+    "last": "Última pàgina",
+    "page": "Pàgina",
+    "expand": "Desplega",
+    "collapse": "Plega",
+    "expand_all": "Desplega-ho tot",
+    "collapse_all": "Plega-ho tot",
+    "total": "Total"
+  },
+  "filter": {
+    "all": "— Tots —",
+    "from": "Des de",
+    "to": "Fins a",
+    "toggle": "Filtres",
+    "clear": "Treu els filtres",
+    "search": "Cerca",
+    "remove": "Treu el filtre"
+  },
+  "form": {
+    "new": "Nou",
+    "edit": "Edita",
+    "view": "Consulta",
+    "has_errors": "Revisa els camps marcats",
+    "readonly": "Només lectura: no tens permís per modificar aquest registre",
+    "shortcuts": "Ctrl+S desa · Esc torna"
+  },
+  "confirm": {
+    "delete": "Vols eliminar aquest registre? Aquesta acció no es pot desfer."
+  },
+  "flash": {
+    "saved": "Registre desat",
+    "deleted": "Registre eliminat",
+    "permissions_saved": "Permisos desats"
+  },
+  "yes": "Sí",
+  "no": "No",
+  "password": {
+    "keep": "Deixa-ho buit per no canviar-la"
+  },
+  "validation": {
+    "required": "Aquest camp és obligatori",
+    "maxlength": "Màxim {max} caràcters",
+    "minlength": "Mínim {min} caràcters",
+    "pattern": "Format no vàlid",
+    "email": "Adreça electrònica no vàlida",
+    "number": "Ha de ser un número",
+    "integer": "Ha de ser un número enter",
+    "min": "El valor mínim és {min}",
+    "max": "El valor màxim és {max}",
+    "date": "Data no vàlida",
+    "option": "Opció no vàlida",
+    "unique": "Ja existeix un registre amb aquest valor",
+    "rows": "Revisa els errors de les files",
+    "min_rows": "Hi ha d'haver almenys {min} files",
+    "max_rows": "Com a màxim {max} files",
+    "max_files": "Com a màxim {max} fitxers",
+    "media": "Fitxer no vàlid",
+    "max_tags": "Com a màxim {max} etiquetes",
+    "tag_length": "Cada etiqueta pot tenir com a màxim {max} caràcters",
+    "max_items": "Com a màxim {max} opcions",
+    "duration": "Durada no vàlida (p. ex. 1:30, 1h30 o 1,5)"
+  },
+  "errors": {
+    "title": "Error",
+    "400": "Petició incorrecta",
+    "401": "La sessió ha caducat. Torna a iniciar la sessió.",
+    "403": "No tens permís per accedir aquí",
+    "404": "No s'ha trobat",
+    "405": "Mètode no permès",
+    "419": "El formulari ha caducat. Recarrega la pàgina i torna-ho a provar.",
+    "500": "S'ha produït un error intern",
+    "503": "L'aplicació s'està actualitzant. Torna-ho a provar d'aquí a uns minuts.",
+    "in_use": "No es pot eliminar: el registre s'està fent servir en un altre lloc",
+    "back_home": "Torna a l'inici"
+  },
+  "format": {
+    "date": "d/m/Y",
+    "datetime": "d/m/Y H:i",
+    "decimal_point": ",",
+    "thousands_sep": ".",
+    "excel_date": "dd/mm/yyyy",
+    "excel_datetime": "dd/mm/yyyy hh:mm"
+  },
+  "perm": {
+    "view": "Veure",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "export": "Exportar"
+  },
+  "repeater": {
+    "add": "Afegeix una fila",
+    "empty": "Sense elements",
+    "count": "{n} elements",
+    "remove": "Treu la fila",
+    "move_up": "Puja",
+    "move_down": "Baixa",
+    "drag": "Arrossega per ordenar"
+  },
+  "media": {
+    "drop_one": "Arrossega un fitxer aquí o fes clic per seleccionar-lo",
+    "drop_many": "Arrossega fitxers aquí o fes clic per seleccionar-los",
+    "hint": "Màx. {max} per fitxer · fins a {files} fitxer(s)",
+    "hint_one": "Màx. {max}",
+    "count": "{n} fitxer(s)",
+    "remove": "Treu",
+    "download": "Descarrega",
+    "too_large": "El fitxer supera la mida màxima ({max})",
+    "type": "Tipus de fitxer no permès",
+    "upload_error": "No s'ha pogut pujar el fitxer",
+    "wait": "Espera que s'acabin de pujar els fitxers",
+    "uploading": "Pujant"
+  },
+  "export": {
+    "excel": "Excel",
+    "pdf": "PDF",
+    "title": "Descarrega la taula amb els filtres actuals",
+    "search": "Cerca",
+    "generated": "Generat el {date} per {user}",
+    "filters": "Filtres",
+    "count": "{n} registres",
+    "truncated": "Es mostren els primers {n} de {total} registres",
+    "page": "Pàgina {page} de {pages}"
+  },
+  "mail": {
+    "footer": "Aquest és un missatge automàtic, si us plau no responguis aquest correu.",
+    "test": {
+      "subject": "Prova de correu de {app}",
+      "title": "La configuració del correu funciona!",
+      "body": "Si llegeixes això, el servidor SMTP està ben configurat. Aquestes són les dades utilitzades:",
+      "ok": "Correu rebut"
+    }
+  },
+  "two_factor": {
+    "title": "Verificació en dos passos",
+    "intro": "Hem enviat un codi a {email}. Introdueix-lo per continuar.",
+    "code": "Codi de verificació",
+    "submit": "Verifica",
+    "remember": "Confia en aquest dispositiu durant {days} dies",
+    "resend": "Torna a enviar el codi",
+    "resend_in": "Torna a enviar el codi ({s} s)",
+    "cancel": "Cancel·la",
+    "resent": "T'hem enviat un codi nou.",
+    "invalid": "El codi no és correcte.",
+    "code_expired": "El codi ha caducat. Demana'n un de nou.",
+    "too_many": "Massa intents amb aquest codi. Demana'n un de nou.",
+    "expired": "La verificació ha caducat. Torna a iniciar la sessió.",
+    "wait": "Espera {seconds} segons abans de demanar un altre codi.",
+    "max_sends": "Has demanat massa codis. Torna a iniciar la sessió.",
+    "send_failed": "No s'ha pogut enviar el codi per correu. Torna-ho a provar més tard o contacta amb un administrador.",
+    "no_email": "El teu usuari no té correu electrònic i la verificació en dos passos és obligatòria. Contacta amb un administrador.",
+    "mail_subject": "El teu codi d'accés a {app}",
+    "mail_preheader": "Codi {code} · vàlid {minutes} minuts",
+    "mail_hello": "Hola {name}:",
+    "mail_body": "Fes servir aquest codi per completar l'inici de sessió:",
+    "mail_expires": "El codi caduca d'aquí a {minutes} minuts i només es pot fer servir una vegada.",
+    "mail_warning": "Si no has estat tu (intent des de la IP {ip}), canvia la contrasenya com més aviat millor: algú la coneix."
+  },
+  "profile": {
+    "link": "El meu perfil"
+  },
+  "dialog": {
+    "ok": "D'acord",
+    "cancel": "Cancel·la",
+    "close": "Tanca",
+    "confirmTitle": "N'estàs segur?",
+    "alertTitle": "Avís",
+    "errorTitle": "No s'ha pogut completar",
+    "deleteTitle": "Elimina el registre",
+    "unsavedTitle": "Canvis sense desar",
+    "unsaved": "Tens canvis sense desar. Si surts ara, es perdran.",
+    "leave": "Surt sense desar",
+    "stay": "Continua editant"
+  },
+  "nav": {
+    "toggle": "Mostra o amaga el menú"
+  },
+  "tags": {
+    "placeholder": "Escriu i prem Enter…",
+    "remove": "Treu l'etiqueta"
+  },
+  "combo": {
+    "search": "Cerca…",
+    "no_results": "Sense resultats",
+    "loading": "Cercant…",
+    "clear": "Buida",
+    "remove": "Treu"
+  },
+  "ai": {
+    "label": "Filtra amb llenguatge natural",
+    "placeholder": "Descriu què vols veure, p. ex. «clients actius d'Espanya amb més de 10.000 € de crèdit»",
+    "submit": "Filtra",
+    "not_understood": "No he pogut convertir la petició en filtres. Prova-ho amb altres paraules o fes servir els filtres.",
+    "unresolved": "No s'ha trobat: {values}.",
+    "error": "No s'ha pogut consultar la IA. Fes servir els filtres o torna-ho a provar d'aquí a una estona.",
+    "limit_reached": "S'ha arribat al límit mensual de la IA. Fes servir els filtres.",
+    "too_many": "Has fet massa consultes a la IA en l'última hora. Torna-ho a provar més tard.",
+    "limit_warning": "IA: {percent} % del límit mensual ({used} € de {limit} €)"
+  },
+  "richtext": {
+    "bold": "Negreta (Ctrl+B)",
+    "italic": "Cursiva (Ctrl+I)",
+    "underline": "Subratllat (Ctrl+U)",
+    "ul": "Llista",
+    "ol": "Llista numerada",
+    "quote": "Cita",
+    "link": "Enllaç",
+    "link_prompt": "https://… i prem Retorn",
+    "image": "Imatge",
+    "clear": "Treu el format"
+  },
+  "notifications": {
+    "title": "Avisos",
+    "empty": "No tens cap avís",
+    "read_all": "Marca-ho tot com a llegit",
+    "desktop": "Activa els avisos a l'escriptori",
+    "desktop_on": "Rebràs avisos a l'escriptori",
+    "desktop_denied": "El navegador no permet els avisos a l'escriptori",
+    "now": "ara",
+    "minutes": "fa {n} min",
+    "hours": "fa {n} h",
+    "days": "fa {n} d",
+    "chat_message": "{user} ha escrit a {record}",
+    "chat_mention": "{user} t'ha esmentat a {record}",
+    "chat_meet": "{user} t'ha convidat a una videotrucada: {record}",
+    "digest_subject": "Tens {n} avisos nous",
+    "mail_hello": "Hola {name},",
+    "mail_open": "Obre",
+    "mail_settings": "Pots canviar els avisos per correu al teu perfil."
+  },
+  "chat": {
+    "title": "Conversa",
+    "placeholder": "Escriu un missatge… (@ per esmentar)",
+    "send": "Envia",
+    "attach": "Adjunta fitxers",
+    "empty": "Encara no hi ha missatges",
+    "older": "Carrega missatges anteriors",
+    "today": "avui",
+    "yesterday": "ahir",
+    "seen": "Vist per {names}",
+    "deleted": "Missatge eliminat",
+    "delete": "Elimina",
+    "confirm_delete": "Vols eliminar aquest missatge?",
+    "mute": "Silencia la conversa",
+    "unmute": "Torna a rebre avisos",
+    "muted_on": "Conversa silenciada: només rebràs avisos si et mencionen",
+    "muted_off": "Tornaràs a rebre els avisos d'aquesta conversa",
+    "meet": "Videotrucada",
+    "meet_confirm": "Es crearà una videotrucada de Google Meet i s'avisarà els participants. Vols continuar?",
+    "meet_join": "Uneix-t'hi",
+    "meet_started": "Videotrucada de Google Meet",
+    "uploading": "Pujant…",
+    "new_messages": "Missatges nous",
+    "mention_hint": "Escriu @ per esmentar algú",
+    "enter_hint": "Retorn per enviar · Maj+Retorn, nova línia",
+    "error": "No s'ha pogut enviar el missatge",
+    "removed_attachment": "Treu el fitxer",
+    "messages_count": "{n} missatge(s)",
+    "unread_count": "{n} missatge(s) sense llegir",
+    "too_long": "El missatge és massa llarg",
+    "empty_message": "Escriu un missatge o adjunta un fitxer",
+    "no_attachments": "Aquesta conversa no admet fitxers",
+    "attachment_used": "El fitxer ja està en un altre missatge",
+    "meet_failed": "No s'ha pogut crear la videotrucada. Revisa la connexió amb Google a Integracions."
+  }
+}

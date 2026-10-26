@@ -1,0 +1,20 @@
+# Solo para hostings en los que la raíz del (sub)dominio NO puede apuntar a public/.
+# Lo correcto es configurar la raíz del documento en .../public y este fichero no se usa.
+#
+# Envía todas las peticiones a public/, de modo que config/, database/, storage/…
+# nunca son accesibles desde la web.
+
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Sin mod_rewrite no se puede proteger el resto de carpetas: se bloquea todo
+<IfModule !mod_rewrite.c>
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</IfModule>

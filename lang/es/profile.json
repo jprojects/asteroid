@@ -1,0 +1,48 @@
+{
+  "title": "Mi perfil",
+  "fields": {
+    "name": "Nombre",
+    "email": "Email",
+    "locale": "Idioma",
+    "two_factor": "Verificación en dos pasos por email",
+    "current_password": "Contraseña actual",
+    "new_password": "Nueva contraseña",
+    "new_password_confirm": "Repite la nueva contraseña",
+    "notify_email": "Avisos por correo electrónico"
+  },
+  "sections": {
+    "personal": "Datos personales",
+    "security": "Seguridad",
+    "password": "Contraseña"
+  },
+  "help": {
+    "two_factor": "Al iniciar sesión te pediremos un código que te enviaremos por email.",
+    "current_password": "Necesaria para cambiar el email, la contraseña o desactivar la verificación.",
+    "password_section": "Déjalo en blanco si no quieres cambiar la contraseña.",
+    "notify_email": "Los avisos siempre aparecen en la campana de la barra superior."
+  },
+  "two_factor_status": {
+    "required": "La verificación en dos pasos es obligatoria: al iniciar sesión recibirás un código en tu email.",
+    "devices": "Dispositivos de confianza (no piden código): {n}",
+    "forget": "Olvidar todos",
+    "forget_confirm": "Se pedirá el código la próxima vez en todos tus dispositivos. ¿Continuar?"
+  },
+  "info": {
+    "username": "Usuario: {username}",
+    "last_login": "último acceso {date}"
+  },
+  "errors": {
+    "current_required": "Introduce tu contraseña actual para confirmar el cambio",
+    "current_wrong": "La contraseña actual no es correcta",
+    "mismatch": "Las contraseñas no coinciden",
+    "email_2fa": "El email es necesario para la verificación en dos pasos"
+  },
+  "flash": {
+    "saved": "Perfil actualizado",
+    "devices_forgotten": "Se pedirá el código en todos tus dispositivos"
+  },
+  "notify": {
+    "instant": "Recibirlos al momento",
+    "off": "No recibir avisos por correo"
+  }
+}

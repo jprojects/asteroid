@@ -1,0 +1,13 @@
+{
+  "title": "Files",
+  "description": "Documents in the client folders",
+  "fields": {
+    "id": "No.",
+    "folder_id": "Folder",
+    "client_id": "Client",
+    "title": "Title",
+    "file": "File",
+    "notes": "Notes",
+    "created_at": "Date"
+  }
+}

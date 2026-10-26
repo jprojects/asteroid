@@ -1,0 +1,95 @@
+{
+  "table": "issues",
+  "primaryKey": "id",
+  "recordTitle": "title",
+  "hooks": "Quasar\\Hooks\\IssuesHooks",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "main", "order": 10, "icon": "bug" },
+
+  "scope": {
+    "equip": true,
+    "client": {
+      "where": "issues.client_id = {user.client_id} AND issues.client_visible = 1",
+      "set": { "client_id": "{user.client_id}", "client_visible": 1 }
+    }
+  },
+
+  "chat": { "notify": ["worker_id"], "meet": true, "maxSize": "20M" },
+
+  "fields": {
+    "id":                { "type": "number", "readonly": true, "grouping": false },
+    "title":             { "type": "text", "required": true, "maxlength": 150 },
+    "project_id":        { "type": "select", "required": true, "width": "half", "search": "remote",
+                           "source": { "module": "projects", "value": "id", "label": "title" } },
+    "client_id":         { "type": "select", "readonly": true, "width": "half", "access": ["equip"],
+                           "source": { "table": "clients", "value": "id", "label": "name" } },
+    "status":            { "type": "select", "required": true, "default": "1", "width": "quarter", "editAccess": ["equip"],
+                           "options": { "1": "status.pending", "2": "status.in_progress", "3": "status.resolved", "4": "status.discarded" },
+                           "colors": { "1": "red", "2": "blue", "3": "green", "4": "gray" } },
+    "priority":          { "type": "select", "required": true, "default": "0", "width": "quarter",
+                           "options": { "0": "priority.normal", "1": "priority.urgent", "2": "priority.panic" },
+                           "colors": { "0": "gray", "1": "orange", "2": "red" } },
+    "worker_id":         { "type": "select", "width": "half", "editAccess": ["equip"], "placeholder": "placeholders.worker",
+                           "source": { "table": "users", "value": "id", "label": "name",
+                                       "where": "users.active = 1 AND (users.is_admin = 1 OR JSON_CONTAINS(users.`groups`, (SELECT CONCAT(g.id) FROM user_groups g WHERE g.code = 'equip')))" } },
+    "estimated_minutes": { "type": "duration", "width": "quarter", "access": ["equip"] },
+    "worked_minutes":    { "type": "duration", "width": "quarter", "access": ["equip"],
+                           "sql": "SELECT SUM(h.minutes) FROM hours h WHERE h.issue_id = issues.id" },
+    "starts_on":         { "type": "date", "width": "quarter", "access": ["equip"] },
+    "due_on":            { "type": "date", "width": "quarter", "access": ["equip"] },
+    "client_visible":    { "type": "checkbox", "default": 0, "width": "half", "access": ["equip"], "help": "help.client_visible",
+                           "colors": { "1": "teal" } },
+    "created_by_client": { "type": "checkbox", "readonly": true, "width": "half", "access": ["equip"], "colors": { "1": "purple" } },
+    "description":       { "type": "richtext", "rows": 10, "images": true, "maxSize": "10M", "listLength": 120 },
+    "attachments":       { "type": "media", "multiple": true, "maxFiles": 30, "maxSize": "20M" },
+    "created_by":        { "type": "select", "readonly": true, "width": "third",
+                           "source": { "table": "users", "value": "id", "label": "name" } },
+    "created_at":        { "type": "datetime", "readonly": true, "width": "third" },
+    "resolved_at":       { "type": "datetime", "readonly": true, "width": "third" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "64px" },
+      { "field": "title", "minWidth": "240px" },
+      { "field": "client_id", "maxWidth": "200px" },
+      { "field": "project_id", "maxWidth": "200px" },
+      { "field": "created_at", "width": "130px" },
+      { "field": "status", "width": "110px" },
+      { "field": "priority", "width": "90px" },
+      { "field": "worker_id", "width": "110px" },
+      { "field": "client_visible", "width": "70px", "label": "columns.visible" }
+    ],
+    "expand": ["description"],
+    "defaultSort": { "field": "id", "dir": "desc" },
+    "pageSize": 50,
+    "pageSizes": [25, 50, 100, 200],
+    "search": ["id", "title", "description"],
+    "filtersOpen": true,
+    "filters": [
+      { "field": "status" },
+      { "field": "priority" },
+      { "field": "worker_id" },
+      { "field": "client_id" },
+      { "field": "project_id" },
+      { "field": "client_visible" },
+      { "field": "created_at", "operator": "between" },
+      { "field": "due_on", "operator": "between" }
+    ],
+    "ai": {
+      "synonyms": { "status:1": "pendent, oberta, nova", "status:2": "en curs, en progrés", "status:3": "resolta, tancada, feta", "priority:2": "pànic, crítica" },
+      "examples": ["incidències obertes del Kim", "urgents pendents de Colomer Rifa", "resoltes aquest mes"]
+    },
+    "export": { "columns": ["id", "title", "client_id", "project_id", "created_at", "status", "priority", "worker_id", "estimated_minutes", "worked_minutes", "description"] }
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.general", "fields": ["title", "project_id", "client_id", "status", "priority", "worker_id"] },
+      { "title": "sections.planning", "access": ["equip"], "fields": ["estimated_minutes", "worked_minutes", "starts_on", "due_on", "client_visible", "created_by_client"] },
+      { "title": "sections.description", "fields": ["description"] },
+      { "title": "sections.attachments", "fields": ["attachments"] },
+      { "title": "sections.info", "fields": ["created_by", "created_at", "resolved_at"] }
+    ]
+  }
+}

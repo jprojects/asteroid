@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "title": "Permissions for {user}",
+    "module": "Module",
+    "is_admin": "This user is an administrator: full access to everything, regardless of this table.",
+    "hint": "Granting any permission also grants “View”. Click a column header or a module name to toggle them all.",
+    "back": "Back to users",
+    "save": "Save permissions",
+    "title_group": "Permissions of group {group}",
+    "back_groups": "Back to groups",
+    "inherited": "Already granted by group: {groups}",
+    "inherited_hint": "Marks the permissions the user already has through their groups; the ones in this table are added to them.",
+    "group_hint": "Users in this group get these permissions in addition to their own."
+  }
+}

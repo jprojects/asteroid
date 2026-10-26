@@ -1,0 +1,37 @@
+{
+  "title": "Consumo de IA",
+  "description": "Consultas en lenguaje natural: qué se ha preguntado, qué se ha aplicado y cuánto ha costado",
+  "fields": {
+    "id": "ID",
+    "created_at": "Fecha",
+    "user_id": "Usuario",
+    "module": "Módulo",
+    "model": "Modelo",
+    "status": "Resultado",
+    "prompt": "Petición",
+    "result": "Filtros aplicados",
+    "input_tokens": "Tokens de entrada",
+    "output_tokens": "Tokens de salida",
+    "cache_read_tokens": "Tokens de caché (lectura)",
+    "cache_write_tokens": "Tokens de caché (escritura)",
+    "cost_eur": "Coste (€)",
+    "duration_ms": "Tiempo (ms)"
+  },
+  "status": {
+    "ok": "Aplicado",
+    "cached": "Caché",
+    "not_understood": "No entendido",
+    "error": "Error"
+  },
+  "sections": {
+    "query": "Consulta",
+    "consumption": "Consumo"
+  },
+  "actions": {
+    "month": "Consumo del mes"
+  },
+  "summary": {
+    "with_limit": "Este mes: {used} € de {limit} € ({percent} %) · {count} consultas",
+    "no_limit": "Este mes: {used} € · {count} consultas (sin límite)"
+  }
+}

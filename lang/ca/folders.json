@@ -1,0 +1,16 @@
+{
+  "title": "Carpetes",
+  "description": "Documents compartits amb els clients",
+  "fields": {
+    "id": "Núm.",
+    "client_id": "Client",
+    "name": "Carpeta",
+    "notes": "Observacions",
+    "files": "Arxius",
+    "created_at": "Data de creació"
+  },
+  "actions": {
+    "files": "Arxius de la carpeta",
+    "add_file": "Afegeix un arxiu"
+  }
+}

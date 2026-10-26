@@ -1,0 +1,50 @@
+{
+  "table": "users",
+  "primaryKey": "id",
+  "recordTitle": "name",
+  "where": "users.client_id IS NOT NULL",
+  "hooks": "Quasar\\Hooks\\ClientUsersHooks",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "clients", "order": 24, "icon": "contact" },
+
+  "fields": {
+    "id":           { "type": "number", "readonly": true, "grouping": false },
+    "client_id":    { "type": "select", "required": true, "width": "half", "search": "remote",
+                      "source": { "table": "clients", "value": "id", "label": "name" } },
+    "username":     { "type": "text", "required": true, "unique": true, "maxlength": 50, "width": "half", "autocomplete": "off",
+                      "pattern": "[A-Za-z0-9_.@+ \\-]+", "patternMessage": "validation.username" },
+    "password":     { "type": "password", "column": "password_hash", "requiredOnCreate": true, "minlength": 8, "width": "half" },
+    "active":       { "type": "checkbox", "default": 1, "width": "quarter", "colors": { "1": "green", "0": "red" } },
+    "name":         { "type": "text", "required": true, "maxlength": 100, "width": "half" },
+    "email":        { "type": "email", "required": true, "maxlength": 150, "unique": true, "width": "half" },
+    "locale":       { "type": "select", "required": true, "default": "ca", "width": "quarter",
+                      "options": { "ca": "Català", "es": "Español", "en": "English" } },
+    "notify_email": { "type": "select", "required": true, "default": "instant", "width": "quarter",
+                      "options": { "instant": "notify.instant", "off": "notify.off" } },
+    "last_login":   { "type": "datetime", "readonly": true, "width": "half" },
+    "created_at":   { "type": "datetime", "readonly": true, "width": "half" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "64px" },
+      "name",
+      "username",
+      "email",
+      { "field": "client_id", "maxWidth": "240px" },
+      { "field": "active", "width": "80px" },
+      { "field": "last_login", "width": "140px" }
+    ],
+    "defaultSort": { "field": "name", "dir": "asc" },
+    "search": ["name", "username", "email"],
+    "filters": [{ "field": "client_id" }, { "field": "active" }]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.account", "fields": ["client_id", "username", "password", "active"] },
+      { "title": "sections.profile", "fields": ["name", "email", "locale", "notify_email"] },
+      { "title": "sections.info", "fields": ["last_login", "created_at"] }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "title": "Permisos de {user}",
+    "module": "Módulo",
+    "is_admin": "Este usuario es administrador: tiene acceso completo a todo, independientemente de esta tabla.",
+    "hint": "Conceder cualquier permiso concede también «Ver». Haz clic en la cabecera de una columna o en el nombre de un módulo para marcarlos todos.",
+    "back": "Volver a usuarios",
+    "save": "Guardar permisos",
+    "title_group": "Permisos del grupo {group}",
+    "back_groups": "Volver a grupos",
+    "inherited": "Ya lo tiene por el grupo: {groups}",
+    "inherited_hint": "Indica los permisos que el usuario ya tiene por sus grupos; los de esta tabla se suman.",
+    "group_hint": "Los usuarios del grupo tienen estos permisos además de los suyos."
+  }
+}

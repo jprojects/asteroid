@@ -1,0 +1,25 @@
+{
+  "table": "contracts",
+  "primaryKey": "id",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "team", "order": 32, "icon": "file-signature" },
+
+  "fields": {
+    "id":            { "type": "number", "readonly": true, "grouping": false },
+    "user_id":       { "type": "select", "required": true, "width": "half",
+                       "source": { "table": "users", "value": "id", "label": "name", "where": "users.active = 1 AND (users.is_admin = 1 OR JSON_CONTAINS(users.`groups`, (SELECT CONCAT(g.id) FROM user_groups g WHERE g.code = 'equip')))" } },
+    "starts_on":     { "type": "date", "required": true, "width": "half", "help": "help.starts_on" },
+    "hours_per_day": { "type": "number", "decimals": 2, "min": 0, "max": 24, "required": true, "width": "half" },
+    "cost_per_hour": { "type": "number", "decimals": 2, "min": 0, "required": true, "width": "half" },
+    "notes":         { "type": "textarea", "rows": 3 }
+  },
+
+  "list": {
+    "columns": ["user_id", "starts_on", { "field": "hours_per_day", "width": "110px" }, { "field": "cost_per_hour", "width": "110px" }],
+    "expand": ["notes"],
+    "defaultSort": { "field": "starts_on", "dir": "desc" },
+    "filters": [{ "field": "user_id" }]
+  },
+
+  "form": { "fields": ["user_id", "starts_on", "hours_per_day", "cost_per_hour", "notes"] }
+}

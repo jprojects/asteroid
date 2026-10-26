@@ -1,0 +1,41 @@
+{
+  "table": "user_groups",
+  "primaryKey": "id",
+  "adminOnly": true,
+  "hooks": "Quasar\\Hooks\\GroupsHooks",
+  "recordTitle": "name",
+  "menu": { "group": "admin", "order": 910, "icon": "users-round" },
+
+  "fields": {
+    "id":          { "type": "number", "readonly": true, "grouping": false },
+    "code":        { "type": "text", "required": true, "unique": true, "maxlength": 50, "pattern": "[a-z0-9_]+",
+                     "patternMessage": "validation.code", "help": "help.code", "autocomplete": "off", "width": "third" },
+    "name":        { "type": "text", "required": true, "maxlength": 100, "width": "two-thirds" },
+    "description": { "type": "textarea", "rows": 2, "maxlength": 255 },
+    "members":     { "type": "number", "width": "quarter",
+                     "sql": "SELECT COUNT(*) FROM users u WHERE CASE WHEN JSON_VALID(u.`groups`) THEN JSON_CONTAINS(u.`groups`, JSON_QUOTE(CAST(user_groups.id AS CHAR))) ELSE 0 END" },
+    "created_at":  { "type": "datetime", "readonly": true, "width": "half" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "70px" },
+      { "field": "code", "width": "160px" },
+      "name",
+      { "field": "description", "overflow": "wrap", "lines": 2 },
+      { "field": "members", "width": "100px" }
+    ],
+    "defaultSort": { "field": "name", "dir": "asc" },
+    "search": ["code", "name", "description"],
+    "rowActions": [
+      { "label": "actions.permissions", "url": "index.php?r=permissions&group={id}", "icon": "key-round" }
+    ]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.general", "fields": ["code", "name", "description"] },
+      { "title": "sections.info", "fields": ["members", "created_at"] }
+    ]
+  }
+}

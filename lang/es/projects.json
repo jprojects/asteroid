@@ -1,0 +1,38 @@
+{
+  "title": "Proyectos",
+  "description": "Proyectos de cada cliente",
+  "fields": {
+    "id": "Núm.",
+    "title": "Proyecto",
+    "code": "Abreviatura",
+    "client_id": "Cliente",
+    "active": "Activo",
+    "modality": "Modalidad",
+    "budget": "Presupuesto",
+    "hourly_rate": "Precio por hora",
+    "api_key": "Clave de la API",
+    "notes": "Observaciones",
+    "open_issues": "Incid. abiertas",
+    "worked": "Horas",
+    "unbilled": "Por facturar"
+  },
+  "modality": {
+    "hours": "Por horas",
+    "budget": "Presupuesto"
+  },
+  "help": {
+    "budget": "Vacío o 0: el proyecto se factura por horas.",
+    "hourly_rate": "Precio de las órdenes de facturación que se crean desde las horas.",
+    "api_key": "Para crear y consultar incidencias desde otra aplicación."
+  },
+  "sections": {
+    "general": "Proyecto",
+    "api": "API",
+    "summary": "Resumen"
+  },
+  "actions": {
+    "issues": "Incidencias del proyecto",
+    "hours": "Horas del proyecto",
+    "new_issue": "Nueva incidencia"
+  }
+}

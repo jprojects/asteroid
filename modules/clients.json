@@ -1,0 +1,51 @@
+{
+  "table": "clients",
+  "primaryKey": "id",
+  "recordTitle": "name",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "clients", "order": 20, "icon": "building-2" },
+
+  "fields": {
+    "id":            { "type": "number", "readonly": true, "grouping": false },
+    "name":          { "type": "text", "required": true, "maxlength": 150, "width": "two-thirds" },
+    "nif":           { "type": "text", "maxlength": 50, "width": "third" },
+    "factusol_code": { "type": "text", "maxlength": 100, "width": "third" },
+    "email":         { "type": "email", "maxlength": 150, "width": "third" },
+    "phone":         { "type": "text", "maxlength": 50, "width": "third" },
+    "active":        { "type": "checkbox", "default": 1, "width": "third", "colors": { "1": "green", "0": "gray" } },
+    "notes":         { "type": "textarea", "rows": 3 },
+    "projects":      { "type": "number", "sql": "SELECT COUNT(*) FROM projects p WHERE p.client_id = clients.id" },
+    "open_issues":   { "type": "number", "sql": "SELECT COUNT(*) FROM issues i WHERE i.client_id = clients.id AND i.status IN (1, 2)" },
+    "users":         { "type": "number", "sql": "SELECT COUNT(*) FROM users u WHERE u.client_id = clients.id" },
+    "created_at":    { "type": "datetime", "readonly": true, "width": "half" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "64px" },
+      { "field": "name", "minWidth": "240px" },
+      "nif",
+      "factusol_code",
+      { "field": "projects", "width": "90px" },
+      { "field": "open_issues", "width": "110px" },
+      { "field": "users", "width": "80px" },
+      { "field": "active", "width": "80px" }
+    ],
+    "expand": ["notes"],
+    "defaultSort": { "field": "name", "dir": "asc" },
+    "search": ["name", "nif", "factusol_code", "email"],
+    "filters": [{ "field": "active" }],
+    "rowActions": [
+      { "label": "actions.issues", "icon": "bug", "url": "index.php?r=list&m=issues&f[client_id]={id}" },
+      { "label": "actions.projects", "icon": "folder-kanban", "url": "index.php?r=list&m=projects&f[client_id]={id}" },
+      { "label": "actions.users", "icon": "users", "url": "index.php?r=list&m=client_users&f[client_id]={id}" }
+    ]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.general", "fields": ["name", "nif", "factusol_code", "email", "phone", "active", "notes"] },
+      { "title": "sections.summary", "fields": ["projects", "open_issues", "users", "created_at"] }
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "title": "My profile",
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "locale": "Language",
+    "two_factor": "Two-step verification by email",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "new_password_confirm": "Repeat new password",
+    "notify_email": "Email notifications"
+  },
+  "sections": {
+    "personal": "Personal details",
+    "security": "Security",
+    "password": "Password"
+  },
+  "help": {
+    "two_factor": "When signing in we will ask for a code sent to your email.",
+    "current_password": "Required to change your email or password, or to turn off verification.",
+    "password_section": "Leave blank if you do not want to change your password.",
+    "notify_email": "Notifications always appear in the bell on the top bar."
+  },
+  "two_factor_status": {
+    "required": "Two-step verification is mandatory: you will receive a code by email when signing in.",
+    "devices": "Trusted devices (no code required): {n}",
+    "forget": "Forget all",
+    "forget_confirm": "A code will be required next time on all your devices. Continue?"
+  },
+  "info": {
+    "username": "Username: {username}",
+    "last_login": "last login {date}"
+  },
+  "errors": {
+    "current_required": "Enter your current password to confirm the change",
+    "current_wrong": "Current password is not correct",
+    "mismatch": "Passwords do not match",
+    "email_2fa": "An email address is required for two-step verification"
+  },
+  "flash": {
+    "saved": "Profile updated",
+    "devices_forgotten": "A code will be required on all your devices"
+  },
+  "notify": {
+    "instant": "Receive them immediately",
+    "off": "Do not receive email notifications"
+  }
+}

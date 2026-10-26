@@ -1,0 +1,38 @@
+{
+  "title": "Facturación",
+  "description": "Órdenes de facturación para pasar a FactuSOL",
+  "fields": {
+    "id": "Núm.",
+    "billed_on": "Fecha",
+    "status": "Estado",
+    "invoice_number": "Factura",
+    "client_id": "Cliente",
+    "project_id": "Proyecto",
+    "lines": "Líneas",
+    "total": "Total",
+    "notes": "Observaciones",
+    "hours_count": "Entradas de horas",
+    "created_at": "Fecha de creación"
+  },
+  "status": {
+    "draft": "Borrador",
+    "billed": "Facturada"
+  },
+  "help": {
+    "invoice_number": "Número de la factura en FactuSOL."
+  },
+  "repeater": {
+    "add_line": "Añadir una línea"
+  },
+  "line": {
+    "description": "Descripción",
+    "quantity": "Cantidad",
+    "price": "Precio",
+    "amount": "Importe"
+  },
+  "sections": {
+    "general": "Orden de facturación",
+    "lines": "Líneas",
+    "info": "Información"
+  }
+}

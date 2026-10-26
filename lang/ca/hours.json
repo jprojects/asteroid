@@ -1,0 +1,62 @@
+{
+  "title": "Hores",
+  "description": "Hores dedicades als projectes i incidències",
+  "fields": {
+    "id": "Núm.",
+    "worked_on": "Data",
+    "user_id": "Treballador",
+    "minutes": "Temps",
+    "billing": "Facturació",
+    "issue_id": "Incidència",
+    "issue_status": "Estat de la incidència",
+    "project_id": "Projecte",
+    "client_id": "Client",
+    "comment": "Comentari",
+    "modality": "Modalitat",
+    "cost": "Cost",
+    "billing_id": "Ordre de facturació",
+    "created_at": "Data d'entrada"
+  },
+  "billing": {
+    "pending": "Pendent",
+    "billed": "Facturada",
+    "not_billable": "No facturable"
+  },
+  "help": {
+    "user": "Buit: tu mateix.",
+    "minutes": "1:30, 1h30, 45m o 1,5",
+    "issue": "El projecte es posa sol a partir de la incidència.",
+    "issue_status": "Canvia l'estat de la incidència en guardar (opcional).",
+    "project": "Obligatori si no hi ha incidència."
+  },
+  "placeholders": {
+    "issue_status": "No el canviïs"
+  },
+  "columns": {
+    "modality": "Mod."
+  },
+  "sections": {
+    "entry": "Entrada d'hores",
+    "info": "Informació"
+  },
+  "actions": {
+    "mark_billed": "Marca com a facturada",
+    "mark_not_billable": "Marca com a no facturable",
+    "create_billing": "Crea una ordre de facturació"
+  },
+  "confirm": {
+    "create_billing": "Es crearà una ordre de facturació amb aquestes hores i es marcaran com a facturades. Vols continuar?"
+  },
+  "flash": {
+    "marked_billed": "Marcada com a facturada",
+    "marked_not_billable": "Marcada com a no facturable",
+    "billing_created": "Ordre de facturació creada"
+  },
+  "errors": {
+    "project_required": "Indica el projecte o la incidència",
+    "no_client": "El projecte no té client"
+  },
+  "perm": {
+    "bill": "Facturar"
+  }
+}

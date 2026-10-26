@@ -1,0 +1,27 @@
+{
+  "title": "Clients",
+  "description": "Companies we work for",
+  "fields": {
+    "id": "No.",
+    "name": "Name",
+    "nif": "Tax ID",
+    "factusol_code": "FactuSOL code",
+    "email": "Email",
+    "phone": "Phone",
+    "active": "Active",
+    "notes": "Notes",
+    "projects": "Projects",
+    "open_issues": "Open issues",
+    "users": "Users",
+    "created_at": "Created"
+  },
+  "sections": {
+    "general": "Client",
+    "summary": "Summary"
+  },
+  "actions": {
+    "issues": "Client issues",
+    "projects": "Client projects",
+    "users": "Client users"
+  }
+}

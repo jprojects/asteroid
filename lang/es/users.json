@@ -1,0 +1,38 @@
+{
+  "title": "Usuarios",
+  "fields": {
+    "id": "ID",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "is_admin": "Administrador",
+    "active": "Activo",
+    "name": "Nombre",
+    "email": "Email",
+    "locale": "Idioma",
+    "last_login": "Último acceso",
+    "created_at": "Creado",
+    "two_factor": "Verificación en dos pasos",
+    "groups": "Grupos"
+  },
+  "sections": {
+    "account": "Cuenta",
+    "profile": "Perfil",
+    "info": "Información"
+  },
+  "help": {
+    "is_admin": "Acceso total, incluida la administración",
+    "two_factor": "Solo se aplica si two_factor.mode = optional en la configuración",
+    "groups": "Los permisos de los grupos se suman a los del usuario"
+  },
+  "validation": {
+    "username": "Solo letras, números, punto y guion bajo"
+  },
+  "errors": {
+    "self_admin": "No puedes quitarte a ti mismo el rol de administrador",
+    "self_active": "No puedes desactivar tu propio usuario",
+    "self_delete": "No puedes eliminar tu propio usuario"
+  },
+  "placeholders": {
+    "groups": "Sin grupos"
+  }
+}

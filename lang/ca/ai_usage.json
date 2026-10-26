@@ -1,0 +1,37 @@
+{
+  "title": "Consum d'IA",
+  "description": "Consultes en llenguatge natural: què s'ha preguntat, què s'ha aplicat i quant ha costat",
+  "fields": {
+    "id": "ID",
+    "created_at": "Data",
+    "user_id": "Usuari",
+    "module": "Mòdul",
+    "model": "Model",
+    "status": "Resultat",
+    "prompt": "Petició",
+    "result": "Filtres aplicats",
+    "input_tokens": "Tokens d'entrada",
+    "output_tokens": "Tokens de sortida",
+    "cache_read_tokens": "Tokens de memòria cau (lectura)",
+    "cache_write_tokens": "Tokens de memòria cau (escriptura)",
+    "cost_eur": "Cost (€)",
+    "duration_ms": "Temps (ms)"
+  },
+  "status": {
+    "ok": "Aplicat",
+    "cached": "Memòria cau",
+    "not_understood": "No entès",
+    "error": "Error"
+  },
+  "sections": {
+    "query": "Consulta",
+    "consumption": "Consum"
+  },
+  "actions": {
+    "month": "Consum del mes"
+  },
+  "summary": {
+    "with_limit": "Aquest mes: {used} € de {limit} € ({percent} %) · {count} consultes",
+    "no_limit": "Aquest mes: {used} € · {count} consultes (sense límit)"
+  }
+}

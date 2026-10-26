@@ -1,0 +1,13 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\CalendarPage",
+  "requires": ["issues"],
+  "menu": { "group": "main", "order": 12, "icon": "calendar-days", "access": ["equip"] },
+
+  "calendar": {
+    "source": "issues",
+    "date": "due_on",
+    "title": "title",
+    "color": "status"
+  }
+}

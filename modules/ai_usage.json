@@ -1,0 +1,61 @@
+{
+  "table": "ai_usage",
+  "primaryKey": "id",
+  "feature": "ai",
+  "adminOnly": true,
+  "actions": ["view", "export"],
+  "hooks": "Quasar\\Hooks\\AiUsageHooks",
+  "recordTitle": "prompt",
+  "menu": { "group": "admin", "order": 950, "icon": "sparkles" },
+
+  "fields": {
+    "id":            { "type": "number", "grouping": false },
+    "created_at":    { "type": "datetime", "width": "half" },
+    "user_id":       { "type": "select", "width": "half", "source": { "table": "users", "value": "id", "label": "username" } },
+    "module":        { "type": "text", "width": "third" },
+    "model":         { "type": "text", "width": "third" },
+    "status":        { "type": "select", "width": "third",
+                       "options": { "ok": "status.ok", "cached": "status.cached", "not_understood": "status.not_understood", "error": "status.error" },
+                       "colors": { "ok": "green", "cached": "teal", "not_understood": "amber", "error": "red" } },
+    "prompt":        { "type": "textarea", "rows": 2 },
+    "result":        { "type": "textarea", "rows": 4 },
+    "input_tokens":  { "type": "number", "width": "quarter" },
+    "output_tokens": { "type": "number", "width": "quarter" },
+    "cache_read_tokens":  { "type": "number", "width": "quarter" },
+    "cache_write_tokens": { "type": "number", "width": "quarter" },
+    "cost_eur":      { "type": "number", "decimals": 4, "width": "quarter" },
+    "duration_ms":   { "type": "number", "width": "quarter" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "created_at", "width": "150px" },
+      { "field": "user_id", "width": "120px" },
+      { "field": "module", "width": "110px" },
+      { "field": "status", "width": "120px" },
+      { "field": "prompt", "overflow": "wrap", "lines": 2 },
+      { "field": "cost_eur", "width": "100px" },
+      { "field": "duration_ms", "width": "90px" }
+    ],
+    "expand": ["result", "model", "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens"],
+    "defaultSort": { "field": "created_at", "dir": "desc" },
+    "pageSize": 50,
+    "search": ["prompt"],
+    "filters": [
+      { "field": "created_at", "operator": "between" },
+      { "field": "status" },
+      { "field": "user_id" },
+      { "field": "module", "operator": "=" }
+    ],
+    "toolbar": [
+      { "label": "actions.month", "icon": "chart-column", "action": "month" }
+    ]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.query", "fields": ["created_at", "user_id", "module", "model", "status", "prompt", "result"] },
+      { "title": "sections.consumption", "fields": ["input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost_eur", "duration_ms"] }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Projects",
+  "description": "Projects of each client",
+  "fields": {
+    "id": "No.",
+    "title": "Project",
+    "code": "Code",
+    "client_id": "Client",
+    "active": "Active",
+    "modality": "Billing mode",
+    "budget": "Budget",
+    "hourly_rate": "Hourly rate",
+    "api_key": "API key",
+    "notes": "Notes",
+    "open_issues": "Open issues",
+    "worked": "Hours",
+    "unbilled": "Unbilled"
+  },
+  "modality": {
+    "hours": "By the hour",
+    "budget": "Fixed budget"
+  },
+  "help": {
+    "budget": "Empty or 0: the project is billed by the hour.",
+    "hourly_rate": "Price of the billing orders created from the hours.",
+    "api_key": "To create and read issues from another application."
+  },
+  "sections": {
+    "general": "Project",
+    "api": "API",
+    "summary": "Summary"
+  },
+  "actions": {
+    "issues": "Project issues",
+    "hours": "Project hours",
+    "new_issue": "New issue"
+  }
+}

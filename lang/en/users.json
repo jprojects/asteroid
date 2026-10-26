@@ -1,0 +1,38 @@
+{
+  "title": "Users",
+  "fields": {
+    "id": "ID",
+    "username": "Username",
+    "password": "Password",
+    "is_admin": "Administrator",
+    "active": "Active",
+    "name": "Name",
+    "email": "Email",
+    "locale": "Language",
+    "last_login": "Last login",
+    "created_at": "Created",
+    "two_factor": "Two-step verification",
+    "groups": "Groups"
+  },
+  "sections": {
+    "account": "Account",
+    "profile": "Profile",
+    "info": "Information"
+  },
+  "help": {
+    "is_admin": "Full access, including administration",
+    "two_factor": "Only applies when two_factor.mode = optional in the configuration",
+    "groups": "Group permissions are added to the user's own"
+  },
+  "validation": {
+    "username": "Only letters, numbers, dot and underscore"
+  },
+  "errors": {
+    "self_admin": "You cannot remove your own administrator role",
+    "self_active": "You cannot disable your own user",
+    "self_delete": "You cannot delete your own user"
+  },
+  "placeholders": {
+    "groups": "No groups"
+  }
+}

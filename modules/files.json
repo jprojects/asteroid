@@ -1,0 +1,35 @@
+{
+  "table": "files",
+  "primaryKey": "id",
+  "recordTitle": "title",
+  "hooks": "Quasar\\Hooks\\FilesHooks",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "clients", "order": 28, "icon": "files", "access": ["equip"] },
+
+  "scope": {
+    "equip": true,
+    "client": "files.client_id = {user.client_id}"
+  },
+
+  "fields": {
+    "id":         { "type": "number", "readonly": true, "grouping": false },
+    "folder_id":  { "type": "select", "required": true, "width": "half", "search": "remote",
+                    "source": { "module": "folders", "value": "id", "label": "name" } },
+    "client_id":  { "type": "select", "readonly": true, "width": "half", "access": ["equip"],
+                    "source": { "table": "clients", "value": "id", "label": "name" } },
+    "title":      { "type": "text", "required": true, "maxlength": 150 },
+    "file":       { "type": "media", "required": true, "maxSize": "50M" },
+    "notes":      { "type": "textarea", "rows": 3 },
+    "created_at": { "type": "datetime", "readonly": true, "width": "half" }
+  },
+
+  "list": {
+    "columns": ["title", { "field": "folder_id", "maxWidth": "220px" }, { "field": "client_id", "maxWidth": "220px" }, { "field": "file", "maxWidth": "240px" }, { "field": "created_at", "width": "140px" }],
+    "expand": ["notes"],
+    "defaultSort": { "field": "created_at", "dir": "desc" },
+    "search": ["title", "notes"],
+    "filters": [{ "field": "folder_id" }, { "field": "client_id" }]
+  },
+
+  "form": { "fields": ["folder_id", "client_id", "title", "file", "notes", "created_at"] }
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Integraciones",
+  "description": "Conexión con servicios externos",
+  "google": {
+    "title": "Google Meet",
+    "intro": "Conecta una cuenta de Google para crear videollamadas de Google Meet desde las conversaciones de los registros. El enlace se publica en la conversación y se avisa a los participantes.",
+    "not_connected": "No conectado",
+    "connected_as": "Conectado con {email} desde el {date}",
+    "connect": "Conectar con Google",
+    "disconnect": "Desconectar",
+    "disconnect_confirm": "No se podrán crear videollamadas hasta que se vuelva a conectar una cuenta. ¿Continuar?",
+    "connected": "Cuenta {email} conectada",
+    "disconnected": "Cuenta de Google desconectada",
+    "denied": "Google no ha dado acceso ({error})",
+    "setup_title": "Cómo se configura",
+    "setup_1": "En Google Cloud Console, crea un proyecto y activa la «Google Meet REST API».",
+    "setup_2": "Configura la pantalla de consentimiento OAuth (tipo interno si es una cuenta de Google Workspace) con el ámbito meetings.space.created.",
+    "setup_3": "Crea unas credenciales «ID de cliente de OAuth» de tipo aplicación web con esta URI de redirección autorizada:",
+    "setup_4": "Pon client_id y client_secret en 'google' de config.local.php y pulsa «Conectar con Google»."
+  }
+}

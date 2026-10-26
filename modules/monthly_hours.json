@@ -1,0 +1,38 @@
+{
+  "table": "monthly_hours",
+  "primaryKey": "id",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "team", "order": 34, "icon": "calendar-clock" },
+
+  "fields": {
+    "id":            { "type": "number", "readonly": true, "grouping": false },
+    "user_id":       { "type": "select", "required": true, "width": "half",
+                       "source": { "table": "users", "value": "id", "label": "name", "where": "users.active = 1 AND (users.is_admin = 1 OR JSON_CONTAINS(users.`groups`, (SELECT CONCAT(g.id) FROM user_groups g WHERE g.code = 'equip')))" } },
+    "year":          { "type": "number", "required": true, "min": 2000, "max": 2100, "grouping": false, "width": "quarter" },
+    "month":         { "type": "select", "required": true, "width": "quarter",
+                       "options": { "1": "months.1", "2": "months.2", "3": "months.3", "4": "months.4", "5": "months.5", "6": "months.6",
+                                    "7": "months.7", "8": "months.8", "9": "months.9", "10": "months.10", "11": "months.11", "12": "months.12" } },
+    "planned_hours": { "type": "number", "decimals": 2, "min": 0, "required": true, "width": "half" },
+    "holiday_hours": { "type": "number", "decimals": 2, "min": 0, "default": 0, "width": "half" },
+    "worked_hours":  { "type": "number", "decimals": 2,
+                       "sql": "SELECT COALESCE(SUM(h.minutes), 0) / 60 FROM hours h WHERE h.user_id = monthly_hours.user_id AND YEAR(h.worked_on) = monthly_hours.year AND MONTH(h.worked_on) = monthly_hours.month" },
+    "balance":       { "type": "number", "decimals": 2,
+                       "sql": "(SELECT COALESCE(SUM(h.minutes), 0) / 60 FROM hours h WHERE h.user_id = monthly_hours.user_id AND YEAR(h.worked_on) = monthly_hours.year AND MONTH(h.worked_on) = monthly_hours.month) - (monthly_hours.planned_hours - monthly_hours.holiday_hours)" }
+  },
+
+  "list": {
+    "columns": ["user_id", { "field": "year", "width": "70px" }, { "field": "month", "width": "100px" },
+                { "field": "planned_hours", "width": "110px" }, { "field": "holiday_hours", "width": "110px" },
+                { "field": "worked_hours", "width": "110px" }, { "field": "balance", "width": "100px" }],
+    "defaultSort": { "field": "year", "dir": "desc" },
+    "filters": [{ "field": "user_id" }, { "field": "year" }, { "field": "month" }],
+    "totals": ["planned_hours", "holiday_hours", "worked_hours", "balance"]
+  },
+
+  "form": {
+    "sections": [
+      { "fields": ["user_id", "year", "month", "planned_hours", "holiday_hours"] },
+      { "title": "sections.summary", "fields": ["worked_hours", "balance"] }
+    ]
+  }
+}

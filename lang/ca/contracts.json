@@ -1,0 +1,15 @@
+{
+  "title": "Contractes",
+  "description": "Jornada i cost per hora de cada treballador",
+  "fields": {
+    "id": "Núm.",
+    "user_id": "Treballador",
+    "starts_on": "Data d'inici",
+    "hours_per_day": "Hores/dia",
+    "cost_per_hour": "Cost per hora",
+    "notes": "Observacions"
+  },
+  "help": {
+    "starts_on": "S'aplica a les hores a partir d'aquesta data, fins al contracte següent."
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Calendari",
+  "description": "Activitats del mes",
+  "today": "Avui",
+  "prev": "Mes anterior",
+  "next": "Mes següent",
+  "new": "Nova activitat",
+  "add_on": "Nova activitat el {date}",
+  "more": "+{n} més",
+  "empty": "No hi ha activitats aquest mes",
+  "months": [
+    "gener",
+    "febrer",
+    "març",
+    "abril",
+    "maig",
+    "juny",
+    "juliol",
+    "agost",
+    "setembre",
+    "octubre",
+    "novembre",
+    "desembre"
+  ],
+  "weekdays": [
+    "dl.",
+    "dt.",
+    "dc.",
+    "dj.",
+    "dv.",
+    "ds.",
+    "dg."
+  ],
+  "no_access": "No tens permís per veure les activitats"
+}

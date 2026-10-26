@@ -1,0 +1,80 @@
+{
+  "table": "hours",
+  "primaryKey": "id",
+  "hooks": "Quasar\\Hooks\\HoursHooks",
+  "actions": ["view", "create", "edit", "delete", "export", "bill"],
+  "menu": { "group": "team", "order": 30, "icon": "clock" },
+
+  "fields": {
+    "id":           { "type": "number", "readonly": true, "grouping": false },
+    "worked_on":    { "type": "date", "required": true, "width": "quarter" },
+    "user_id":      { "type": "select", "width": "quarter", "help": "help.user",
+                      "source": { "table": "users", "value": "id", "label": "name", "where": "users.active = 1 AND (users.is_admin = 1 OR JSON_CONTAINS(users.`groups`, (SELECT CONCAT(g.id) FROM user_groups g WHERE g.code = 'equip')))" } },
+    "minutes":      { "type": "duration", "required": true, "min": 1, "width": "quarter", "help": "help.minutes" },
+    "billing":      { "type": "select", "required": true, "default": "0", "width": "quarter",
+                      "options": { "0": "billing.pending", "1": "billing.billed", "2": "billing.not_billable" },
+                      "colors": { "0": "amber", "1": "green", "2": "gray" } },
+    "issue_id":     { "type": "select", "width": "half", "search": "remote", "help": "help.issue",
+                      "source": { "table": "issues", "value": "id", "label": "title", "order": "id" } },
+    "issue_status": { "type": "select", "virtual": true, "width": "half", "help": "help.issue_status", "placeholder": "placeholders.issue_status",
+                      "options": { "1": "issues:status.pending", "2": "issues:status.in_progress", "3": "issues:status.resolved", "4": "issues:status.discarded" },
+                      "showon": "issue_id!:" },
+    "project_id":   { "type": "select", "width": "half", "search": "remote", "help": "help.project",
+                      "source": { "table": "projects", "value": "id", "label": "title" } },
+    "client_id":    { "type": "select", "width": "half", "source": { "table": "clients", "value": "id", "label": "name" },
+                      "sql": "SELECT p.client_id FROM projects p WHERE p.id = hours.project_id" },
+    "comment":      { "type": "textarea", "rows": 3 },
+    "modality":     { "type": "select", "options": { "h": "projects:modality.hours", "p": "projects:modality.budget" },
+                      "colors": { "h": "blue", "p": "purple" },
+                      "sql": "SELECT IF(COALESCE(p.budget, 0) = 0, 'h', 'p') FROM projects p WHERE p.id = hours.project_id" },
+    "cost":         { "type": "number", "decimals": 2,
+                      "sql": "ROUND(hours.minutes / 60 * COALESCE((SELECT c.cost_per_hour FROM contracts c WHERE c.user_id = hours.user_id AND c.starts_on <= hours.worked_on ORDER BY c.starts_on DESC LIMIT 1), 0), 2)" },
+    "billing_id":   { "type": "number", "readonly": true, "grouping": false, "width": "quarter" },
+    "created_at":   { "type": "datetime", "readonly": true, "width": "quarter" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "worked_on", "width": "100px" },
+      { "field": "user_id", "width": "100px" },
+      { "field": "client_id", "maxWidth": "200px" },
+      { "field": "project_id", "maxWidth": "200px" },
+      { "field": "modality", "width": "70px", "label": "columns.modality" },
+      { "field": "issue_id", "maxWidth": "240px" },
+      { "field": "comment", "overflow": "wrap", "lines": 2, "minWidth": "220px" },
+      { "field": "minutes", "width": "80px", "align": "right" },
+      { "field": "cost", "width": "90px" },
+      { "field": "billing", "width": "120px" }
+    ],
+    "defaultSort": { "field": "worked_on", "dir": "desc" },
+    "pageSize": 50,
+    "pageSizes": [25, 50, 100, 200, 500],
+    "search": ["comment"],
+    "filtersOpen": true,
+    "filters": [
+      { "field": "worked_on", "operator": "between" },
+      { "field": "user_id" },
+      { "field": "client_id" },
+      { "field": "project_id" },
+      { "field": "billing" },
+      { "field": "modality" }
+    ],
+    "totals": ["minutes", "cost"],
+    "rowActions": [
+      { "label": "actions.mark_billed", "icon": "badge-check", "action": "markBilled", "showon": "billing!:1",
+        "access": { "permission": "bill" } },
+      { "label": "actions.mark_not_billable", "icon": "ban", "action": "markNotBillable", "showon": "billing:0",
+        "access": { "permission": "bill" } },
+      { "label": "actions.create_billing", "icon": "receipt-euro", "action": "createBilling", "showon": "billing:0",
+        "confirm": "confirm.create_billing", "access": { "permission": "bill" } }
+    ],
+    "export": { "columns": ["worked_on", "user_id", "client_id", "project_id", "modality", "issue_id", "comment", "minutes", "cost", "billing"] }
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.entry", "fields": ["worked_on", "user_id", "minutes", "billing", "issue_id", "issue_status", "project_id", "client_id", "comment"] },
+      { "title": "sections.info", "fields": ["modality", "cost", "billing_id", "created_at"] }
+    ]
+  }
+}

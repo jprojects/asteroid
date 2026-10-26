@@ -1,0 +1,317 @@
+{
+  "menu": {
+    "main": "Management",
+    "admin": "Administration"
+  },
+  "logout": "Log out",
+  "login": {
+    "title": "Sign in",
+    "username": "Username",
+    "password": "Password",
+    "language": "Language",
+    "submit": "Sign in",
+    "invalid": "Wrong username or password",
+    "locked": "Account temporarily locked after too many failed attempts. Try again later.",
+    "inactive": "This user is disabled",
+    "logged_out": "You have been logged out"
+  },
+  "home": {
+    "title": "Home",
+    "welcome": "Hello, {name}",
+    "intro": "Pick a section to get started.",
+    "empty": "You don't have access to any section. Contact an administrator."
+  },
+  "page": {
+    "new_record": "New record",
+    "record": "Record #{id}",
+    "editing": "Editing",
+    "viewing": "Viewing",
+    "creating": "New",
+    "breadcrumbs": "Breadcrumbs"
+  },
+  "actions": {
+    "new": "New",
+    "edit": "Edit",
+    "view": "View",
+    "delete": "Delete",
+    "save": "Save",
+    "save_close": "Save and close",
+    "back": "Back",
+    "clear": "Clear",
+    "search": "Search…",
+    "permissions": "Permissions"
+  },
+  "table": {
+    "loading": "Loading…",
+    "empty": "No records",
+    "error": "Error loading data",
+    "info": "{from}–{to} of {total}",
+    "per_page": "per page",
+    "first": "First page",
+    "prev": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "page": "Page",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
+    "total": "Total"
+  },
+  "filter": {
+    "all": "— All —",
+    "from": "From",
+    "to": "To",
+    "toggle": "Filters",
+    "clear": "Clear filters",
+    "search": "Search",
+    "remove": "Remove filter"
+  },
+  "form": {
+    "new": "New",
+    "edit": "Edit",
+    "view": "View",
+    "has_errors": "Please check the highlighted fields",
+    "readonly": "Read only: you are not allowed to modify this record",
+    "shortcuts": "Ctrl+S save · Esc back"
+  },
+  "confirm": {
+    "delete": "Delete this record? This cannot be undone."
+  },
+  "flash": {
+    "saved": "Record saved",
+    "deleted": "Record deleted",
+    "permissions_saved": "Permissions saved"
+  },
+  "yes": "Yes",
+  "no": "No",
+  "password": {
+    "keep": "Leave empty to keep the current one"
+  },
+  "validation": {
+    "required": "This field is required",
+    "maxlength": "Maximum {max} characters",
+    "minlength": "Minimum {min} characters",
+    "pattern": "Invalid format",
+    "email": "Invalid email address",
+    "number": "Must be a number",
+    "integer": "Must be a whole number",
+    "min": "Minimum value is {min}",
+    "max": "Maximum value is {max}",
+    "date": "Invalid date",
+    "option": "Invalid option",
+    "unique": "A record with this value already exists",
+    "rows": "Please fix the errors in the rows",
+    "min_rows": "At least {min} rows are required",
+    "max_rows": "At most {max} rows",
+    "max_files": "At most {max} files",
+    "media": "Invalid file",
+    "max_tags": "At most {max} tags",
+    "tag_length": "Each tag can have at most {max} characters",
+    "max_items": "At most {max} options",
+    "duration": "Invalid duration (e.g. 1:30, 1h30 or 1.5)"
+  },
+  "errors": {
+    "title": "Error",
+    "400": "Bad request",
+    "401": "Your session has expired. Please sign in again.",
+    "403": "You are not allowed to access this page",
+    "404": "Not found",
+    "405": "Method not allowed",
+    "419": "The form has expired. Reload the page and try again.",
+    "500": "An internal error occurred",
+    "503": "The application is being updated. Please try again in a few minutes.",
+    "in_use": "Cannot delete: the record is used elsewhere",
+    "back_home": "Back to home"
+  },
+  "format": {
+    "date": "m/d/Y",
+    "datetime": "m/d/Y H:i",
+    "decimal_point": ".",
+    "thousands_sep": ",",
+    "excel_date": "mm/dd/yyyy",
+    "excel_datetime": "mm/dd/yyyy hh:mm"
+  },
+  "perm": {
+    "view": "View",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "export": "Export"
+  },
+  "repeater": {
+    "add": "Add row",
+    "empty": "No items",
+    "count": "{n} items",
+    "remove": "Remove row",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "drag": "Drag to reorder"
+  },
+  "media": {
+    "drop_one": "Drop a file here or click to choose one",
+    "drop_many": "Drop files here or click to choose them",
+    "hint": "Max. {max} per file · up to {files} file(s)",
+    "count": "{n} file(s)",
+    "remove": "Remove",
+    "download": "Download",
+    "too_large": "The file exceeds the maximum size ({max})",
+    "type": "File type not allowed",
+    "upload_error": "The file could not be uploaded",
+    "wait": "Please wait until the files finish uploading",
+    "hint_one": "Max. {max}",
+    "uploading": "Uploading"
+  },
+  "export": {
+    "excel": "Excel",
+    "pdf": "PDF",
+    "title": "Download the table with the current filters",
+    "search": "Search",
+    "generated": "Generated on {date} by {user}",
+    "filters": "Filters",
+    "count": "{n} records",
+    "truncated": "Showing the first {n} of {total} records",
+    "page": "Page {page} of {pages}"
+  },
+  "mail": {
+    "footer": "This is an automated message, please do not reply.",
+    "test": {
+      "subject": "{app} test email",
+      "title": "Email settings work!",
+      "body": "If you are reading this, the SMTP server is configured correctly. These are the settings used:",
+      "ok": "Email received"
+    }
+  },
+  "two_factor": {
+    "title": "Two-step verification",
+    "intro": "We have sent a code to {email}. Enter it to continue.",
+    "code": "Verification code",
+    "submit": "Verify",
+    "remember": "Trust this device for {days} days",
+    "resend": "Resend code",
+    "resend_in": "Resend code ({s} s)",
+    "cancel": "Cancel",
+    "resent": "We have sent you a new code.",
+    "invalid": "The code is not correct.",
+    "code_expired": "The code has expired. Request a new one.",
+    "too_many": "Too many attempts with this code. Request a new one.",
+    "expired": "Verification has expired. Please sign in again.",
+    "wait": "Wait {seconds} seconds before requesting another code.",
+    "max_sends": "You have requested too many codes. Please sign in again.",
+    "send_failed": "The code could not be sent by email. Try again later or contact an administrator.",
+    "no_email": "Your user has no email address and two-step verification is mandatory. Contact an administrator.",
+    "mail_subject": "Your {app} sign-in code",
+    "mail_preheader": "Code {code} · valid for {minutes} minutes",
+    "mail_hello": "Hello {name},",
+    "mail_body": "Use this code to complete your sign-in:",
+    "mail_expires": "The code expires in {minutes} minutes and can only be used once.",
+    "mail_warning": "If this was not you (attempt from IP {ip}), change your password as soon as possible: someone knows it."
+  },
+  "profile": {
+    "link": "My profile"
+  },
+  "dialog": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirmTitle": "Are you sure?",
+    "alertTitle": "Notice",
+    "errorTitle": "Could not complete the action",
+    "deleteTitle": "Delete record",
+    "unsavedTitle": "Unsaved changes",
+    "unsaved": "You have unsaved changes. If you leave now, they will be lost.",
+    "leave": "Leave without saving",
+    "stay": "Keep editing"
+  },
+  "nav": {
+    "toggle": "Show or hide the menu"
+  },
+  "tags": {
+    "placeholder": "Type and press Enter…",
+    "remove": "Remove tag"
+  },
+  "combo": {
+    "search": "Search…",
+    "no_results": "No results",
+    "loading": "Searching…",
+    "clear": "Clear",
+    "remove": "Remove"
+  },
+  "ai": {
+    "label": "Filter in natural language",
+    "placeholder": "Describe what you want to see, e.g. \"active clients from Spain with more than €10,000 credit\"",
+    "submit": "Filter",
+    "not_understood": "I couldn't turn the request into filters. Try other words or use the filters.",
+    "unresolved": "Not found: {values}.",
+    "error": "The AI could not be reached. Use the filters or try again in a while.",
+    "limit_reached": "The monthly AI limit has been reached. Use the filters.",
+    "too_many": "You have made too many AI queries in the last hour. Try again later.",
+    "limit_warning": "AI: {percent}% of the monthly limit (€{used} of €{limit})"
+  },
+  "richtext": {
+    "bold": "Bold (Ctrl+B)",
+    "italic": "Italic (Ctrl+I)",
+    "underline": "Underline (Ctrl+U)",
+    "ul": "List",
+    "ol": "Numbered list",
+    "quote": "Quote",
+    "link": "Link",
+    "link_prompt": "https://… and press Enter",
+    "image": "Image",
+    "clear": "Clear formatting"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You have no notifications",
+    "read_all": "Mark all as read",
+    "desktop": "Enable desktop notifications",
+    "desktop_on": "You will receive desktop notifications",
+    "desktop_denied": "The browser does not allow desktop notifications",
+    "now": "now",
+    "minutes": "{n} min ago",
+    "hours": "{n} h ago",
+    "days": "{n} d ago",
+    "chat_message": "{user} wrote in {record}",
+    "chat_mention": "{user} mentioned you in {record}",
+    "chat_meet": "{user} invited you to a video call: {record}",
+    "digest_subject": "You have {n} new notifications",
+    "mail_hello": "Hello {name},",
+    "mail_open": "Open",
+    "mail_settings": "You can change email notifications in your profile."
+  },
+  "chat": {
+    "title": "Conversation",
+    "placeholder": "Write a message… (@ to mention)",
+    "send": "Send",
+    "attach": "Attach files",
+    "empty": "No messages yet",
+    "older": "Load earlier messages",
+    "today": "today",
+    "yesterday": "yesterday",
+    "seen": "Seen by {names}",
+    "deleted": "Message deleted",
+    "delete": "Delete",
+    "confirm_delete": "Delete this message?",
+    "mute": "Mute the conversation",
+    "unmute": "Receive notifications again",
+    "muted_on": "Conversation muted: you will only be notified when mentioned",
+    "muted_off": "You will be notified about this conversation again",
+    "meet": "Video call",
+    "meet_confirm": "A Google Meet video call will be created and participants will be notified. Continue?",
+    "meet_join": "Join",
+    "meet_started": "Google Meet video call",
+    "uploading": "Uploading…",
+    "new_messages": "New messages",
+    "mention_hint": "Type @ to mention someone",
+    "enter_hint": "Enter to send · Shift+Enter, new line",
+    "error": "The message could not be sent",
+    "removed_attachment": "Remove the file",
+    "messages_count": "{n} message(s)",
+    "unread_count": "{n} unread message(s)",
+    "too_long": "The message is too long",
+    "empty_message": "Write a message or attach a file",
+    "no_attachments": "This conversation does not accept files",
+    "attachment_used": "The file is already in another message",
+    "meet_failed": "The video call could not be created. Check the Google connection in Integrations."
+  }
+}

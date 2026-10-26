@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Quasar">
+  <title>Quasar</title>
+  <defs>
+    <linearGradient id="qs-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2447a8"/>
+      <stop offset="1" stop-color="#0c1638"/>
+    </linearGradient>
+    <radialGradient id="qs-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".3" stop-color="#e0ebff"/>
+      <stop offset=".65" stop-color="#7fb0ff" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#7fb0ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="qs-jet-up" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bcd5ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#bcd5ff"/>
+    </linearGradient>
+    <linearGradient id="qs-jet-down" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#bcd5ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#bcd5ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo: cuadrado redondeado (se ve igual sobre claro y oscuro, y sirve de favicon) -->
+  <rect width="64" height="64" rx="15" fill="url(#qs-bg)"/>
+
+  <g transform="rotate(-30 32 32)">
+    <!-- Chorros, perpendiculares al disco -->
+    <path d="M32 5 L34.3 24 L29.7 24 Z" fill="url(#qs-jet-up)"/>
+    <path d="M32 59 L34.3 40 L29.7 40 Z" fill="url(#qs-jet-down)"/>
+    <!-- Disco de acreción: mitad trasera (más oscura) -->
+    <path d="M9 32 A23 7.5 0 0 1 55 32" fill="none" stroke="#4f86ff" stroke-width="4.4" stroke-linecap="round"/>
+    <!-- Núcleo luminoso -->
+    <circle cx="32" cy="32" r="12" fill="url(#qs-glow)"/>
+    <circle cx="32" cy="32" r="5" fill="#ffffff"/>
+    <!-- Disco: mitad delantera (más clara), por delante del núcleo -->
+    <path d="M9 32 A23 7.5 0 0 0 55 32" fill="none" stroke="#9cc0ff" stroke-width="4.4" stroke-linecap="round"/>
+  </g>
+</svg>

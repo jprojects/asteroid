@@ -1,0 +1,22 @@
+{
+  "title": "Groups",
+  "description": "User groups: shared permissions and access to fields and buttons",
+  "fields": {
+    "id": "ID",
+    "code": "Code",
+    "name": "Name",
+    "description": "Description",
+    "members": "Users",
+    "created_at": "Created"
+  },
+  "sections": {
+    "general": "General",
+    "info": "Information"
+  },
+  "help": {
+    "code": "Used in the module JSON files (\"access\"). Lowercase letters, digits and _"
+  },
+  "validation": {
+    "code": "Only lowercase letters, digits and underscore"
+  }
+}

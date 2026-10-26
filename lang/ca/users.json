@@ -1,0 +1,38 @@
+{
+  "title": "Usuaris",
+  "fields": {
+    "id": "ID",
+    "username": "Usuari",
+    "password": "Contrasenya",
+    "is_admin": "Administrador",
+    "active": "Actiu",
+    "name": "Nom",
+    "email": "Correu electrònic",
+    "locale": "Idioma",
+    "last_login": "Últim accés",
+    "created_at": "Creat",
+    "two_factor": "Verificació en dos passos",
+    "groups": "Grups"
+  },
+  "sections": {
+    "account": "Compte",
+    "profile": "Perfil",
+    "info": "Informació"
+  },
+  "help": {
+    "is_admin": "Accés total, inclosa l'administració",
+    "two_factor": "Només s'aplica si two_factor.mode = optional a la configuració",
+    "groups": "Els permisos dels grups se sumen als de l'usuari"
+  },
+  "validation": {
+    "username": "Només lletres, números, punt i guió baix"
+  },
+  "errors": {
+    "self_admin": "No et pots treure a tu mateix el rol d'administrador",
+    "self_active": "No pots desactivar el teu propi usuari",
+    "self_delete": "No pots eliminar el teu propi usuari"
+  },
+  "placeholders": {
+    "groups": "Sense grups"
+  }
+}

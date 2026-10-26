@@ -1,0 +1,22 @@
+{
+  "title": "Grupos",
+  "description": "Grupos de usuarios: permisos compartidos y acceso a campos y botones",
+  "fields": {
+    "id": "ID",
+    "code": "Código",
+    "name": "Nombre",
+    "description": "Descripción",
+    "members": "Usuarios",
+    "created_at": "Creado"
+  },
+  "sections": {
+    "general": "Datos generales",
+    "info": "Información"
+  },
+  "help": {
+    "code": "El que se usa en los JSON de los módulos (\"access\"). Minúsculas, números y _"
+  },
+  "validation": {
+    "code": "Solo minúsculas, números y guion bajo"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Carpetas",
+  "description": "Documentos compartidos con los clientes",
+  "fields": {
+    "id": "Núm.",
+    "client_id": "Cliente",
+    "name": "Carpeta",
+    "notes": "Observaciones",
+    "files": "Archivos",
+    "created_at": "Fecha de creación"
+  },
+  "actions": {
+    "files": "Archivos de la carpeta",
+    "add_file": "Añadir un archivo"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Projectes",
+  "description": "Projectes de cada client",
+  "fields": {
+    "id": "Núm.",
+    "title": "Projecte",
+    "code": "Abreviatura",
+    "client_id": "Client",
+    "active": "Actiu",
+    "modality": "Modalitat",
+    "budget": "Pressupost",
+    "hourly_rate": "Preu per hora",
+    "api_key": "Clau de l'API",
+    "notes": "Observacions",
+    "open_issues": "Incid. obertes",
+    "worked": "Hores",
+    "unbilled": "Per facturar"
+  },
+  "modality": {
+    "hours": "Per hores",
+    "budget": "Pressupost"
+  },
+  "help": {
+    "budget": "Buit o 0: el projecte es factura per hores.",
+    "hourly_rate": "Preu de les ordres de facturació que es creen des de les hores.",
+    "api_key": "Per crear i consultar incidències des d'una altra aplicació."
+  },
+  "sections": {
+    "general": "Projecte",
+    "api": "API",
+    "summary": "Resum"
+  },
+  "actions": {
+    "issues": "Incidències del projecte",
+    "hours": "Hores del projecte",
+    "new_issue": "Nova incidència"
+  }
+}

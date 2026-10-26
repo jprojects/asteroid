@@ -1,0 +1,117 @@
+# Asteroid (sobre Quasar)
+
+Gestor de incidencias de AFI, migrado de Franky CMS a Quasar 0.7.0. El `README.md` es el del núcleo (Quasar) y se
+sustituye con cada actualización; lo propio de Asteroid está aquí.
+
+## Qué es de Asteroid (no lo toca una actualización de Quasar)
+
+| | |
+|---|---|
+| `modules/` | `issues`, `agenda`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `src/Hooks/` | `Asteroid` (utilidades), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
+| `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
+| `database/asteroid.sql` | tablas del proyecto |
+| `tools/asteroid-migrate.php` | crea o pone al día las tablas, `users.client_id` y los grupos con sus permisos |
+| `tools/import-asteroid.php` | importa los datos del Asteroid antiguo |
+| `config/config.local.php` | credenciales (no versionar) |
+
+## Roles
+
+- **`equip`** (Kim, Carles, Sergi): todos los módulos. Ven todas las incidencias, se las asignan, imputan horas y
+  facturan. `kim` es además administrador (usuarios, grupos, permisos, integraciones).
+- **`client`** (usuarios con `users.client_id`): solo **Incidències** y **Carpetes**. Ven las incidencias de su cliente
+  marcadas como *Visible pel client*, las crean (el cliente y la visibilidad se fijan solos), escriben en la
+  conversación y descargan los archivos de sus carpetas. No pueden cambiar estado, técnico ni planificación.
+
+Los permisos de cada grupo están en *Administració → Grups → llave*; `tools/asteroid-migrate.php` crea los iniciales.
+Los usuarios de los clientes se gestionan en *Clients → Usuaris de clients* (entran siempre en el grupo `client`).
+
+## Avisos
+
+| Qué pasa | A quién |
+|---|---|
+| Un cliente crea una incidencia | al técnico asignado o, si no hay, a todo el equipo |
+| Se asigna una incidencia | al técnico |
+| Cambia el estado (también al imputar horas con «Estat de la incidència») | al técnico y al cliente que la abrió (o a todos los usuarios del cliente si la abrió el equipo) |
+| Se hace visible para el cliente | a sus usuarios |
+| Mensaje en la conversación | técnico, quien ya ha escrito, mencionados y el cliente si es visible |
+| Videotrucada | a todos los participantes, por correo siempre |
+
+## Instalación
+
+```bash
+# 1. Crea config/config.local.php (ver abajo)
+php bin/install.php --no-demo --user=… --password=… --email=…
+php tools/asteroid-migrate.php
+php tools/import-asteroid.php --host=… --name=bd_antigua --user=… --pass=… \
+    --files=/ruta/al/asteroid/admin/assets --admins=kim
+```
+
+`config/config.local.php` mínimo:
+
+```php
+<?php return [
+    'app_name' => 'Asteroid',
+    'base_url' => 'https://asteroid.afi.cat',
+    'db' => ['host' => 'localhost', 'name' => '…', 'user' => '…', 'pass' => '…'],
+    'mail' => ['host' => '…', 'username' => '…', 'password' => '…', 'from' => ['address' => 'suport@afi.cat', 'name' => 'Asteroid']],
+    'google' => ['client_id' => '…', 'client_secret' => '…'],   // ver README de Quasar, "Videollamadas con Google Meet"
+];
+```
+
+Cron: `php bin/media-clean.php` (diario) y, si `notifications.email = queue`, `php bin/notifications.php` cada 5 min.
+
+## Videollamadas con Google Meet
+
+Cada incidencia tiene el botón **Videotrucada** en la cabecera de la conversación: crea una sala de Google Meet, publica
+el enlace en el chat (botón «Uneix-t'hi») y avisa a todos los participantes, también por correo. Meet no se puede
+incrustar como Jitsi: se abre en otra pestaña. Está activado en `modules/issues.json` (`"chat": { …, "meet": true }`).
+
+El botón no aparece hasta que la instalación está conectada a una cuenta de Google. Configuración (una sola vez):
+
+1. **Google Cloud Console** (https://console.cloud.google.com) con la cuenta de AFI → crea un proyecto (p. ej. «Asteroid»).
+2. *APIs y servicios → Biblioteca* → activa **Google Meet REST API**.
+3. *APIs y servicios → Pantalla de consentimiento de OAuth*:
+   - tipo **Interno** si la cuenta es de Google Workspace (solo pueden conectar usuarios de AFI; no caduca);
+   - si es un Gmail personal, tipo **Externo** en modo *Prueba* y añade la cuenta como usuario de prueba (el token
+     caduca a los 7 días: habrá que volver a conectar) o publica la aplicación;
+   - ámbitos: `openid`, `email` y `https://www.googleapis.com/auth/meetings.space.created`.
+4. *APIs y servicios → Credenciales → Crear credenciales → ID de cliente de OAuth* → tipo **Aplicación web**, con esta
+   URI de redirección autorizada (tiene que coincidir exactamente con `base_url`):
+   - servidor: `https://EL-DOMINIO/index.php?r=page&m=integrations&a=callback`
+   - local: `http://127.0.0.1:8090/index.php?r=page&m=integrations&a=callback`
+5. En `config/config.local.php`:
+   ```php
+   'base_url' => 'https://EL-DOMINIO',
+   'google' => [
+       'client_id' => '….apps.googleusercontent.com',
+       'client_secret' => '…',
+       'meet_access' => 'OPEN',   // los clientes (de fuera de AFI) entran con el enlace sin pedir permiso
+   ],
+   ```
+6. Entra como administrador (kim) → *Administració → Integracions* → **Connecta amb Google** con la cuenta que
+   organizará las reuniones (las salas se crean a su nombre).
+
+Problemas habituales: `redirect_uri_mismatch` → la URI de Google no es idéntica a `base_url` + la ruta;
+«No s'ha pogut crear la videotrucada» → mira `storage/logs/app-*.log` (`Google: POST …`): API sin activar o ámbito no
+concedido. Si cambias `client_secret`, hay que volver a conectar (el token se guarda cifrado con él).
+
+Código: `src/Google/GoogleClient.php` (OAuth y Meet API), `src/Pages/IntegrationsPage.php`, `ChatController::meet`.
+
+## Importación
+
+Repetible hasta el día del cambio (conserva ids, actualiza lo que existe y no duplica archivos). Las contraseñas bcrypt
+se conservan. Resultado con la copia del 26/10/2026: 272 clientes, 238 proyectos, 18 usuarios, 4.100 incidencias
+(con 111 imágenes incrustadas pasadas a archivos), 1.796 mensajes, 4.186 entradas de horas. No se importan:
+
+- adjuntos de tipos que Quasar no admite (vídeos mp4, .sql, .php, .vb, .ai, .bmp, .ogg…) ni los que no coinciden con
+  su extensión (un `.pdf` que no es PDF); el script los lista al final;
+- comentarios de incidencias borradas (33) y la tabla de encuestas de satisfacción (vacía).
+
+## Pendiente respecto al Asteroid antiguo
+
+- **API para otras aplicaciones** (`admin/component/controllers/api.php`: `getIssues`, `getHours`, `setBilled`,
+  `getIssuesById`, `setIssue`, `getIssuesByProjectId`, `getHoresPendentsFacturar`, `canviaEstatHoresPendentsFacturar`,
+  autenticada con `projects.api_key`). Las claves se han importado, pero los endpoints no existen todavía: las
+  aplicaciones que la usen dejarán de funcionar hasta que se haga una página `api` equivalente.
+- Encuestas de satisfacción al resolver (`onSendSurvey`), panel "Pissarra" y tareas (`todo`), accesos (`accesos`).

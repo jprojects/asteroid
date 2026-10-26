@@ -1,0 +1,65 @@
+{
+  "title": "Incidències",
+  "description": "Incidències dels clients i la seva conversa",
+  "fields": {
+    "id": "Núm.",
+    "title": "Títol",
+    "project_id": "Projecte",
+    "client_id": "Client",
+    "status": "Estat",
+    "priority": "Prioritat",
+    "worker_id": "Tècnic",
+    "estimated_minutes": "Temps previst",
+    "worked_minutes": "Temps dedicat",
+    "starts_on": "Data inici",
+    "due_on": "Data límit",
+    "client_visible": "Visible pel client",
+    "created_by_client": "Creada pel client",
+    "description": "Descripció",
+    "attachments": "Adjunts",
+    "created_by": "Creada per",
+    "created_at": "Data de creació",
+    "resolved_at": "Data de resolució"
+  },
+  "status": {
+    "pending": "Pendent",
+    "in_progress": "En curs",
+    "resolved": "Resolta",
+    "discarded": "Descartada"
+  },
+  "priority": {
+    "normal": "Normal",
+    "urgent": "Urgent",
+    "panic": "Pànic"
+  },
+  "placeholders": {
+    "worker": "Sense assignar"
+  },
+  "help": {
+    "client_visible": "El client la veu, rep els avisos i pot escriure a la conversa."
+  },
+  "columns": {
+    "visible": "Client"
+  },
+  "sections": {
+    "general": "Incidència",
+    "planning": "Planificació",
+    "description": "Descripció",
+    "attachments": "Adjunts",
+    "info": "Informació"
+  },
+  "log": {
+    "created": "Incidència creada per {user}",
+    "assigned": "Assignada a {user}",
+    "status": "Estat: {from} → {to}",
+    "shared": "{user} l'ha fet visible pel client"
+  },
+  "notify": {
+    "new_from_client": "Nova incidència de {client}: {record}",
+    "assigned": "T'han assignat la incidència {record}",
+    "assigned_body": "Assignada per {user} · {client}",
+    "status": "{record}: {status}",
+    "status_body": "{user} ha canviat l'estat a «{status}»",
+    "opened": "Nova incidència oberta: {record}"
+  }
+}

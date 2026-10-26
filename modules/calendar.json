@@ -1,0 +1,13 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\CalendarPage",
+  "requires": ["activities"],
+  "menu": { "group": "main", "order": 11, "icon": "calendar-days" },
+
+  "calendar": {
+    "source": "activities",
+    "date": "starts_at",
+    "title": "title",
+    "color": "type"
+  }
+}

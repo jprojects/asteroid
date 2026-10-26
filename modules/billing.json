@@ -1,0 +1,55 @@
+{
+  "table": "billing",
+  "primaryKey": "id",
+  "hooks": "Quasar\\Hooks\\BillingHooks",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "team", "order": 36, "icon": "receipt-euro" },
+
+  "fields": {
+    "id":             { "type": "number", "readonly": true, "grouping": false },
+    "billed_on":      { "type": "date", "required": true, "width": "quarter" },
+    "status":         { "type": "select", "required": true, "default": "0", "width": "quarter",
+                        "options": { "0": "status.draft", "1": "status.billed" }, "colors": { "0": "amber", "1": "green" } },
+    "invoice_number": { "type": "text", "maxlength": 30, "width": "half", "help": "help.invoice_number" },
+    "client_id":      { "type": "select", "required": true, "width": "half", "search": "remote",
+                        "source": { "table": "clients", "value": "id", "label": "name" } },
+    "project_id":     { "type": "select", "width": "half", "search": "remote",
+                        "source": { "table": "projects", "value": "id", "label": "title" } },
+    "lines":          { "type": "repeater", "layout": "table", "min": 1, "addLabel": "repeater.add_line", "summary": "description",
+                        "fields": {
+                          "description": { "type": "text", "label": "line.description", "required": true, "maxlength": 200 },
+                          "quantity":    { "type": "number", "label": "line.quantity", "decimals": 2, "required": true, "width": "quarter" },
+                          "price":       { "type": "number", "label": "line.price", "decimals": 2, "required": true, "width": "quarter" },
+                          "amount":      { "type": "number", "label": "line.amount", "decimals": 2, "readonly": true, "width": "quarter" }
+                        } },
+    "total":          { "type": "number", "decimals": 2, "readonly": true, "width": "quarter" },
+    "notes":          { "type": "textarea", "rows": 3 },
+    "hours_count":    { "type": "number", "sql": "SELECT COUNT(*) FROM hours h WHERE h.billing_id = billing.id" },
+    "created_at":     { "type": "datetime", "readonly": true, "width": "quarter" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "64px" },
+      { "field": "billed_on", "width": "100px" },
+      { "field": "client_id", "minWidth": "200px" },
+      { "field": "project_id", "maxWidth": "220px" },
+      { "field": "invoice_number", "width": "120px" },
+      { "field": "status", "width": "100px" },
+      { "field": "total", "width": "110px" }
+    ],
+    "expand": ["lines", "notes"],
+    "defaultSort": { "field": "billed_on", "dir": "desc" },
+    "search": ["invoice_number", "notes"],
+    "filters": [{ "field": "billed_on", "operator": "between" }, { "field": "client_id" }, { "field": "status" }],
+    "totals": ["total"]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.general", "fields": ["billed_on", "status", "invoice_number", "client_id", "project_id"] },
+      { "title": "sections.lines", "fields": ["lines", "total"] },
+      { "title": "sections.info", "fields": ["notes", "hours_count", "created_at"] }
+    ]
+  }
+}

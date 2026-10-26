@@ -1,0 +1,48 @@
+{
+  "title": "El meu perfil",
+  "fields": {
+    "name": "Nom",
+    "email": "Correu electrònic",
+    "locale": "Idioma",
+    "two_factor": "Verificació en dos passos per correu electrònic",
+    "current_password": "Contrasenya actual",
+    "new_password": "Nova contrasenya",
+    "new_password_confirm": "Repeteix la nova contrasenya",
+    "notify_email": "Avisos per correu electrònic"
+  },
+  "sections": {
+    "personal": "Dades personals",
+    "security": "Seguretat",
+    "password": "Contrasenya"
+  },
+  "help": {
+    "two_factor": "En iniciar la sessió et demanarem un codi que t'enviarem per correu electrònic.",
+    "current_password": "Necessària per canviar el correu, la contrasenya o desactivar la verificació.",
+    "password_section": "Deixa-ho en blanc si no vols canviar la contrasenya.",
+    "notify_email": "Els avisos sempre apareixen a la campana de la barra superior."
+  },
+  "two_factor_status": {
+    "required": "La verificació en dos passos és obligatòria: en iniciar la sessió rebràs un codi al teu correu.",
+    "devices": "Dispositius de confiança (no demanen codi): {n}",
+    "forget": "Oblida'ls tots",
+    "forget_confirm": "Es demanarà el codi la propera vegada a tots els teus dispositius. Vols continuar?"
+  },
+  "info": {
+    "username": "Usuari: {username}",
+    "last_login": "últim accés {date}"
+  },
+  "errors": {
+    "current_required": "Introdueix la contrasenya actual per confirmar el canvi",
+    "current_wrong": "La contrasenya actual no és correcta",
+    "mismatch": "Les contrasenyes no coincideixen",
+    "email_2fa": "El correu electrònic és necessari per a la verificació en dos passos"
+  },
+  "flash": {
+    "saved": "Perfil actualitzat",
+    "devices_forgotten": "Es demanarà el codi a tots els teus dispositius"
+  },
+  "notify": {
+    "instant": "Rebre-los al moment",
+    "off": "No rebre avisos per correu"
+  }
+}

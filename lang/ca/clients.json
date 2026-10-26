@@ -1,0 +1,27 @@
+{
+  "title": "Clients",
+  "description": "Empreses a les quals donem servei",
+  "fields": {
+    "id": "Núm.",
+    "name": "Nom",
+    "nif": "NIF",
+    "factusol_code": "Codi FactuSOL",
+    "email": "Correu electrònic",
+    "phone": "Telèfon",
+    "active": "Actiu",
+    "notes": "Observacions",
+    "projects": "Projectes",
+    "open_issues": "Incid. obertes",
+    "users": "Usuaris",
+    "created_at": "Data d'alta"
+  },
+  "sections": {
+    "general": "Client",
+    "summary": "Resum"
+  },
+  "actions": {
+    "issues": "Incidències del client",
+    "projects": "Projectes del client",
+    "users": "Usuaris del client"
+  }
+}

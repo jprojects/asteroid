@@ -1,0 +1,13 @@
+{
+  "title": "Arxius",
+  "description": "Documents de les carpetes dels clients",
+  "fields": {
+    "id": "Núm.",
+    "folder_id": "Carpeta",
+    "client_id": "Client",
+    "title": "Títol",
+    "file": "Arxiu",
+    "notes": "Observacions",
+    "created_at": "Data"
+  }
+}

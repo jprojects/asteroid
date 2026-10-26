@@ -1,0 +1,62 @@
+{
+  "title": "Horas",
+  "description": "Horas dedicadas a los proyectos e incidencias",
+  "fields": {
+    "id": "Núm.",
+    "worked_on": "Fecha",
+    "user_id": "Trabajador",
+    "minutes": "Tiempo",
+    "billing": "Facturación",
+    "issue_id": "Incidencia",
+    "issue_status": "Estado de la incidencia",
+    "project_id": "Proyecto",
+    "client_id": "Cliente",
+    "comment": "Comentario",
+    "modality": "Modalidad",
+    "cost": "Coste",
+    "billing_id": "Orden de facturación",
+    "created_at": "Fecha de entrada"
+  },
+  "billing": {
+    "pending": "Pendiente",
+    "billed": "Facturada",
+    "not_billable": "No facturable"
+  },
+  "help": {
+    "user": "Vacío: tú mismo.",
+    "minutes": "1:30, 1h30, 45m o 1,5",
+    "issue": "El proyecto se pone solo a partir de la incidencia.",
+    "issue_status": "Cambia el estado de la incidencia al guardar (opcional).",
+    "project": "Obligatorio si no hay incidencia."
+  },
+  "placeholders": {
+    "issue_status": "No cambiarlo"
+  },
+  "columns": {
+    "modality": "Mod."
+  },
+  "sections": {
+    "entry": "Entrada de horas",
+    "info": "Información"
+  },
+  "actions": {
+    "mark_billed": "Marcar como facturada",
+    "mark_not_billable": "Marcar como no facturable",
+    "create_billing": "Crear una orden de facturación"
+  },
+  "confirm": {
+    "create_billing": "Se creará una orden de facturación con estas horas y se marcarán como facturadas. ¿Continuar?"
+  },
+  "flash": {
+    "marked_billed": "Marcada como facturada",
+    "marked_not_billable": "Marcada como no facturable",
+    "billing_created": "Orden de facturación creada"
+  },
+  "errors": {
+    "project_required": "Indica el proyecto o la incidencia",
+    "no_client": "El proyecto no tiene cliente"
+  },
+  "perm": {
+    "bill": "Facturar"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Calendario",
+  "description": "Actividades del mes",
+  "today": "Hoy",
+  "prev": "Mes anterior",
+  "next": "Mes siguiente",
+  "new": "Nueva actividad",
+  "add_on": "Nueva actividad el {date}",
+  "more": "+{n} más",
+  "empty": "No hay actividades este mes",
+  "months": [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre"
+  ],
+  "weekdays": [
+    "lun.",
+    "mar.",
+    "mié.",
+    "jue.",
+    "vie.",
+    "sáb.",
+    "dom."
+  ],
+  "no_access": "No tienes permiso para ver las actividades"
+}

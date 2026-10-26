@@ -1,0 +1,317 @@
+{
+  "menu": {
+    "main": "Gestión",
+    "admin": "Administración"
+  },
+  "logout": "Salir",
+  "login": {
+    "title": "Iniciar sesión",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "language": "Idioma",
+    "submit": "Entrar",
+    "invalid": "Usuario o contraseña incorrectos",
+    "locked": "Cuenta bloqueada temporalmente por demasiados intentos fallidos. Inténtalo más tarde.",
+    "inactive": "Este usuario está desactivado",
+    "logged_out": "Has cerrado la sesión"
+  },
+  "home": {
+    "title": "Inicio",
+    "welcome": "Hola, {name}",
+    "intro": "Selecciona una sección para empezar.",
+    "empty": "No tienes acceso a ninguna sección. Contacta con un administrador."
+  },
+  "page": {
+    "new_record": "Nuevo registro",
+    "record": "Registro #{id}",
+    "editing": "Edición",
+    "viewing": "Consulta",
+    "creating": "Alta",
+    "breadcrumbs": "Ruta de navegación"
+  },
+  "actions": {
+    "new": "Nuevo",
+    "edit": "Editar",
+    "view": "Ver",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "save_close": "Guardar y cerrar",
+    "back": "Volver",
+    "clear": "Limpiar",
+    "search": "Buscar…",
+    "permissions": "Permisos"
+  },
+  "table": {
+    "loading": "Cargando…",
+    "empty": "No hay registros",
+    "error": "Error al cargar los datos",
+    "info": "{from}–{to} de {total}",
+    "per_page": "por página",
+    "first": "Primera página",
+    "prev": "Página anterior",
+    "next": "Página siguiente",
+    "last": "Última página",
+    "page": "Página",
+    "expand": "Desplegar",
+    "collapse": "Plegar",
+    "expand_all": "Desplegar todo",
+    "collapse_all": "Plegar todo",
+    "total": "Total"
+  },
+  "filter": {
+    "all": "— Todos —",
+    "from": "Desde",
+    "to": "Hasta",
+    "toggle": "Filtros",
+    "clear": "Quitar filtros",
+    "search": "Buscar",
+    "remove": "Quitar el filtro"
+  },
+  "form": {
+    "new": "Nuevo",
+    "edit": "Editar",
+    "view": "Consulta",
+    "has_errors": "Revisa los campos marcados",
+    "readonly": "Solo lectura: no tienes permiso para modificar este registro",
+    "shortcuts": "Ctrl+S guardar · Esc volver"
+  },
+  "confirm": {
+    "delete": "¿Eliminar este registro? Esta acción no se puede deshacer."
+  },
+  "flash": {
+    "saved": "Registro guardado",
+    "deleted": "Registro eliminado",
+    "permissions_saved": "Permisos guardados"
+  },
+  "yes": "Sí",
+  "no": "No",
+  "password": {
+    "keep": "Dejar vacío para no cambiarla"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "maxlength": "Máximo {max} caracteres",
+    "minlength": "Mínimo {min} caracteres",
+    "pattern": "Formato no válido",
+    "email": "Correo electrónico no válido",
+    "number": "Debe ser un número",
+    "integer": "Debe ser un número entero",
+    "min": "El valor mínimo es {min}",
+    "max": "El valor máximo es {max}",
+    "date": "Fecha no válida",
+    "option": "Opción no válida",
+    "unique": "Ya existe un registro con este valor",
+    "rows": "Revisa los errores de las filas",
+    "min_rows": "Debe haber al menos {min} filas",
+    "max_rows": "Como máximo {max} filas",
+    "max_files": "Como máximo {max} archivos",
+    "media": "Archivo no válido",
+    "max_tags": "Como máximo {max} etiquetas",
+    "tag_length": "Cada etiqueta puede tener como máximo {max} caracteres",
+    "max_items": "Como máximo {max} opciones",
+    "duration": "Duración no válida (p. ej. 1:30, 1h30 o 1,5)"
+  },
+  "errors": {
+    "title": "Error",
+    "400": "Petición incorrecta",
+    "401": "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+    "403": "No tienes permiso para acceder aquí",
+    "404": "No encontrado",
+    "405": "Método no permitido",
+    "419": "El formulario ha caducado. Recarga la página e inténtalo de nuevo.",
+    "500": "Se ha producido un error interno",
+    "503": "La aplicación se está actualizando. Vuelve a intentarlo en unos minutos.",
+    "in_use": "No se puede eliminar: el registro está siendo usado en otro lugar",
+    "back_home": "Volver al inicio"
+  },
+  "format": {
+    "date": "d/m/Y",
+    "datetime": "d/m/Y H:i",
+    "decimal_point": ",",
+    "thousands_sep": ".",
+    "excel_date": "dd/mm/yyyy",
+    "excel_datetime": "dd/mm/yyyy hh:mm"
+  },
+  "perm": {
+    "view": "Ver",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "export": "Exportar"
+  },
+  "repeater": {
+    "add": "Añadir fila",
+    "empty": "Sin elementos",
+    "count": "{n} elementos",
+    "remove": "Quitar fila",
+    "move_up": "Subir",
+    "move_down": "Bajar",
+    "drag": "Arrastrar para ordenar"
+  },
+  "media": {
+    "drop_one": "Arrastra un archivo aquí o haz clic para seleccionarlo",
+    "drop_many": "Arrastra archivos aquí o haz clic para seleccionarlos",
+    "hint": "Máx. {max} por archivo · hasta {files} archivo(s)",
+    "count": "{n} archivo(s)",
+    "remove": "Quitar",
+    "download": "Descargar",
+    "too_large": "El archivo supera el tamaño máximo ({max})",
+    "type": "Tipo de archivo no permitido",
+    "upload_error": "No se ha podido subir el archivo",
+    "wait": "Espera a que terminen de subirse los archivos",
+    "hint_one": "Máx. {max}",
+    "uploading": "Subiendo"
+  },
+  "export": {
+    "excel": "Excel",
+    "pdf": "PDF",
+    "title": "Descargar la tabla con los filtros actuales",
+    "search": "Búsqueda",
+    "generated": "Generado el {date} por {user}",
+    "filters": "Filtros",
+    "count": "{n} registros",
+    "truncated": "Se muestran los primeros {n} de {total} registros",
+    "page": "Página {page} de {pages}"
+  },
+  "mail": {
+    "footer": "Este es un mensaje automático, por favor no respondas a este correo.",
+    "test": {
+      "subject": "Prueba de correo de {app}",
+      "title": "¡La configuración de correo funciona!",
+      "body": "Si estás leyendo esto, el servidor SMTP está bien configurado. Estos son los datos usados:",
+      "ok": "Correo recibido"
+    }
+  },
+  "two_factor": {
+    "title": "Verificación en dos pasos",
+    "intro": "Hemos enviado un código a {email}. Introdúcelo para continuar.",
+    "code": "Código de verificación",
+    "submit": "Verificar",
+    "remember": "Confiar en este dispositivo durante {days} días",
+    "resend": "Reenviar el código",
+    "resend_in": "Reenviar el código ({s} s)",
+    "cancel": "Cancelar",
+    "resent": "Te hemos enviado un código nuevo.",
+    "invalid": "El código no es correcto.",
+    "code_expired": "El código ha caducado. Pide uno nuevo.",
+    "too_many": "Demasiados intentos con este código. Pide uno nuevo.",
+    "expired": "La verificación ha caducado. Vuelve a iniciar sesión.",
+    "wait": "Espera {seconds} segundos antes de pedir otro código.",
+    "max_sends": "Has pedido demasiados códigos. Vuelve a iniciar sesión.",
+    "send_failed": "No se ha podido enviar el código por email. Inténtalo más tarde o contacta con un administrador.",
+    "no_email": "Tu usuario no tiene email y la verificación en dos pasos es obligatoria. Contacta con un administrador.",
+    "mail_subject": "Tu código de acceso a {app}",
+    "mail_preheader": "Código {code} · válido {minutes} minutos",
+    "mail_hello": "Hola {name}:",
+    "mail_body": "Usa este código para completar el inicio de sesión:",
+    "mail_expires": "El código caduca en {minutes} minutos y solo puede usarse una vez.",
+    "mail_warning": "Si no has sido tú (intento desde la IP {ip}), cambia tu contraseña cuanto antes: alguien la conoce."
+  },
+  "profile": {
+    "link": "Mi perfil"
+  },
+  "dialog": {
+    "ok": "Aceptar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirmTitle": "¿Estás seguro?",
+    "alertTitle": "Aviso",
+    "errorTitle": "No se ha podido completar",
+    "deleteTitle": "Eliminar registro",
+    "unsavedTitle": "Cambios sin guardar",
+    "unsaved": "Tienes cambios sin guardar. Si sales ahora, se perderán.",
+    "leave": "Salir sin guardar",
+    "stay": "Seguir editando"
+  },
+  "nav": {
+    "toggle": "Mostrar u ocultar el menú"
+  },
+  "tags": {
+    "placeholder": "Escribe y pulsa Enter…",
+    "remove": "Quitar la etiqueta"
+  },
+  "combo": {
+    "search": "Buscar…",
+    "no_results": "Sin resultados",
+    "loading": "Buscando…",
+    "clear": "Vaciar",
+    "remove": "Quitar"
+  },
+  "ai": {
+    "label": "Filtrar con lenguaje natural",
+    "placeholder": "Describe qué quieres ver, p. ej. «clientes activos de España con más de 10.000 € de crédito»",
+    "submit": "Filtrar",
+    "not_understood": "No he podido convertir la petición en filtros. Prueba con otras palabras o usa los filtros.",
+    "unresolved": "No se ha encontrado: {values}.",
+    "error": "No se ha podido consultar la IA. Usa los filtros o vuelve a intentarlo dentro de un rato.",
+    "limit_reached": "Se ha alcanzado el límite mensual de la IA. Usa los filtros.",
+    "too_many": "Has hecho demasiadas consultas a la IA en la última hora. Vuelve a intentarlo más tarde.",
+    "limit_warning": "IA: {percent} % del límite mensual ({used} € de {limit} €)"
+  },
+  "richtext": {
+    "bold": "Negrita (Ctrl+B)",
+    "italic": "Cursiva (Ctrl+I)",
+    "underline": "Subrayado (Ctrl+U)",
+    "ul": "Lista",
+    "ol": "Lista numerada",
+    "quote": "Cita",
+    "link": "Enlace",
+    "link_prompt": "https://… y pulsa Intro",
+    "image": "Imagen",
+    "clear": "Quitar formato"
+  },
+  "notifications": {
+    "title": "Avisos",
+    "empty": "No tienes avisos",
+    "read_all": "Marcar todo como leído",
+    "desktop": "Activar los avisos en el escritorio",
+    "desktop_on": "Recibirás avisos en el escritorio",
+    "desktop_denied": "El navegador no permite los avisos en el escritorio",
+    "now": "ahora",
+    "minutes": "hace {n} min",
+    "hours": "hace {n} h",
+    "days": "hace {n} d",
+    "chat_message": "{user} ha escrito en {record}",
+    "chat_mention": "{user} te ha mencionado en {record}",
+    "chat_meet": "{user} te ha invitado a una videollamada: {record}",
+    "digest_subject": "Tienes {n} avisos nuevos",
+    "mail_hello": "Hola {name}:",
+    "mail_open": "Abrir",
+    "mail_settings": "Puedes cambiar los avisos por correo en tu perfil."
+  },
+  "chat": {
+    "title": "Conversación",
+    "placeholder": "Escribe un mensaje… (@ para mencionar)",
+    "send": "Enviar",
+    "attach": "Adjuntar archivos",
+    "empty": "Aún no hay mensajes",
+    "older": "Cargar mensajes anteriores",
+    "today": "hoy",
+    "yesterday": "ayer",
+    "seen": "Visto por {names}",
+    "deleted": "Mensaje eliminado",
+    "delete": "Eliminar",
+    "confirm_delete": "¿Eliminar este mensaje?",
+    "mute": "Silenciar la conversación",
+    "unmute": "Volver a recibir avisos",
+    "muted_on": "Conversación silenciada: solo recibirás avisos si te mencionan",
+    "muted_off": "Volverás a recibir los avisos de esta conversación",
+    "meet": "Videollamada",
+    "meet_confirm": "Se creará una videollamada de Google Meet y se avisará a los participantes. ¿Continuar?",
+    "meet_join": "Unirse",
+    "meet_started": "Videollamada de Google Meet",
+    "uploading": "Subiendo…",
+    "new_messages": "Mensajes nuevos",
+    "mention_hint": "Escribe @ para mencionar a alguien",
+    "enter_hint": "Intro para enviar · Mayús+Intro, nueva línea",
+    "error": "No se ha podido enviar el mensaje",
+    "removed_attachment": "Quitar el archivo",
+    "messages_count": "{n} mensaje(s)",
+    "unread_count": "{n} mensaje(s) sin leer",
+    "too_long": "El mensaje es demasiado largo",
+    "empty_message": "Escribe un mensaje o adjunta un archivo",
+    "no_attachments": "Esta conversación no admite archivos",
+    "attachment_used": "El archivo ya está en otro mensaje",
+    "meet_failed": "No se ha podido crear la videollamada. Revisa la conexión con Google en Integraciones."
+  }
+}

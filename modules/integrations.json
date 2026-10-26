@@ -1,0 +1,7 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\IntegrationsPage",
+  "feature": "google",
+  "adminOnly": true,
+  "menu": { "group": "admin", "order": 960, "icon": "plug" }
+}

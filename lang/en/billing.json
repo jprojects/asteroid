@@ -1,0 +1,38 @@
+{
+  "title": "Billing",
+  "description": "Billing orders to enter in FactuSOL",
+  "fields": {
+    "id": "No.",
+    "billed_on": "Date",
+    "status": "Status",
+    "invoice_number": "Invoice",
+    "client_id": "Client",
+    "project_id": "Project",
+    "lines": "Lines",
+    "total": "Total",
+    "notes": "Notes",
+    "hours_count": "Time entries",
+    "created_at": "Created"
+  },
+  "status": {
+    "draft": "Draft",
+    "billed": "Billed"
+  },
+  "help": {
+    "invoice_number": "Invoice number in FactuSOL."
+  },
+  "repeater": {
+    "add_line": "Add a line"
+  },
+  "line": {
+    "description": "Description",
+    "quantity": "Quantity",
+    "price": "Price",
+    "amount": "Amount"
+  },
+  "sections": {
+    "general": "Billing order",
+    "lines": "Lines",
+    "info": "Information"
+  }
+}

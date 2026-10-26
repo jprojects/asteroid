@@ -1,0 +1,7 @@
+Options -Indexes
+DirectoryIndex index.php
+
+# Corta la herencia de las reglas del .htaccess de la raíz (evita un bucle public/public/…)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>

@@ -1,0 +1,65 @@
+{
+  "title": "Incidencias",
+  "description": "Incidencias de los clientes y su conversación",
+  "fields": {
+    "id": "Núm.",
+    "title": "Título",
+    "project_id": "Proyecto",
+    "client_id": "Cliente",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "worker_id": "Técnico",
+    "estimated_minutes": "Tiempo previsto",
+    "worked_minutes": "Tiempo dedicado",
+    "starts_on": "Fecha inicio",
+    "due_on": "Fecha límite",
+    "client_visible": "Visible para el cliente",
+    "created_by_client": "Creada por el cliente",
+    "description": "Descripción",
+    "attachments": "Adjuntos",
+    "created_by": "Creada por",
+    "created_at": "Fecha de creación",
+    "resolved_at": "Fecha de resolución"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "in_progress": "En curso",
+    "resolved": "Resuelta",
+    "discarded": "Descartada"
+  },
+  "priority": {
+    "normal": "Normal",
+    "urgent": "Urgente",
+    "panic": "Pánico"
+  },
+  "placeholders": {
+    "worker": "Sin asignar"
+  },
+  "help": {
+    "client_visible": "El cliente la ve, recibe los avisos y puede escribir en la conversación."
+  },
+  "columns": {
+    "visible": "Cliente"
+  },
+  "sections": {
+    "general": "Incidencia",
+    "planning": "Planificación",
+    "description": "Descripción",
+    "attachments": "Adjuntos",
+    "info": "Información"
+  },
+  "log": {
+    "created": "Incidencia creada por {user}",
+    "assigned": "Asignada a {user}",
+    "status": "Estado: {from} → {to}",
+    "shared": "{user} la ha hecho visible para el cliente"
+  },
+  "notify": {
+    "new_from_client": "Nueva incidencia de {client}: {record}",
+    "assigned": "Te han asignado la incidencia {record}",
+    "assigned_body": "Asignada por {user} · {client}",
+    "status": "{record}: {status}",
+    "status_body": "{user} ha cambiado el estado a «{status}»",
+    "opened": "Nueva incidencia abierta: {record}"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Grups",
+  "description": "Grups d'usuaris: permisos compartits i accés a camps i botons",
+  "fields": {
+    "id": "ID",
+    "code": "Codi",
+    "name": "Nom",
+    "description": "Descripció",
+    "members": "Usuaris",
+    "created_at": "Creat"
+  },
+  "sections": {
+    "general": "Dades generals",
+    "info": "Informació"
+  },
+  "help": {
+    "code": "El que es fa servir als JSON dels mòduls (\"access\"). Minúscules, números i _"
+  },
+  "validation": {
+    "code": "Només minúscules, números i guió baix"
+  }
+}

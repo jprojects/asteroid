@@ -1,0 +1,35 @@
+{
+  "title": "Agenda",
+  "description": "Issues by due date",
+  "today": "Today",
+  "prev": "Previous month",
+  "next": "Next month",
+  "new": "New issue",
+  "add_on": "New issue due on {date}",
+  "more": "+{n} more",
+  "empty": "No issues are due this month",
+  "months": [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ],
+  "weekdays": [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun"
+  ],
+  "no_access": "You are not allowed to see the issues"
+}

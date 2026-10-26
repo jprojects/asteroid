@@ -1,0 +1,32 @@
+{
+  "title": "Usuaris de clients",
+  "description": "Accés dels clients a les seves incidències i carpetes",
+  "fields": {
+    "id": "Núm.",
+    "client_id": "Client",
+    "username": "Usuari",
+    "password": "Contrasenya",
+    "active": "Actiu",
+    "name": "Nom",
+    "email": "Correu electrònic",
+    "locale": "Idioma",
+    "notify_email": "Avisos per correu",
+    "last_login": "Últim accés",
+    "created_at": "Data d'alta"
+  },
+  "notify": {
+    "instant": "Al moment",
+    "off": "No"
+  },
+  "sections": {
+    "account": "Compte",
+    "profile": "Dades",
+    "info": "Informació"
+  },
+  "validation": {
+    "username": "Lletres, números i els caràcters . _ @ + -"
+  },
+  "errors": {
+    "no_client_group": "Falta el grup «client»: executa tools/asteroid-migrate.php"
+  }
+}

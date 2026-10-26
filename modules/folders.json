@@ -1,0 +1,36 @@
+{
+  "table": "folders",
+  "primaryKey": "id",
+  "recordTitle": "name",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "clients", "order": 26, "icon": "folder" },
+
+  "scope": {
+    "equip": true,
+    "client": "folders.client_id = {user.client_id}"
+  },
+
+  "fields": {
+    "id":         { "type": "number", "readonly": true, "grouping": false },
+    "client_id":  { "type": "select", "required": true, "width": "half", "search": "remote", "access": ["equip"],
+                    "source": { "table": "clients", "value": "id", "label": "name" } },
+    "name":       { "type": "text", "required": true, "maxlength": 100, "width": "half" },
+    "notes":      { "type": "textarea", "rows": 3 },
+    "files":      { "type": "number", "sql": "SELECT COUNT(*) FROM files f WHERE f.folder_id = folders.id" },
+    "created_at": { "type": "datetime", "readonly": true, "width": "half" }
+  },
+
+  "list": {
+    "columns": ["name", { "field": "client_id", "maxWidth": "260px" }, { "field": "files", "width": "90px" }, { "field": "created_at", "width": "140px" }],
+    "expand": ["notes"],
+    "defaultSort": { "field": "name", "dir": "asc" },
+    "search": ["name"],
+    "filters": [{ "field": "client_id" }],
+    "rowActions": [
+      { "label": "actions.files", "icon": "files", "url": "index.php?r=list&m=files&f[folder_id]={id}" },
+      { "label": "actions.add_file", "icon": "file-plus", "url": "index.php?r=edit&m=files&v[folder_id]={id}", "access": ["equip"] }
+    ]
+  },
+
+  "form": { "fields": ["client_id", "name", "notes", "files", "created_at"] }
+}

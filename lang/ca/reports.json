@@ -1,0 +1,33 @@
+{
+  "title": "Informes",
+  "description": "Demana les dades que necessites en llenguatge natural i descarrega-les en Excel o PDF",
+  "perm": {
+    "ask": "Demanar a la IA",
+    "save": "Desar"
+  },
+  "ask": {
+    "label": "Quines dades vols?",
+    "placeholder": "Descriu l'informe, p. ex. «nom i adreça dels clients amb alguna activitat aquest any, primer els VIP»",
+    "submit": "Genera l'informe"
+  },
+  "intro": "Escriu quines dades vols veure. La IA prepara la consulta, et mostra què ha entès i el resultat, que pots ordenar i descarregar en Excel o PDF. Desa els informes que facis servir sovint.",
+  "intro_readonly": "Tria un informe desat de la llista.",
+  "saved": "Informes desats",
+  "saved_empty": "Encara no n'hi ha cap.",
+  "recent": "Les meves consultes recents",
+  "sql": "Consulta SQL",
+  "save": "Desa",
+  "rename": "Canvia el nom",
+  "save_name": "Nom de l'informe",
+  "delete": "Elimina l'informe",
+  "confirm_delete": "Vols eliminar aquest informe?",
+  "name_required": "Escriu un nom per a l'informe (màxim 150 caràcters).",
+  "not_understood": "No he pogut convertir la petició en un informe. Prova-ho amb altres paraules.",
+  "failed": "No s'ha pogut generar una consulta vàlida per a aquesta petició. Prova-ho amb altres paraules o més concreció.",
+  "run_error": "Aquest informe no s'ha pogut executar.",
+  "not_allowed": "Aquest informe utilitza dades que ja no estan permeses als informes.",
+  "flash": {
+    "saved": "Informe desat",
+    "deleted": "Informe eliminat"
+  }
+}

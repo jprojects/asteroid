@@ -1,0 +1,27 @@
+{
+  "title": "Clientes",
+  "description": "Empresas a las que damos servicio",
+  "fields": {
+    "id": "Núm.",
+    "name": "Nombre",
+    "nif": "NIF",
+    "factusol_code": "Código FactuSOL",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "active": "Activo",
+    "notes": "Observaciones",
+    "projects": "Proyectos",
+    "open_issues": "Incid. abiertas",
+    "users": "Usuarios",
+    "created_at": "Fecha de alta"
+  },
+  "sections": {
+    "general": "Cliente",
+    "summary": "Resumen"
+  },
+  "actions": {
+    "issues": "Incidencias del cliente",
+    "projects": "Proyectos del cliente",
+    "users": "Usuarios del cliente"
+  }
+}

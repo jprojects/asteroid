@@ -1,0 +1,35 @@
+{
+  "title": "Agenda",
+  "description": "Incidències per data límit",
+  "today": "Avui",
+  "prev": "Mes anterior",
+  "next": "Mes següent",
+  "new": "Nova incidència",
+  "add_on": "Nova incidència amb data límit {date}",
+  "more": "+{n} més",
+  "empty": "No hi ha incidències amb data límit aquest mes",
+  "months": [
+    "gener",
+    "febrer",
+    "març",
+    "abril",
+    "maig",
+    "juny",
+    "juliol",
+    "agost",
+    "setembre",
+    "octubre",
+    "novembre",
+    "desembre"
+  ],
+  "weekdays": [
+    "dl.",
+    "dt.",
+    "dc.",
+    "dj.",
+    "dv.",
+    "ds.",
+    "dg."
+  ],
+  "no_access": "No tens permís per veure les incidències"
+}

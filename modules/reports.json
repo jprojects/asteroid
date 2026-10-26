@@ -1,0 +1,7 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\ReportsPage",
+  "feature": "reports",
+  "menu": { "group": "main", "order": 60, "icon": "file-chart-column" },
+  "actions": ["view", "ask", "save", "export"]
+}

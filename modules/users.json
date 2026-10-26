@@ -1,0 +1,56 @@
+{
+  "table": "users",
+  "primaryKey": "id",
+  "adminOnly": true,
+  "hooks": "Quasar\\Hooks\\UsersHooks",
+  "menu": { "group": "admin", "order": 900, "icon": "users" },
+
+  "fields": {
+    "id":         { "type": "number", "readonly": true, "grouping": false },
+    "username":   { "type": "text", "required": true, "unique": true, "maxlength": 50, "pattern": "[A-Za-z0-9_.]+", "patternMessage": "validation.username", "autocomplete": "off", "width": "half" },
+    "password":   { "type": "password", "column": "password_hash", "requiredOnCreate": true, "minlength": 8, "width": "half" },
+    "is_admin":   { "type": "checkbox", "default": 0, "help": "help.is_admin", "width": "quarter", "colors": { "1": "purple" } },
+    "active":     { "type": "checkbox", "default": 1, "width": "quarter", "colors": { "1": "green", "0": "red" } },
+    "two_factor": { "type": "checkbox", "default": 0, "help": "help.two_factor", "width": "half" },
+    "groups":     { "type": "select", "multiple": true, "help": "help.groups", "placeholder": "placeholders.groups",
+                    "source": { "table": "user_groups", "value": "id", "label": "name" } },
+    "name":       { "type": "text", "required": true, "maxlength": 100, "width": "half" },
+    "email":      { "type": "email", "maxlength": 150, "unique": true, "width": "half" },
+    "locale":     { "type": "select", "required": true, "default": "ca", "options": { "ca": "Català", "es": "Español", "en": "English" }, "width": "quarter" },
+    "last_login": { "type": "datetime", "readonly": true, "width": "half" },
+    "created_at": { "type": "datetime", "readonly": true, "width": "half" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "70px" },
+      "username",
+      "name",
+      "email",
+      { "field": "groups", "overflow": "wrap" },
+      { "field": "is_admin", "width": "90px" },
+      { "field": "active", "width": "90px" },
+      { "field": "last_login", "width": "150px" }
+    ],
+    "defaultSort": { "field": "username", "dir": "asc" },
+    "pageSize": 25,
+    "search": ["username", "name", "email"],
+    "filters": [
+      { "field": "active" },
+      { "field": "is_admin" },
+      { "field": "groups" },
+      { "field": "last_login", "operator": "between" }
+    ],
+    "rowActions": [
+      { "label": "actions.permissions", "url": "index.php?r=permissions&id={id}", "icon": "key-round" }
+    ]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.account", "fields": ["username", "password", "is_admin", "active", "two_factor", "groups"] },
+      { "title": "sections.profile", "fields": ["name", "email", "locale"] },
+      { "title": "sections.info", "fields": ["last_login", "created_at"] }
+    ]
+  }
+}

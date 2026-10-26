@@ -1,0 +1,15 @@
+{
+  "title": "Contracts",
+  "description": "Working hours and hourly cost of each worker",
+  "fields": {
+    "id": "No.",
+    "user_id": "Worker",
+    "starts_on": "Start date",
+    "hours_per_day": "Hours/day",
+    "cost_per_hour": "Hourly cost",
+    "notes": "Notes"
+  },
+  "help": {
+    "starts_on": "Applies to hours from this date until the next contract."
+  }
+}

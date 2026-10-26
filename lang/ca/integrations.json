@@ -1,0 +1,21 @@
+{
+  "title": "Integracions",
+  "description": "Connexió amb serveis externs",
+  "google": {
+    "title": "Google Meet",
+    "intro": "Connecta un compte de Google per crear videotrucades de Google Meet des de les converses dels registres. L'enllaç es publica a la conversa i s'avisa els participants.",
+    "not_connected": "No connectat",
+    "connected_as": "Connectat amb {email} des del {date}",
+    "connect": "Connecta amb Google",
+    "disconnect": "Desconnecta",
+    "disconnect_confirm": "Es deixaran de poder crear videotrucades fins que es torni a connectar un compte. Vols continuar?",
+    "connected": "Compte {email} connectat",
+    "disconnected": "Compte de Google desconnectat",
+    "denied": "Google no ha donat accés ({error})",
+    "setup_title": "Com es configura",
+    "setup_1": "A Google Cloud Console, crea un projecte i activa la «Google Meet REST API».",
+    "setup_2": "Configura la pantalla de consentiment OAuth (tipus intern si és un compte de Google Workspace) amb l'àmbit meetings.space.created.",
+    "setup_3": "Crea unes credencials «ID de client d'OAuth» de tipus aplicació web amb aquesta URI de redirecció autoritzada:",
+    "setup_4": "Posa client_id i client_secret a 'google' de config.local.php i prem «Connecta amb Google»."
+  }
+}

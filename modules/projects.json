@@ -1,0 +1,62 @@
+{
+  "table": "projects",
+  "primaryKey": "id",
+  "recordTitle": "title",
+  "actions": ["view", "create", "edit", "delete", "export"],
+  "menu": { "group": "clients", "order": 22, "icon": "folder-kanban" },
+
+  "scope": {
+    "equip": true,
+    "client": "projects.client_id = {user.client_id} AND projects.active = 1"
+  },
+
+  "fields": {
+    "id":          { "type": "number", "readonly": true, "grouping": false },
+    "title":       { "type": "text", "required": true, "maxlength": 150, "width": "two-thirds" },
+    "code":        { "type": "text", "maxlength": 5, "width": "third" },
+    "client_id":   { "type": "select", "required": true, "width": "half", "search": "remote",
+                     "source": { "table": "clients", "value": "id", "label": "name" } },
+    "active":      { "type": "checkbox", "default": 1, "width": "quarter", "colors": { "1": "green", "0": "gray" } },
+    "modality":    { "type": "select", "width": "quarter", "options": { "h": "modality.hours", "p": "modality.budget" },
+                     "colors": { "h": "blue", "p": "purple" }, "sql": "IF(COALESCE(projects.budget, 0) = 0, 'h', 'p')" },
+    "budget":      { "type": "number", "decimals": 2, "min": 0, "width": "quarter", "help": "help.budget" },
+    "hourly_rate": { "type": "number", "decimals": 2, "min": 0, "width": "quarter", "help": "help.hourly_rate" },
+    "api_key":     { "type": "text", "maxlength": 255, "width": "half", "autocomplete": "off", "help": "help.api_key" },
+    "notes":       { "type": "textarea", "rows": 3 },
+    "open_issues": { "type": "number", "sql": "SELECT COUNT(*) FROM issues i WHERE i.project_id = projects.id AND i.status IN (1, 2)" },
+    "worked":      { "type": "duration", "sql": "SELECT SUM(h.minutes) FROM hours h WHERE h.project_id = projects.id" },
+    "unbilled":    { "type": "duration", "sql": "SELECT SUM(h.minutes) FROM hours h WHERE h.project_id = projects.id AND h.billing = 0" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "id", "width": "64px" },
+      { "field": "title", "minWidth": "220px" },
+      { "field": "code", "width": "70px" },
+      { "field": "client_id", "maxWidth": "240px" },
+      { "field": "modality", "width": "100px" },
+      { "field": "open_issues", "width": "110px" },
+      { "field": "worked", "width": "90px" },
+      { "field": "unbilled", "width": "110px" },
+      { "field": "active", "width": "80px" }
+    ],
+    "expand": ["notes"],
+    "defaultSort": { "field": "title", "dir": "asc" },
+    "search": ["title", "code"],
+    "filters": [{ "field": "client_id" }, { "field": "active" }, { "field": "modality" }],
+    "totals": ["worked", "unbilled"],
+    "rowActions": [
+      { "label": "actions.issues", "icon": "bug", "url": "index.php?r=list&m=issues&f[project_id]={id}" },
+      { "label": "actions.hours", "icon": "clock", "url": "index.php?r=list&m=hours&f[project_id]={id}" },
+      { "label": "actions.new_issue", "icon": "plus", "url": "index.php?r=edit&m=issues&v[project_id]={id}" }
+    ]
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.general", "fields": ["title", "code", "client_id", "active", "modality", "budget", "hourly_rate", "notes"] },
+      { "title": "sections.api", "fields": ["api_key"] },
+      { "title": "sections.summary", "fields": ["open_issues", "worked", "unbilled"] }
+    ]
+  }
+}

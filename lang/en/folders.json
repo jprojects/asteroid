@@ -1,0 +1,16 @@
+{
+  "title": "Folders",
+  "description": "Documents shared with clients",
+  "fields": {
+    "id": "No.",
+    "client_id": "Client",
+    "name": "Folder",
+    "notes": "Notes",
+    "files": "Files",
+    "created_at": "Created"
+  },
+  "actions": {
+    "files": "Folder files",
+    "add_file": "Add a file"
+  }
+}

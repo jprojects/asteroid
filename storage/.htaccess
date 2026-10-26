@@ -1,0 +1,7 @@
+# Nunca accesible desde la web (los archivos se sirven por index.php?r=media con permisos)
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

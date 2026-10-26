@@ -1,0 +1,37 @@
+{
+  "title": "AI usage",
+  "description": "Natural-language queries: what was asked, what was applied and what it cost",
+  "fields": {
+    "id": "ID",
+    "created_at": "Date",
+    "user_id": "User",
+    "module": "Module",
+    "model": "Model",
+    "status": "Result",
+    "prompt": "Request",
+    "result": "Applied filters",
+    "input_tokens": "Input tokens",
+    "output_tokens": "Output tokens",
+    "cache_read_tokens": "Cache read tokens",
+    "cache_write_tokens": "Cache write tokens",
+    "cost_eur": "Cost (€)",
+    "duration_ms": "Time (ms)"
+  },
+  "status": {
+    "ok": "Applied",
+    "cached": "Cached",
+    "not_understood": "Not understood",
+    "error": "Error"
+  },
+  "sections": {
+    "query": "Query",
+    "consumption": "Usage"
+  },
+  "actions": {
+    "month": "This month"
+  },
+  "summary": {
+    "with_limit": "This month: €{used} of €{limit} ({percent}%) · {count} queries",
+    "no_limit": "This month: €{used} · {count} queries (no limit)"
+  }
+}

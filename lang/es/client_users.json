@@ -1,0 +1,32 @@
+{
+  "title": "Usuarios de clientes",
+  "description": "Acceso de los clientes a sus incidencias y carpetas",
+  "fields": {
+    "id": "Núm.",
+    "client_id": "Cliente",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "active": "Activo",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "locale": "Idioma",
+    "notify_email": "Avisos por correo",
+    "last_login": "Último acceso",
+    "created_at": "Fecha de alta"
+  },
+  "notify": {
+    "instant": "Al momento",
+    "off": "No"
+  },
+  "sections": {
+    "account": "Cuenta",
+    "profile": "Datos",
+    "info": "Información"
+  },
+  "validation": {
+    "username": "Letras, números y los caracteres . _ @ + -"
+  },
+  "errors": {
+    "no_client_group": "Falta el grupo «client»: ejecuta tools/asteroid-migrate.php"
+  }
+}

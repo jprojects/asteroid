@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "title": "Permisos de {user}",
+    "module": "Mòdul",
+    "is_admin": "Aquest usuari és administrador: té accés complet a tot, independentment d'aquesta taula.",
+    "hint": "Concedir qualsevol permís concedeix també «Veure». Fes clic a la capçalera d'una columna o al nom d'un mòdul per marcar-los tots.",
+    "back": "Torna als usuaris",
+    "save": "Desa els permisos",
+    "title_group": "Permisos del grup {group}",
+    "back_groups": "Torna als grups",
+    "inherited": "Ja el té pel grup: {groups}",
+    "inherited_hint": "Indica els permisos que l'usuari ja té pels seus grups; els d'aquesta taula s'hi sumen.",
+    "group_hint": "Els usuaris del grup tenen aquests permisos a més dels seus propis."
+  }
+}

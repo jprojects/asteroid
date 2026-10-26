@@ -1,0 +1,33 @@
+{
+  "title": "Reports",
+  "description": "Ask for the data you need in natural language and download it as Excel or PDF",
+  "perm": {
+    "ask": "Ask the AI",
+    "save": "Save"
+  },
+  "ask": {
+    "label": "What data do you need?",
+    "placeholder": "Describe the report, e.g. \"name and address of clients with any activity this year, VIP first\"",
+    "submit": "Create report"
+  },
+  "intro": "Describe the data you want to see. The AI prepares the query and shows you what it understood and the result, which you can sort and download as Excel or PDF. Save the reports you use often.",
+  "intro_readonly": "Choose a saved report from the list.",
+  "saved": "Saved reports",
+  "saved_empty": "None yet.",
+  "recent": "My recent queries",
+  "sql": "SQL query",
+  "save": "Save",
+  "rename": "Rename",
+  "save_name": "Report name",
+  "delete": "Delete report",
+  "confirm_delete": "Delete this report?",
+  "name_required": "Enter a name for the report (150 characters max).",
+  "not_understood": "I couldn't turn the request into a report. Try other words.",
+  "failed": "A valid query could not be created for this request. Try other words or more detail.",
+  "run_error": "This report could not be run.",
+  "not_allowed": "This report uses data that is no longer allowed in reports.",
+  "flash": {
+    "saved": "Report saved",
+    "deleted": "Report deleted"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "title": "Hours",
+  "description": "Time spent on projects and issues",
+  "fields": {
+    "id": "No.",
+    "worked_on": "Date",
+    "user_id": "Worker",
+    "minutes": "Time",
+    "billing": "Billing",
+    "issue_id": "Issue",
+    "issue_status": "Issue status",
+    "project_id": "Project",
+    "client_id": "Client",
+    "comment": "Comment",
+    "modality": "Billing mode",
+    "cost": "Cost",
+    "billing_id": "Billing order",
+    "created_at": "Entered"
+  },
+  "billing": {
+    "pending": "Pending",
+    "billed": "Billed",
+    "not_billable": "Not billable"
+  },
+  "help": {
+    "user": "Empty: yourself.",
+    "minutes": "1:30, 1h30, 45m or 1.5",
+    "issue": "The project is filled in from the issue.",
+    "issue_status": "Changes the issue status when saving (optional).",
+    "project": "Required if there is no issue."
+  },
+  "placeholders": {
+    "issue_status": "Do not change it"
+  },
+  "columns": {
+    "modality": "Mode"
+  },
+  "sections": {
+    "entry": "Time entry",
+    "info": "Information"
+  },
+  "actions": {
+    "mark_billed": "Mark as billed",
+    "mark_not_billable": "Mark as not billable",
+    "create_billing": "Create a billing order"
+  },
+  "confirm": {
+    "create_billing": "A billing order will be created with these hours and they will be marked as billed. Continue?"
+  },
+  "flash": {
+    "marked_billed": "Marked as billed",
+    "marked_not_billable": "Marked as not billable",
+    "billing_created": "Billing order created"
+  },
+  "errors": {
+    "project_required": "Enter the project or the issue",
+    "no_client": "The project has no client"
+  },
+  "perm": {
+    "bill": "Bill"
+  }
+}

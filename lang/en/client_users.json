@@ -1,0 +1,32 @@
+{
+  "title": "Client users",
+  "description": "Client access to their issues and folders",
+  "fields": {
+    "id": "No.",
+    "client_id": "Client",
+    "username": "Username",
+    "password": "Password",
+    "active": "Active",
+    "name": "Name",
+    "email": "Email",
+    "locale": "Language",
+    "notify_email": "Email notifications",
+    "last_login": "Last login",
+    "created_at": "Created"
+  },
+  "notify": {
+    "instant": "Immediately",
+    "off": "No"
+  },
+  "sections": {
+    "account": "Account",
+    "profile": "Details",
+    "info": "Information"
+  },
+  "validation": {
+    "username": "Letters, numbers and . _ @ + -"
+  },
+  "errors": {
+    "no_client_group": "The \"client\" group is missing: run tools/asteroid-migrate.php"
+  }
+}

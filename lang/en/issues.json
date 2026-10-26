@@ -1,0 +1,65 @@
+{
+  "title": "Issues",
+  "description": "Client issues and their conversation",
+  "fields": {
+    "id": "No.",
+    "title": "Title",
+    "project_id": "Project",
+    "client_id": "Client",
+    "status": "Status",
+    "priority": "Priority",
+    "worker_id": "Assignee",
+    "estimated_minutes": "Estimated time",
+    "worked_minutes": "Time spent",
+    "starts_on": "Start date",
+    "due_on": "Due date",
+    "client_visible": "Visible to the client",
+    "created_by_client": "Created by the client",
+    "description": "Description",
+    "attachments": "Attachments",
+    "created_by": "Created by",
+    "created_at": "Created",
+    "resolved_at": "Resolved"
+  },
+  "status": {
+    "pending": "Pending",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "discarded": "Discarded"
+  },
+  "priority": {
+    "normal": "Normal",
+    "urgent": "Urgent",
+    "panic": "Critical"
+  },
+  "placeholders": {
+    "worker": "Unassigned"
+  },
+  "help": {
+    "client_visible": "The client sees it, gets the notifications and can write in the conversation."
+  },
+  "columns": {
+    "visible": "Client"
+  },
+  "sections": {
+    "general": "Issue",
+    "planning": "Planning",
+    "description": "Description",
+    "attachments": "Attachments",
+    "info": "Information"
+  },
+  "log": {
+    "created": "Issue created by {user}",
+    "assigned": "Assigned to {user}",
+    "status": "Status: {from} → {to}",
+    "shared": "{user} made it visible to the client"
+  },
+  "notify": {
+    "new_from_client": "New issue from {client}: {record}",
+    "assigned": "You have been assigned issue {record}",
+    "assigned_body": "Assigned by {user} · {client}",
+    "status": "{record}: {status}",
+    "status_body": "{user} changed the status to \"{status}\"",
+    "opened": "New issue opened: {record}"
+  }
+}

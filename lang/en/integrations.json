@@ -1,0 +1,21 @@
+{
+  "title": "Integrations",
+  "description": "Connections with external services",
+  "google": {
+    "title": "Google Meet",
+    "intro": "Connect a Google account to create Google Meet video calls from record conversations. The link is posted in the conversation and participants are notified.",
+    "not_connected": "Not connected",
+    "connected_as": "Connected as {email} since {date}",
+    "connect": "Connect with Google",
+    "disconnect": "Disconnect",
+    "disconnect_confirm": "Video calls cannot be created until an account is connected again. Continue?",
+    "connected": "Account {email} connected",
+    "disconnected": "Google account disconnected",
+    "denied": "Google did not grant access ({error})",
+    "setup_title": "How to set it up",
+    "setup_1": "In Google Cloud Console, create a project and enable the \"Google Meet REST API\".",
+    "setup_2": "Configure the OAuth consent screen (internal type for a Google Workspace account) with the meetings.space.created scope.",
+    "setup_3": "Create \"OAuth client ID\" credentials of type web application with this authorised redirect URI:",
+    "setup_4": "Put client_id and client_secret in 'google' in config.local.php and press \"Connect with Google\"."
+  }
+}
