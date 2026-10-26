@@ -71,6 +71,11 @@ $pageTitle = ($title ?? '') !== '' ? $title . ' · ' . $this->appName() : $this-
         <?php endforeach ?>
       </ol>
     </nav>
+    <?php foreach ($this->quickCreates() as $q): ?>
+      <button type="button" class="qs-btn qs-btn-sm qs-quick-create" data-quick-create="<?= $this->json($q) ?>" title="<?= $this->e($q['label']) ?>">
+        <?= $this->icon($q['icon']) ?><span class="qs-quick-label"><?= $this->e($q['label']) ?></span>
+      </button>
+    <?php endforeach ?>
     <?php if ($user): ?>
       <div class="qs-notify" data-notifications="<?= $this->json($this->notificationsConfig()) ?>">
         <button type="button" class="qs-icon-btn qs-notify-btn" aria-haspopup="true" aria-expanded="false"

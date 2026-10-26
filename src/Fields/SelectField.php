@@ -13,6 +13,13 @@ use Quasar\Core\Database;
  *   "source": {…, "where": "active = 1"}      solo las filas que cumplen la condición (SQL fijo del JSON)
  *   "source": {"module": "projects", …}        la tabla de ese módulo y solo los registros que el usuario
  *                                              ve en él ("scope"/"where"): no puede elegir otros
+ *   "source": {…, "order": "id", "dir": "desc"} orden de las opciones
+ *
+ * Select dependiente de otro campo del formulario o de los filtros (siempre con búsqueda en el servidor):
+ *   "dependsOn": {"field": "project_id", "column": "project_id"}   solo las filas de la tabla de origen cuya
+ *                columna "column" coincide con el valor elegido en "field" (sin valor, todas)
+ *   "dependsOn": {…, "form": false}       solo en los filtros del listado ("filters": false, solo en la ficha)
+ * En la ficha también se valida al guardar.
  *
  * Buscador (como select2, sin librerías):
  *   "search": true       buscar entre las opciones de la página (por defecto si hay más de 10)
@@ -88,6 +95,9 @@ class SelectField extends Field
     /** off | local | remote */
     public function searchMode(): string
     {
+        if ($this->dependency() !== null) {
+            return 'remote'; // las opciones dependen de otro campo: se piden al servidor
+        }
         $search = $this->def['search'] ?? 'auto';
         if ($search === 'remote') {
             return $this->source() !== null ? 'remote' : 'local';
@@ -101,7 +111,38 @@ class SelectField extends Field
         return count($this->options()) > self::AUTO_SEARCH_FROM ? 'local' : 'off';
     }
 
-    /** @return array{table:string,value:string,label:string,order:string,module:?string,where:?string}|null */
+    /**
+     * "dependsOn" en la ficha ('form'), en los filtros ('filters') o en cualquiera (null).
+     * @return array{field:string,column:string}|null
+     */
+    public function dependency(?string $place = null): ?array
+    {
+        $d = $this->def['dependsOn'] ?? null;
+        if (!is_array($d) || $this->source() === null) {
+            return null;
+        }
+        if ($place !== null && ($d[$place] ?? true) === false) {
+            return null;
+        }
+        $column = (string) ($d['column'] ?? '');
+        Database::ident($column); // valida el nombre
+        return ['field' => (string) ($d['field'] ?? ''), 'column' => $column];
+    }
+
+    /** Si $value es una opción válida cuando el campo del que depende vale $parent. */
+    public function belongsTo(string $value, string $parent): bool
+    {
+        $s = $this->source();
+        [$filter, $bind] = $this->sourceFilter($s, [$parent]);
+        return $this->ctx->db->fetchValue(sprintf(
+            'SELECT 1 FROM %s WHERE %s = ?%s LIMIT 1',
+            Database::ident($s['table']),
+            Database::ident($s['value']),
+            $filter
+        ), [$value, ...$bind]) !== null;
+    }
+
+    /** @return array{table:string,value:string,label:string,order:string,dir:string,module:?string,where:?string}|null */
     private function source(): ?array
     {
         $s = $this->def['source'] ?? null;
@@ -119,6 +160,7 @@ class SelectField extends Field
             'value' => (string) ($s['value'] ?? 'id'),
             'label' => $label,
             'order' => (string) ($s['order'] ?? $label),
+            'dir' => strtolower((string) ($s['dir'] ?? 'asc')) === 'desc' ? 'DESC' : 'ASC',
             'module' => $module,
             'where' => isset($s['where']) ? (string) $s['where'] : null,
         ];
@@ -128,10 +170,16 @@ class SelectField extends Field
      * Condiciones de "source.where" y de los registros que el usuario ve en "source.module".
      * @return array{0:string,1:list<mixed>} " AND …" (o "") y sus parámetros
      */
-    private function sourceFilter(array $s): array
+    private function sourceFilter(array $s, array $parent = []): array
     {
         $parts = [];
         $bind = [];
+        $parent = array_values(array_filter(array_map('strval', $parent), static fn ($v) => $v !== ''));
+        if ($parent && ($dep = $this->dependency()) !== null) {
+            // Solo las filas del valor elegido en el campo del que depende
+            $parts[] = Database::ident($dep['column']) . ' IN (' . implode(', ', array_fill(0, count($parent), '?')) . ')';
+            array_push($bind, ...$parent);
+        }
         if ($s['where'] !== null) {
             $parts[] = '(' . $s['where'] . ')';
         }
@@ -161,7 +209,7 @@ class SelectField extends Field
                 Database::ident($s['label']),
                 Database::ident($s['table']),
                 $filter,
-                Database::ident($s['order'])
+                Database::ident($s['order']) . ' ' . $s['dir']
             );
             foreach ($this->ctx->db->fetchAll($sql, $bind) as $row) {
                 $options[(string) $row['v']] = (string) $row['l'];
@@ -199,7 +247,7 @@ class SelectField extends Field
      * Búsqueda para el modo remoto (ruta r=options).
      * @return list<array{value:string,label:string}>
      */
-    public function search(string $q): array
+    public function search(string $q, array $parent = []): array
     {
         $s = $this->source();
         if ($s === null) {
@@ -212,7 +260,7 @@ class SelectField extends Field
             }
             return array_slice($out, 0, self::REMOTE_LIMIT);
         }
-        [$filter, $bind] = $this->sourceFilter($s);
+        [$filter, $bind] = $this->sourceFilter($s, $parent);
         $rows = $this->ctx->db->fetchAll(sprintf(
             'SELECT %s AS v, %s AS l FROM %s WHERE %s LIKE ?%s ORDER BY %s LIMIT %d',
             Database::ident($s['value']),
@@ -220,7 +268,7 @@ class SelectField extends Field
             Database::ident($s['table']),
             Database::ident($s['label']),
             $filter,
-            Database::ident($s['order']),
+            Database::ident($s['order']) . ' ' . $s['dir'],
             self::REMOTE_LIMIT
         ), ['%' . addcslashes(trim($q), '%_\\') . '%', ...$bind]);
         return array_map(static fn ($r) => ['value' => (string) $r['v'], 'label' => (string) $r['l']], $rows);
@@ -254,8 +302,11 @@ class SelectField extends Field
         if ($mode === 'off' && !$multiple) {
             return null;
         }
+        $dep = $this->dependency($isFilter ? 'filters' : 'form');
         return json_encode([
             'remote' => $mode === 'remote' ? $this->ctx->url('options', ['m' => $this->ctx->domain, 'field' => $this->path()]) : null,
+            // Campo del que depende (nombre del input en la ficha o en los filtros): sus valores se envían al buscar
+            'parent' => $dep !== null ? ($isFilter ? "f[{$dep['field']}][]" : $dep['field']) : null,
             'placeholder' => $placeholder,
             'search' => $this->ctx->t('combo.search'),
             'empty' => $this->ctx->t('combo.no_results'),

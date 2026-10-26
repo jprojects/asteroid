@@ -7,7 +7,7 @@ use DateTimeImmutable;
 
 /**
  * Fecha (columna DATE). Formato de visualización en lang common: format.date
- * Opciones: min, max (Y-m-d).
+ * Opciones: min, max (Y-m-d), "default": "today" (la fecha del día en las altas; en datetime, "now").
  */
 class DateField extends Field
 {
@@ -21,6 +21,12 @@ class DateField extends Field
     public function defaultOperator(): string
     {
         return 'between';
+    }
+
+    public function defaultValue(): mixed
+    {
+        $default = parent::defaultValue();
+        return $default === 'today' || $default === 'now' ? date($this->dbFormat) : $default;
     }
 
     public function render(mixed $value, array $opts = []): string

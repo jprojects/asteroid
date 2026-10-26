@@ -92,6 +92,12 @@ final class FormHandler
             if (!$fieldErrors && $f->isUnique() && $value !== '' && $value !== null && !$this->isUniqueValue($f->column(), $f->toDb($value), $id)) {
                 $fieldErrors[] = $this->module->t('validation.unique');
             }
+            // Select dependiente: el valor tiene que corresponder al del campo del que depende
+            if (!$fieldErrors && $f instanceof \Quasar\Fields\SelectField && ($dep = $f->dependency('form')) !== null
+                && is_scalar($value) && (string) $value !== '' && is_scalar($values[$dep['field']] ?? null)
+                && (string) $values[$dep['field']] !== '' && !$f->belongsTo((string) $value, (string) $values[$dep['field']])) {
+                $fieldErrors[] = $this->module->t('validation.option');
+            }
             if ($fieldErrors) {
                 $errors[$f->name] = $fieldErrors[0];
                 continue;

@@ -142,6 +142,18 @@ final class ModuleController extends Controller
             'id' => $result['id'],
             'action' => $id === null ? 'creado' : 'modificado',
         ]);
+        if (!empty($_POST['_modal'])) {
+            // Alta rápida en una ventana: se avisa a la página que la abrió (app.js) en lugar de redirigir
+            $this->render('modal_done', [
+                'done' => [
+                    'module' => $m->name,
+                    'id' => (string) $result['id'],
+                    'message' => $this->t('flash.saved'),
+                    'url' => $this->app->url('edit', ['m' => $m->name, 'id' => $result['id']]),
+                ],
+            ], 'blank');
+            return;
+        }
         Session::flash('success', $this->t('flash.saved'));
         $this->app->redirect(isset($_POST['_close'])
             ? $this->app->url('list', ['m' => $m->name])
@@ -266,7 +278,10 @@ final class ModuleController extends Controller
             : ($m->recordTitle($values) ?? $this->t('page.record', ['id' => $id]));
         $mode = $this->t($isNew ? 'page.creating' : ($readonly ? 'page.viewing' : 'page.editing'));
 
+        // Alta rápida en una ventana (?modal=1, "quickCreate"): sin menú ni cabecera
+        $modal = !empty($_GET['modal']) || !empty($_POST['_modal']);
         $this->render($this->app->view->resolve("modules/{$m->name}/form", 'form'), [
+            'modal' => $modal,
             'title' => $heading . ' · ' . $m->title(),
             'heading' => $heading,
             'subtitle' => $m->title() . ' · ' . $mode . ($isNew ? '' : ' · #' . $id),
@@ -287,8 +302,8 @@ final class ModuleController extends Controller
             'visibility' => ShowOn::visibility($m->formFields(), $values),
             'values' => $values,
             'errors' => $errors,
-            'chat' => !$isNew && $m->chatAllows() ? $this->chatConfig($m, (string) $id) : null,
-        ], 'layout', $status);
+            'chat' => !$isNew && !$modal && $m->chatAllows() ? $this->chatConfig($m, (string) $id) : null,
+        ], $modal ? 'blank' : 'layout', $status);
     }
 
     /** Lo que necesita el panel de conversación de la ficha (app.js). */

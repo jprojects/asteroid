@@ -26,6 +26,10 @@ las tablas `notifications`, `messages`, `message_reads` y `settings`, y la colum
 - Campos nuevos: **`richtext`** (editor propio y HTML limpio con `HtmlSanitizer`, imágenes como archivos) y
   **`duration`** (`1:30`, `1h30`, `45m`, `1,5`; minutos en BD; Excel `[h]:mm`).
 - **`list.totals`**: fila de pie con las sumas de todos los registros filtrados.
+- **Selects dependientes** (`dependsOn`): las opciones según lo elegido en otro campo, en la ficha (validado al
+  guardar) y en los filtros. `source.dir` para ordenar las opciones de forma descendente.
+- **Alta rápida** (`quickCreate`): botón en la barra superior que abre el alta de un módulo en una ventana, rellenada
+  con el registro que se está viendo (`context`); `?modal=1` en cualquier alta. Fechas con `"default": "today"`.
 - **`menu.access`**: un módulo en el menú solo para algunos grupos. **`requires`**: un módulo solo existe si existen otros
   (el calendario de ejemplo ya no da 404 sin `activities`).
 - **`lang/{idioma}/app.json`**: textos propios de la instalación compartidos por todos los módulos, que una

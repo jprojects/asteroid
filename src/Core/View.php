@@ -198,6 +198,34 @@ final class View
     }
 
     /** Barra lateral plegada (cookie que guarda app.js; así se pinta ya plegada, sin parpadeo). */
+    /**
+     * Botones de alta rápida de la barra superior ("quickCreate" de los módulos) que puede usar el usuario.
+     * En la ficha de un módulo de su "context", el alta se rellena con ese registro.
+     * @return list<array{label:string,icon:string,url:string}>
+     */
+    public function quickCreates(): array
+    {
+        $user = $this->user();
+        if ($user === null) {
+            return [];
+        }
+        $out = [];
+        $current = $this->currentModule();
+        $id = $this->currentRoute() === 'edit' && is_string($_GET['id'] ?? null) ? $_GET['id'] : null;
+        foreach ($this->app->modules()->all() as $m) {
+            $q = $m->isPage() ? null : $m->quickCreate();
+            if ($q === null || !ModuleRegistry::canAccess($user, $m, 'create')) {
+                continue;
+            }
+            $params = ['m' => $m->name, 'modal' => 1];
+            if ($id !== null && $current !== null && isset($q['context'][$current])) {
+                $params['v'] = [$q['context'][$current] => $id];
+            }
+            $out[] = ['label' => $q['label'], 'icon' => $q['icon'], 'url' => $this->app->url('edit', $params)];
+        }
+        return $out;
+    }
+
     /** Lo que necesita la campana de avisos de la barra superior (app.js). */
     public function notificationsConfig(): array
     {

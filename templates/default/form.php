@@ -15,7 +15,9 @@
  * @var array<string,string> $errors
  * @var array<string,bool> $visibility  campos visibles según su "showon"
  * @var ?array $chat  configuración del panel de conversación (módulos con "chat"), o null
+ * @var bool $modal  alta rápida dentro de una ventana ("quickCreate"): "Torna" la cierra
  */
+$modal = $modal ?? false;
 $listUrl = $this->url('list', ['m' => $module->name]);
 ?>
 <div class="qs-record<?= $chat !== null ? ' has-chat' : '' ?>">
@@ -24,14 +26,23 @@ $listUrl = $this->url('list', ['m' => $module->name]);
   <?php if (!$isNew): ?>
     <input type="hidden" name="_id" value="<?= $this->e($id) ?>">
   <?php endif ?>
+  <?php if ($modal): ?>
+    <input type="hidden" name="_modal" value="1">
+  <?php endif ?>
 
   <div class="qs-toolbar">
-    <a class="qs-btn" href="<?= $listUrl ?>" data-role="back" title="Esc"><?= $this->icon('arrow-left') ?> <?= $this->e($this->t('actions.back')) ?></a>
+    <?php if ($modal): ?>
+      <a class="qs-btn" href="#" data-role="back" data-modal-close title="Esc"><?= $this->icon('x') ?> <?= $this->e($this->t('dialog.cancel')) ?></a>
+    <?php else: ?>
+      <a class="qs-btn" href="<?= $listUrl ?>" data-role="back" title="Esc"><?= $this->icon('arrow-left') ?> <?= $this->e($this->t('actions.back')) ?></a>
+    <?php endif ?>
     <?php if (!$readonly): ?>
       <button type="submit" class="qs-btn qs-btn-primary" name="_save" value="1" data-shortcut="save" title="Ctrl+S">
         <?= $this->e($this->t('actions.save')) ?>
       </button>
-      <button type="submit" class="qs-btn" name="_close" value="1"><?= $this->e($this->t('actions.save_close')) ?></button>
+      <?php if (!$modal): ?>
+        <button type="submit" class="qs-btn" name="_close" value="1"><?= $this->e($this->t('actions.save_close')) ?></button>
+      <?php endif ?>
     <?php endif ?>
     <?= $this->render('buttons', ['buttons' => $buttons], null) ?>
     <span class="qs-toolbar-spacer"></span>

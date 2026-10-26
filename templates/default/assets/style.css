@@ -1520,3 +1520,28 @@ textarea.qs-input { height: auto; padding: 6px 8px; resize: vertical; min-height
 .qs-integration-help { margin-top: 16px; color: var(--text-muted); }
 .qs-integration-help summary { cursor: pointer; color: var(--text); }
 .qs-integration-help code { user-select: all; overflow-wrap: anywhere; background: var(--surface-alt); padding: 1px 4px; border-radius: 3px; }
+
+/* ------------------------------------------------------------------ alta rápida en una ventana (quickCreate) */
+
+.qs-quick-create { white-space: nowrap; }
+@media (max-width: 760px) { .qs-quick-label { display: none; } }
+.qs-modal {
+  padding: 0;
+  width: min(900px, calc(100vw - 24px));
+  height: min(760px, calc(100vh - 24px));
+  max-width: none;
+  max-height: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgb(0 0 0 / .25);
+  overflow: hidden;
+}
+.qs-modal[open] { display: flex; flex-direction: column; animation: qs-pop .16s ease-out; }
+.qs-modal::backdrop { background: rgb(15 20 30 / .45); backdrop-filter: blur(2px); }
+.qs-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.qs-modal-head .qs-icon-btn { width: 28px; height: 28px; }
+.qs-modal iframe { flex: 1; width: 100%; border: 0; background: var(--bg); }
+.qs-blank:has(> .qs-record) { display: block; min-height: 0; padding: 0; }
+.qs-blank .qs-form { padding: 14px 16px; max-width: none; }
+.qs-modal-done { padding: 24px; text-align: center; color: var(--text-muted); }

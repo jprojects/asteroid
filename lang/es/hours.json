@@ -25,7 +25,7 @@
   "help": {
     "user": "Vacío: tú mismo.",
     "minutes": "1:30, 1h30, 45m o 1,5",
-    "issue": "El proyecto se pone solo a partir de la incidencia.",
+    "issue": "Solo las del proyecto elegido (sin proyecto, todas). El proyecto se pone solo a partir de la incidencia.",
     "issue_status": "Cambia el estado de la incidencia al guardar (opcional).",
     "project": "Obligatorio si no hay incidencia."
   },
@@ -58,5 +58,8 @@
   },
   "perm": {
     "bill": "Facturar"
+  },
+  "quick": {
+    "new": "Imputar horas"
   }
 }

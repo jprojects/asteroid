@@ -932,6 +932,7 @@
     });
 
     // Navegar dentro de la aplicación con cambios sin guardar: aviso propio
+    // href null: cerrar la ventana del alta rápida (quickCreate) en la que está el formulario
     const leaveTo = async (href) => {
       if (dirty && !leaving) {
         const ok = await Dialog.confirm(T.unsaved, {
@@ -939,9 +940,19 @@
         });
         if (!ok) return;
       }
+      if (href === null) {
+        window.parent.postMessage({ type: 'qs:modal-close' }, window.location.origin);
+        return;
+      }
       leaving = true;
       window.location.href = href;
     };
+    form.addEventListener('click', (e) => {
+      if (e.target.closest('[data-modal-close]')) { e.preventDefault(); leaveTo(null); }
+    });
+    window.addEventListener('message', (e) => {
+      if (e.origin === window.location.origin && e.data?.type === 'qs:modal-escape') leaveTo(null);
+    });
     document.addEventListener('click', (e) => {
       const a = e.target.closest('a[href]');
       if (!a || e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
@@ -959,7 +970,7 @@
         if (save) form.requestSubmit(save);
       } else if (e.key === 'Escape' && !e.target.closest?.('select')) {
         const back = $('[data-role="back"]', form);
-        if (back) leaveTo(back.href);
+        if (back) leaveTo('modalClose' in back.dataset ? null : back.href);
       }
     });
 
@@ -1511,10 +1522,37 @@
     return chip;
   };
 
+  // Select dependiente ("dependsOn"): valores elegidos en el campo del que depende (cfg.parent = su name)
+  const parentValues = (select, cfg) => (cfg.parent && select.form ? [...select.form.elements] : [])
+    .filter((el) => el.name === cfg.parent)
+    .flatMap((el) => (el.multiple ? [...el.selectedOptions].map((o) => o.value) : [el.value]))
+    .filter((v) => v !== '');
+  const remoteUrl = (select, cfg) => cfg.remote + parentValues(select, cfg).map((v) => `&parent[]=${encodeURIComponent(v)}`).join('');
+
+  /** Al cambiar el campo del que depende, quita las opciones elegidas que ya no le corresponden. */
+  function watchParent(select, cfg) {
+    if (!cfg.parent || !cfg.remote || !select.form) return;
+    select.form.addEventListener('change', async (e) => {
+      if (e.target.name !== cfg.parent) return;
+      const parent = parentValues(select, cfg);
+      if (parent.length !== 1) return; // sin valor (o varios en un filtro): todas sirven
+      let changed = false;
+      for (const o of [...select.selectedOptions].filter((opt) => opt.value !== '')) {
+        const d = await request(`${cfg.remote}&value=${encodeURIComponent(o.value)}&parent=${encodeURIComponent(parent[0])}`).catch(() => null);
+        if (d && !d.results.length) { o.selected = false; changed = true; }
+      }
+      if (changed) {
+        if (!select.multiple) select.value = '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  }
+
   function initCombobox(select) {
     if (select.dataset.comboReady) return;
     select.dataset.comboReady = '1';
     const cfg = JSON.parse(select.dataset.combobox);
+    watchParent(select, cfg);
     if (select.multiple) { initMultiCombobox(select, cfg); return; }
     const required = select.hasAttribute('data-required');
 
@@ -1588,7 +1626,7 @@
         controller?.abort();
         controller = new AbortController();
         try {
-          const data = await request(`${cfg.remote}&q=${encodeURIComponent(q)}`, { signal: controller.signal });
+          const data = await request(`${remoteUrl(select, cfg)}&q=${encodeURIComponent(q)}`, { signal: controller.signal });
           dd.show(data.results.map((r) => ({ ...r, selected: r.value === select.value })), cfg.empty);
         } catch (err) {
           if (err.name !== 'AbortError') dd.message(err.message);
@@ -1725,7 +1763,7 @@
         controller?.abort();
         controller = new AbortController();
         try {
-          const data = await request(`${cfg.remote}&q=${encodeURIComponent(q)}`, { signal: controller.signal });
+          const data = await request(`${remoteUrl(select, cfg)}&q=${encodeURIComponent(q)}`, { signal: controller.signal });
           dd.show(data.results.map((r) => ({ ...r, selected: isSelected(r.value) })), cfg.empty);
         } catch (err) {
           if (err.name !== 'AbortError') dd.message(err.message);
@@ -2645,6 +2683,61 @@
     find('[data-tags]').forEach(initTags);
     find('[data-richtext]').forEach(initRichText);
   }
+
+  // ------------------------------------------------------------------ alta rápida en una ventana (quickCreate)
+
+  function openModal({ url, label }) {
+    const dlg = document.createElement('dialog');
+    dlg.className = 'qs-modal';
+    dlg.setAttribute('aria-label', label);
+    const head = document.createElement('div');
+    head.className = 'qs-modal-head';
+    const title = document.createElement('strong');
+    title.textContent = label;
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'qs-icon-btn';
+    closeBtn.title = T.close || 'Close';
+    closeBtn.setAttribute('aria-label', closeBtn.title);
+    closeBtn.append(icon('x'));
+    head.append(title, closeBtn);
+    const frame = document.createElement('iframe');
+    frame.src = url;
+    frame.title = label;
+    dlg.append(head, frame);
+    document.body.append(dlg);
+    dlg.showModal();
+    frame.addEventListener('load', () => frame.contentWindow?.focus());
+
+    // El formulario de dentro decide si se puede cerrar (cambios sin guardar)
+    const askClose = () => frame.contentWindow?.postMessage({ type: 'qs:modal-escape' }, window.location.origin);
+    const close = () => {
+      window.removeEventListener('message', onMessage);
+      dlg.close();
+      dlg.remove();
+    };
+    const onMessage = (e) => {
+      if (e.origin !== window.location.origin || e.source !== frame.contentWindow) return;
+      if (e.data?.type === 'qs:modal-close') close();
+      if (e.data?.type === 'qs:modal-saved') {
+        close();
+        Toast.show(e.data.message, 'success');
+        $$('.qs-datatable').forEach((t) => t.qsTable?.load());
+        document.dispatchEvent(new CustomEvent('qs:record-saved', { detail: e.data }));
+      }
+    };
+    window.addEventListener('message', onMessage);
+    closeBtn.addEventListener('click', askClose);
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); askClose(); });
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-quick-create]');
+    if (btn) openModal(JSON.parse(btn.dataset.quickCreate));
+  });
+  // Dentro de la ventana: el registro se ha guardado, se avisa a la página que la abrió
+  $$('[data-modal-done]').forEach((el) => {
+    window.parent.postMessage({ type: 'qs:modal-saved', ...JSON.parse(el.dataset.modalDone) }, window.location.origin);
+  });
 
   // ------------------------------------------------------------------ arranque
 

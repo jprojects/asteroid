@@ -74,6 +74,13 @@ final class Module
 
         // Comprueba que todas las referencias a campos existen (falla pronto y con un mensaje claro)
         foreach ($this->fields as $field) {
+            if (isset($def['fields'][$field->name]['dependsOn'])) {
+                $dep = $def['fields'][$field->name]['dependsOn'];
+                if (!$field instanceof \Quasar\Fields\SelectField || !is_array($dep) || !isset($this->fields[(string) ($dep['field'] ?? '')])
+                    || empty($dep['column']) || empty($def['fields'][$field->name]['source'])) {
+                    throw new \RuntimeException("Módulo '{$this->name}': \"dependsOn\" del campo '{$field->name}' necesita un select con \"source\" y {\"field\": otro campo del módulo, \"column\": columna de la tabla de origen}");
+                }
+            }
             foreach (ShowOn::fields($field->showOn() ?? []) as $ref) {
                 if (!isset($this->fields[$ref]) || $ref === $field->name) {
                     throw new \RuntimeException("Módulo '{$this->name}': el showon del campo '{$field->name}' usa '$ref', que no es otro campo del módulo");
@@ -101,6 +108,7 @@ final class Module
         $this->checkButtons();
         $this->aiConfig();
         $this->chatConfig();
+        $this->quickCreate();
         $this->accessRule($def['menu']['access'] ?? null, 'el menú');
     }
 
@@ -684,6 +692,34 @@ final class Module
         }
         $user = func_num_args() > 0 ? $user : $this->ctx->user();
         return $cfg['access'] === null || $cfg['access']->allows($user, $this->name);
+    }
+
+    /**
+     * Botón en la barra superior que abre el alta de este módulo en una ventana, desde cualquier página:
+     *   "quickCreate": { "label": "quick.new_hours", "icon": "clock-plus",
+     *                    "context": { "issues": "issue_id" } }   en la ficha de una incidencia, la rellena con ella
+     * Solo lo ven los usuarios que pueden crear registros del módulo.
+     * @return array{label:string,icon:string,context:array<string,string>}|null
+     */
+    public function quickCreate(): ?array
+    {
+        $cfg = $this->def['quickCreate'] ?? null;
+        if ($cfg === null || $cfg === false) {
+            return null;
+        }
+        $cfg = $cfg === true ? [] : $cfg;
+        if (!is_array($cfg) || $this->isPage()) {
+            throw new \RuntimeException("Módulo '{$this->name}': \"quickCreate\" debe ser true o un objeto (y no en una página)");
+        }
+        $context = (array) ($cfg['context'] ?? []);
+        foreach ($context as $module => $field) {
+            $this->field((string) $field);
+        }
+        return [
+            'label' => isset($cfg['label']) ? $this->t((string) $cfg['label']) : $this->title(),
+            'icon' => (string) ($cfg['icon'] ?? 'plus'),
+            'context' => array_map('strval', $context),
+        ];
     }
 
     /** Panel de filtros desplegado al entrar por primera vez ("list.filtersOpen"; por defecto plegado). */

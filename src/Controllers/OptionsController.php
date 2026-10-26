@@ -29,11 +29,16 @@ final class OptionsController extends Controller
         if ($field instanceof SelectField) {
             $value = $_GET['value'] ?? null;
             if (is_string($value) && $value !== '') {
-                $label = $field->labelFor($value);
+                $parent = is_string($_GET['parent'] ?? null) ? $_GET['parent'] : '';
+                // Con "parent": si el valor sigue siendo válido para el nuevo valor del campo del que depende
+                $label = $parent !== '' && $field->dependency() !== null && !$field->belongsTo($value, $parent) ? null : $field->labelFor($value);
                 $this->app->json(['results' => $label === null ? [] : [['value' => $value, 'label' => $label]]]);
                 return;
             }
-            $this->app->json(['results' => $field->search($q)]);
+            // Select dependiente: valores del campo del que depende ("dependsOn")
+            $parent = $_GET['parent'] ?? [];
+            $parent = array_slice(array_filter(is_array($parent) ? $parent : [$parent], 'is_string'), 0, 50);
+            $this->app->json(['results' => $field->search($q, $parent)]);
             return;
         }
 

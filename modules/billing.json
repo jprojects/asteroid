@@ -14,7 +14,8 @@
     "client_id":      { "type": "select", "required": true, "width": "half", "search": "remote",
                         "source": { "table": "clients", "value": "id", "label": "name" } },
     "project_id":     { "type": "select", "width": "half", "search": "remote",
-                        "source": { "table": "projects", "value": "id", "label": "title" } },
+                        "source": { "table": "projects", "value": "id", "label": "title" },
+                        "dependsOn": { "field": "client_id", "column": "client_id" } },
     "lines":          { "type": "repeater", "layout": "table", "min": 1, "addLabel": "repeater.add_line", "summary": "description",
                         "fields": {
                           "description": { "type": "text", "label": "line.description", "required": true, "maxlength": 200 },

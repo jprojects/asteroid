@@ -4,10 +4,11 @@
   "hooks": "Quasar\\Hooks\\HoursHooks",
   "actions": ["view", "create", "edit", "delete", "export", "bill"],
   "menu": { "group": "team", "order": 30, "icon": "clock" },
+  "quickCreate": { "label": "quick.new", "icon": "clock-plus", "context": { "issues": "issue_id", "projects": "project_id" } },
 
   "fields": {
     "id":           { "type": "number", "readonly": true, "grouping": false },
-    "worked_on":    { "type": "date", "required": true, "width": "quarter" },
+    "worked_on":    { "type": "date", "required": true, "default": "today", "width": "quarter" },
     "user_id":      { "type": "select", "width": "quarter", "help": "help.user",
                       "source": { "table": "users", "value": "id", "label": "name", "where": "users.active = 1 AND (users.is_admin = 1 OR JSON_CONTAINS(users.`groups`, (SELECT CONCAT(g.id) FROM user_groups g WHERE g.code = 'equip')))" } },
     "minutes":      { "type": "duration", "required": true, "min": 1, "width": "quarter", "help": "help.minutes" },
@@ -15,12 +16,14 @@
                       "options": { "0": "billing.pending", "1": "billing.billed", "2": "billing.not_billable" },
                       "colors": { "0": "amber", "1": "green", "2": "gray" } },
     "issue_id":     { "type": "select", "width": "half", "search": "remote", "help": "help.issue",
-                      "source": { "table": "issues", "value": "id", "label": "title", "order": "id" } },
+                      "source": { "table": "issues", "value": "id", "label": "title", "order": "id", "dir": "desc" },
+                      "dependsOn": { "field": "project_id", "column": "project_id" } },
     "issue_status": { "type": "select", "virtual": true, "width": "half", "help": "help.issue_status", "placeholder": "placeholders.issue_status",
                       "options": { "1": "issues:status.pending", "2": "issues:status.in_progress", "3": "issues:status.resolved", "4": "issues:status.discarded" },
                       "showon": "issue_id!:" },
     "project_id":   { "type": "select", "width": "half", "search": "remote", "help": "help.project",
-                      "source": { "table": "projects", "value": "id", "label": "title" } },
+                      "source": { "table": "projects", "value": "id", "label": "title" },
+                      "dependsOn": { "field": "client_id", "column": "client_id", "form": false } },
     "client_id":    { "type": "select", "width": "half", "source": { "table": "clients", "value": "id", "label": "name" },
                       "sql": "SELECT p.client_id FROM projects p WHERE p.id = hours.project_id" },
     "comment":      { "type": "textarea", "rows": 3 },
@@ -73,7 +76,7 @@
 
   "form": {
     "sections": [
-      { "title": "sections.entry", "fields": ["worked_on", "user_id", "minutes", "billing", "issue_id", "issue_status", "project_id", "client_id", "comment"] },
+      { "title": "sections.entry", "fields": ["worked_on", "user_id", "minutes", "billing", "project_id", "client_id", "issue_id", "issue_status", "comment"] },
       { "title": "sections.info", "fields": ["modality", "cost", "billing_id", "created_at"] }
     ]
   }

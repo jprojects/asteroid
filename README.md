@@ -235,6 +235,22 @@ Con `"remote"` la página no carga todas las opciones: solo la elegida, y el res
 - `source.module`: la tabla de ese módulo y **solo los registros que el usuario ve en él** (su `scope` y `where`, ver
   "Registros visibles por usuario"). Se aplica en las opciones, en la búsqueda remota y en la validación: un usuario no
   puede guardar un valor que no podría elegir.
+- `source.order` + `source.dir` (`asc`|`desc`): orden de las opciones (p. ej. las incidencias más recientes primero).
+
+**Selects dependientes** (las incidencias del proyecto elegido, los proyectos del cliente elegido):
+
+```jsonc
+"issue_id":   { "type": "select", "source": { "table": "issues", "value": "id", "label": "title" },
+                "dependsOn": { "field": "project_id", "column": "project_id" } },
+"project_id": { "type": "select", "source": { "module": "projects", "value": "id", "label": "title" },
+                "dependsOn": { "field": "client_id", "column": "client_id", "form": false } }   // solo en los filtros
+```
+
+- Las opciones son las filas de la tabla de origen cuya `column` coincide con lo elegido en `field` (en la ficha o en
+  el panel de filtros); sin nada elegido, todas. Siempre buscan en el servidor.
+- Al cambiar `field`, si el valor elegido ya no corresponde, se vacía. En la ficha, además, se valida al guardar.
+- `"form": false` / `"filters": false` lo limita a los filtros o a la ficha (p. ej. si en la ficha `field` es de solo
+  lectura).
 
 ### Campo de etiquetas (tags)
 
@@ -595,6 +611,19 @@ otro nombre de módulo y la misma clase (p. ej. `modules/agenda.json` sobre inci
 
 Un módulo con `"requires": ["activities"]` solo existe si existen esos módulos (el calendario de ejemplo desaparece
 del menú en una instalación sin `activities`).
+
+### Alta rápida desde la barra superior (quickCreate)
+
+```jsonc
+"quickCreate": { "label": "quick.new", "icon": "clock-plus", "context": { "issues": "issue_id", "projects": "project_id" } }
+```
+
+Un botón en la barra superior (para quien puede crear registros del módulo) abre el alta en una ventana sin salir de la
+página; al guardar se cierra, avisa y recarga las tablas de la página. Con `context`, en la ficha de un registro de ese
+módulo el alta se rellena con él (en una incidencia, «Imputar horas» ya lleva la incidencia). Cualquier alta se puede
+abrir así con `index.php?r=edit&m=…&modal=1`.
+
+En las fechas, `"default": "today"` (y `"now"` en `datetime`) pone la del día en las altas.
 
 ### Valores iniciales en las altas
 
