@@ -44,5 +44,24 @@
   "notify": {
     "instant": "Rebre-los al moment",
     "off": "No rebre avisos per correu"
+  },
+  "api": {
+    "title": "Aplicacions i API",
+    "intro": "Un token permet que una app o un bot (p. ex. de Telegram) treballi en nom teu, amb els teus mateixos permisos. Tracta'l com una contrasenya. Adreça de l'API: {url}",
+    "token": "Token",
+    "created": "Copia aquest token ara: no el tornaràs a veure.",
+    "name": "Nom",
+    "name_placeholder": "p. ex. Bot de Telegram",
+    "created_at": "Creat",
+    "last_used": "Últim ús",
+    "expires": "Caduca",
+    "never": "Mai",
+    "days_30": "D'aquí a 30 dies",
+    "days_90": "D'aquí a 90 dies",
+    "days_365": "D'aquí a un any",
+    "create": "Crea un token",
+    "revoke": "Revoca",
+    "revoke_confirm": "L'app o el bot que faci servir «{name}» deixarà de funcionar. Vols continuar?",
+    "revoked": "Token revocat"
   }
 }

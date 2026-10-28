@@ -35,6 +35,21 @@ vencido) y las cuatro más urgentes. Primero los proyectos con pánico, después
 muestra las del técnico que entra; arriba se cambia a otro técnico, «Sense assignar» o «Tot l'equip». La tarjeta abre el
 listado de incidencias con esos filtros. No salen las incidencias sin proyecto.
 
+## API (apps y bots)
+
+La del núcleo (README de Quasar, «API para apps y bots»): `https://asteroid.afi.cat/api/v1/…` con un token personal.
+Cada token actúa como su usuario, así que un cliente solo ve y crea sus incidencias visibles, igual que en la web.
+
+- **Bot de Telegram**: crea un usuario para el bot (o usa el tuyo) y, en *El meu perfil → Aplicacions i API*, un
+  token sin caducidad. Lo útil: `GET pages/pissarra` (las tarjetas de la Pissarra en JSON, `?worker=all|none|id`),
+  `GET issues?f[status][]=1&f[status][]=2&f[worker_id][]={id}`, `GET notifications?unread=1`,
+  `POST issues/{id}/messages`, `PATCH issues/{id}` (`{"status": 3}`) y `POST hours`.
+- **App móvil**: `POST auth/token` con el email y la contraseña del usuario; `DELETE auth/token` al cerrar sesión.
+- **Webs de clientes que creaban incidencias** (la API antigua, `setIssue` con `projects.api_key`): la nueva no es
+  compatible. Hay que crear un usuario del cliente (*Clients → Usuaris de clients*), un token en su perfil y cambiar la
+  web para que haga `POST /api/v1/issues` con `{"title", "project_id", "description"}` y los adjuntos con
+  `POST /api/v1/issues/files/attachments`. Las claves `projects.api_key` importadas ya no se usan.
+
 ## Avisos
 
 | Qué pasa | A quién |
@@ -62,6 +77,7 @@ php tools/import-asteroid.php --host=… --name=bd_antigua --user=… --pass=…
 <?php return [
     'app_name' => 'Asteroid',
     'login_field' => 'email',   // se entra con el correo, como en el Asteroid antiguo
+    'api' => ['enabled' => true],   // API para apps y bots (ver «API» abajo)
     'base_url' => 'https://asteroid.afi.cat',
     'db' => ['host' => 'localhost', 'name' => '…', 'user' => '…', 'pass' => '…'],
     'mail' => ['host' => '…', 'username' => '…', 'password' => '…', 'from' => ['address' => 'suport@afi.cat', 'name' => 'Asteroid']],
@@ -120,8 +136,4 @@ se conservan. Resultado con la copia del 26/10/2026: 272 clientes, 238 proyectos
 
 ## Pendiente respecto al Asteroid antiguo
 
-- **API para otras aplicaciones** (`admin/component/controllers/api.php`: `getIssues`, `getHours`, `setBilled`,
-  `getIssuesById`, `setIssue`, `getIssuesByProjectId`, `getHoresPendentsFacturar`, `canviaEstatHoresPendentsFacturar`,
-  autenticada con `projects.api_key`). Las claves se han importado, pero los endpoints no existen todavía: las
-  aplicaciones que la usen dejarán de funcionar hasta que se haga una página `api` equivalente.
 - Encuestas de satisfacción al resolver (`onSendSurvey`), tareas (`todo`), accesos (`accesos`).

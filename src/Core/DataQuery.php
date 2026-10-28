@@ -122,6 +122,31 @@ final class DataQuery
     }
 
     /**
+     * Una página de filas con los valores de BD sin formatear (API), con los mismos filtros y orden.
+     *
+     * @param list<array{field:\Quasar\Fields\Field}> $columns
+     * @return array{rows:list<array<string,mixed>>,total:int,page:int,pages:int,size:int,sort:string,dir:string}
+     */
+    public function page(array $params, array $columns, int $size, int $page): array
+    {
+        [$whereSql, $bind] = $this->conditions($params);
+        [$sort, $dir, $orderSql] = $this->ordering($params);
+        $total = $this->count($whereSql, $bind);
+        $pages = max(1, (int) ceil($total / $size));
+        $page = min(max(1, $page), $pages);
+        $sql = $this->select($columns) . $whereSql . $orderSql . sprintf(' LIMIT %d OFFSET %d', $size, ($page - 1) * $size);
+        return [
+            'rows' => array_map(fn (array $row) => $this->resolveComputed($columns, $row), $this->db->fetchAll($sql, $bind)),
+            'total' => $total,
+            'page' => $page,
+            'pages' => $pages,
+            'size' => $size,
+            'sort' => $sort,
+            'dir' => $dir,
+        ];
+    }
+
+    /**
      * Filtros activos en formato legible: [["Estado", "Activo"], ["Buscar", "acme"]].
      * @return list<array{0:string,1:string}>
      */

@@ -31,6 +31,12 @@ las tablas `notifications`, `messages`, `message_reads` y `settings`, y la colum
 - **Alta rápida** (`quickCreate`): botón en la barra superior que abre el alta de un módulo en una ventana, rellenada
   con el registro que se está viendo (`context`); `?modal=1` en cualquier alta. Fechas con `"default": "today"`.
 - **`login_field`**: entrar con el nombre de usuario (por defecto), con el email o con cualquiera de los dos.
+- **API REST para apps y bots** (`/api/v1/…`, config `api`): tokens personales (desde el perfil o con
+  `POST auth/token`, tabla `api_tokens`), listado con los filtros de la web, ficha, alta, modificación parcial, borrado,
+  opciones de selects, archivos, conversación, acciones propias, avisos y datos de páginas (`Page::api()`). Mismos
+  permisos, `scope` y hooks que la web.
+- Seguridad: un select de solo lectura ya no incluye en la página todas sus opciones (solo la elegida), y
+  `r=options` solo responde para campos editables o filtros.
 - **`menu.access`**: un módulo en el menú solo para algunos grupos. **`requires`**: un módulo solo existe si existen otros
   (el calendario de ejemplo ya no da 404 sin `activities`).
 - **`lang/{idioma}/app.json`**: textos propios de la instalación compartidos por todos los módulos, que una

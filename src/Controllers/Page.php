@@ -37,6 +37,15 @@ abstract class Page extends Controller
     abstract public function index(): void;
 
     /**
+     * Datos de la página para la API (GET /api/v1/pages/{módulo}), con los mismos permisos que la página.
+     * null = la página no ofrece datos a la API.
+     */
+    public function api(): ?array
+    {
+        return null;
+    }
+
+    /**
      * Pinta la plantilla de la página (por defecto pages/{módulo}) dentro del layout,
      * con título, icono y ruta de navegación ya rellenos (se pueden sobrescribir en $vars).
      */

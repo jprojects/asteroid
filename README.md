@@ -594,6 +594,7 @@ final class DashboardPage extends Page
   `$this->allowed('accion')` o `$this->allowed('view', $this->otherModule('clients'))`.
 - Para las acciones que modifican datos (POST), llama a `$this->requirePost()` (comprueba el token CSRF).
 - Helpers de `Page`: `view()`, `json()`, `pageUrl()`, `param()`, `allowed()`, `otherModule()`, `text()`, `flash()`.
+- `api()`: datos de la página para la API (`GET /api/v1/pages/{módulo}`; ver "API para apps y bots").
 
 ### Calendario (incluido)
 
@@ -1162,10 +1163,86 @@ navegador solo permite su aviso nativo).
 | Tabla     | /                     | Ir al buscador            |
 | Todas     | Ctrl+B                | Plegar / desplegar el menú lateral |
 
+## API para apps y bots
+
+API REST en JSON en `/api/v1/…` (o `index.php?r=api&p=v1/…` si el servidor no reescribe URL). Cada petición actúa
+**como un usuario**: mismos permisos, `scope`, campos con `access`, hooks, avisos y conversación que en la web. No usa
+sesión ni cookies.
+
+```php
+'api' => [
+    'enabled' => true,
+    'token_days' => 365,   // caducidad de los tokens creados al iniciar sesión desde una app (0 = no caducan)
+    'cors' => [],          // orígenes web permitidos (una web en otro dominio); las apps y bots no lo necesitan
+],
+```
+
+**Tokens.** Van en la cabecera `Authorization: Bearer qs_…` (o `X-Api-Key: qs_…`) y se obtienen de dos maneras:
+
+- desde el **perfil** (*Aplicacions i API*): nombre y caducidad (o ninguna). Es lo indicado para un bot o una
+  integración. Se ve una sola vez; en la lista se ve el último uso y se puede revocar;
+- `POST /api/v1/auth/token` `{"login": "…", "password": "…", "name": "iPhone de Kim"}` → `{token, expires_at, user}`:
+  el inicio de sesión de una app. `login` es usuario o email según `login_field`; cuenta para el bloqueo por intentos
+  fallidos. Los usuarios con verificación en dos pasos tienen que crear el token desde el perfil (`two_factor_required`).
+  `DELETE /api/v1/auth/token` revoca el token con el que se llama (cerrar sesión en la app).
+
+En BD solo se guarda el SHA-256 del token (`api_tokens`). Un usuario desactivado deja de poder usarlos.
+
+| Petición | |
+|---|---|
+| `GET /` | nombre, versión de la aplicación y de la API (sin token) |
+| `GET me` | usuario, avisos sin leer y módulos a los que tiene acceso, con sus acciones permitidas |
+| `GET modules` · `GET modules/{m}` | módulos · esquema de uno: campos (tipo, etiqueta, obligatorio, editable, opciones), columnas, orden, búsqueda, filtros y acciones propias |
+| `GET {m}` | listado. `q` (buscador), `f[campo]=…` (filtros del módulo, como en la web: `f[status][]=1&f[status][]=2`, `f[created_at][from]=…`), `sort`, `dir`, `page`, `per_page` (máx. 200), `fields=a,b` o `fields=all` (por defecto, las columnas del listado) → `{data, meta: {total, page, pages, per_page, sort, dir}}` |
+| `GET {m}/{id}` | ficha con todos los campos que ve el usuario, `_files` (archivos de los campos media) y `_chat` (mensajes y sin leer) |
+| `POST {m}` · `PATCH {m}/{id}` · `DELETE {m}/{id}` | alta · modificación **parcial** (solo los campos enviados) · borrado. Alta y modificación devuelven la ficha |
+| `GET {m}/options/{campo}?q=&parent=` | opciones de un select con buscador (o dependiente: `parent` = valor del campo del que depende) |
+| `POST {m}/files/{campo}` | sube un archivo (multipart, `file`) → `{id, …}`; el id se pone después en el campo (`"attachments": [12, 15]`) |
+| `GET files/{id}[?thumb=1][&download=1]` | descarga un archivo (con los mismos permisos que en la web) |
+| `GET {m}/{id}/messages[?after=&before=&read=1]` | conversación; `read=1` la marca como leída |
+| `POST {m}/{id}/messages` | `{"body": "…", "media": [ids], "mentions": [ids de usuario]}`; adjuntos con `POST {m}/{id}/messages/files` |
+| `POST {m}/{id}/actions/{acción}` · `POST {m}/actions/{acción}` | acciones propias del módulo (botones de fila/ficha o de la barra), salvo las que descargan un fichero |
+| `GET notifications[?unread=1&after=&limit=]` · `POST notifications/read {id?}` | avisos · marcarlos como leídos (uno o todos) |
+| `GET pages/{m}` | datos de una página personalizada que implemente `api()` |
+
+**Valores.** Los de BD, en JSON: números como número, checkbox como `true`/`false`, selects múltiples, etiquetas y
+archivos como listas, fechas `AAAA-MM-DD` y fechas con hora en ISO 8601 (`2026-10-28T09:22:13+01:00`). Las duraciones
+son minutos. `_display` lleva el texto que se ve en la web cuando es distinto (la etiqueta de un select, `"1:30"`,
+`"28/10/2026"`, el texto sin HTML de un richtext). Al escribir se aceptan los mismos valores (o texto como en el
+formulario); un campo que no existe o que el usuario no ve da error, uno de solo lectura se ignora.
+
+**Errores.** `{"error": "mensaje en el idioma del usuario", "code": "…"}` con su estado HTTP: `unauthorized` (401),
+`forbidden` (403), `not_found` (404), `method_not_allowed` (405), `conflict` (409, registro en uso), `validation` (422,
+con `"fields": {"campo": "mensaje"}`), `invalid_credentials`, `locked` (429), `maintenance` (503). `?lang=es` cambia el
+idioma de una petición.
+
+```bash
+T=qs_…   # token del perfil
+curl -H "Authorization: Bearer $T" https://app.example.com/api/v1/me
+curl -H "Authorization: Bearer $T" "https://app.example.com/api/v1/clients?q=acme&f[status][]=active&per_page=20"
+curl -H "Authorization: Bearer $T" -H 'Content-Type: application/json' \
+     -d '{"name": "Acme", "status": "lead"}' https://app.example.com/api/v1/clients
+curl -X PATCH -H "Authorization: Bearer $T" -H 'Content-Type: application/json' \
+     -d '{"status": "active"}' https://app.example.com/api/v1/clients/12
+```
+
+Una **página personalizada** ofrece sus datos a la API implementando `api()` (con los mismos permisos que la página;
+`$this->param()` lee los parámetros de la URL):
+
+```php
+public function api(): ?array
+{
+    return ['pendientes' => $this->contarPendientes()];
+}
+```
+
+En Apache, `public/.htaccess` ya reescribe `/api/` y pasa la cabecera `Authorization` a PHP. En nginx:
+`location /api/ { try_files $uri /index.php?$query_string; }`.
+
 ## Rutas
 
 `index.php?r=` `login` · `logout` · `home` · `list&m=` · `data&m=` (JSON) · `edit&m=&id=` · `save&m=` ·
-`delete&m=` · `action&m=&a=` (POST) · `ask&m=` (POST, IA) · `page&m=[&a=]` · `verify` · `profile` · `notifications&a=` (poll · read · open) · `chat&a=&m=&id=` (poll · post · upload · delete · mute · people · meet) · `permissions&id=` (usuario) · `permissions&group=` · `upload&m=&field=` · `media&id=` · `export&m=&format=` · `status` y `remote&a=` (JSON, con token) · `logo` · `asset&f=`
+`delete&m=` · `action&m=&a=` (POST) · `ask&m=` (POST, IA) · `page&m=[&a=]` · `verify` · `profile` · `notifications&a=` (poll · read · open) · `chat&a=&m=&id=` (poll · post · upload · delete · mute · people · meet) · `permissions&id=` (usuario) · `permissions&group=` · `upload&m=&field=` · `media&id=` · `export&m=&format=` · `api&p=v1/…` (= `/api/v1/…`, JSON, con token) · `status` y `remote&a=` (JSON, con token) · `logo` · `asset&f=`
 
 ## Versiones
 

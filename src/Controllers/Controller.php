@@ -59,7 +59,8 @@ abstract class Controller
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
             throw new HttpException(405);
         }
-        if (!Session::checkCsrf($_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null)) {
+        // La API se autentica con un token en la cabecera, no con cookies: no hay CSRF posible
+        if ($this->app->auth->apiTokenId() === null && !Session::checkCsrf($_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null)) {
             throw new HttpException(419);
         }
     }

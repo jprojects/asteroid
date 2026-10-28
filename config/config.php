@@ -45,6 +45,13 @@ return [
     // Archivos subidos (campo media). Debe quedar FUERA de public/
     'uploads_dir' => dirname(__DIR__) . '/storage/uploads',
 
+    // API para apps y bots (/api/v1/…, ver README "API"). Tokens personales desde el perfil o POST /api/v1/auth/token
+    'api' => [
+        'enabled' => false,
+        'token_days' => 365,   // caducidad de los tokens creados al iniciar sesión desde una app (0 = no caducan)
+        'cors' => [],          // orígenes web permitidos (p. ej. ['https://app.example.com']); las apps y bots no lo necesitan
+    ],
+
     // Verificación en dos pasos con código por email (requiere 'mail' configurado)
     'two_factor' => [
         'mode' => 'off',          // off | optional (cada usuario la activa en su perfil) | required (todos)

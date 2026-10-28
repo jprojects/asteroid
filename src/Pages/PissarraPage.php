@@ -12,6 +12,7 @@ use Quasar\Hooks\Asteroid;
  * Asteroid · Pissarra (modules/pissarra.json): una tarjeta por proyecto con incidencias pendientes o en curso,
  * con las más urgentes primero, para ver de un vistazo por dónde empezar. Por defecto, las del técnico que
  * mira la página; ?worker=all (todo el equipo), none (sin asignar) o el id de un técnico.
+ * También por la API: GET /api/v1/pages/pissarra[?worker=…].
  */
 final class PissarraPage extends Page
 {
@@ -19,6 +20,85 @@ final class PissarraPage extends Page
     private const TOP = 4;
 
     public function index(): void
+    {
+        [$cards, $worker, $workers, $total] = $this->board();
+        $issues = $this->otherModule('issues');
+        $me = $this->user()->id();
+
+        foreach ($cards as &$card) {
+            $filters = ['status' => [Asteroid::STATUS_PENDING, Asteroid::STATUS_IN_PROGRESS], 'project_id' => [$card['id']]];
+            if ($worker !== 'all' && $worker !== 'none') {
+                $filters['worker_id'] = [(int) $worker];
+            }
+            $card['url'] = $issues->url(['f' => $filters]);
+            $card['estimated'] = $card['estimated'] > 0 ? DurationField::hm($card['estimated']) : null;
+            $card['worked'] = $card['worked'] > 0 ? DurationField::hm($card['worked']) : null;
+            foreach ($card['issues'] as &$issue) {
+                $issue['url'] = $this->app->url('edit', ['m' => 'issues', 'id' => $issue['id']]);
+                $issue['worker'] = $worker === 'all' ? $issue['worker'] : null;
+            }
+            unset($issue);
+        }
+        unset($card);
+
+        $tabs = [['key' => (string) $me, 'label' => $this->text('mine')]];
+        foreach ($workers as $id => $name) {
+            if ($id !== $me) {
+                $tabs[] = ['key' => (string) $id, 'label' => $name];
+            }
+        }
+        $tabs[] = ['key' => 'none', 'label' => $this->text('unassigned')];
+        $tabs[] = ['key' => 'all', 'label' => $this->text('all')];
+        if (!isset($workers[$me])) {
+            array_shift($tabs);
+        }
+        foreach ($tabs as &$tab) {
+            $tab['url'] = $this->pageUrl('index', ['worker' => $tab['key']]);
+            $tab['active'] = $tab['key'] === $worker;
+        }
+        unset($tab);
+
+        $this->view([
+            'cards' => $cards,
+            'tabs' => $tabs,
+            'total' => $total,
+            'newUrl' => $this->allowed('create', $issues) ? $this->app->url('edit', ['m' => 'issues']) : null,
+        ]);
+    }
+
+    /** Las mismas tarjetas en JSON (minutos y fechas sin formatear). */
+    public function api(): ?array
+    {
+        [$cards, $worker, $workers, $total] = $this->board();
+        return [
+            'worker' => ctype_digit($worker) ? (int) $worker : $worker,
+            'workers' => array_map(static fn ($id, $name) => ['id' => $id, 'name' => $name], array_keys($workers), $workers),
+            'total' => $total,
+            'cards' => array_map(static fn (array $c) => [
+                'project' => ['id' => $c['id'], 'title' => $c['project']],
+                'client' => $c['client'] !== '' ? $c['client'] : null,
+                'open' => $c['open'],
+                'pending' => $c['pending'],
+                'in_progress' => $c['in_progress'],
+                'panic' => $c['panic'],
+                'urgent' => $c['urgent'],
+                'estimated_minutes' => $c['estimated'],
+                'worked_minutes' => $c['worked'],
+                'due_on' => $c['due'],
+                'overdue' => $c['overdue'],
+                'issues' => array_map(static fn (array $i) => [
+                    'id' => $i['id'], 'title' => $i['title'], 'status' => $i['status'], 'priority' => $i['priority'],
+                    'due_on' => $i['due'], 'overdue' => $i['overdue'], 'worker' => $i['worker'],
+                ], $c['issues']),
+            ], $cards),
+        ];
+    }
+
+    /**
+     * Tarjetas ordenadas, técnico elegido, técnicos y total de incidencias.
+     * @return array{0:list<array>,1:string,2:array<int,string>,3:int}
+     */
+    private function board(): array
     {
         $issues = $this->otherModule('issues');
         if (!$this->allowed('view', $issues) || Asteroid::isClient($this->user())) {
@@ -84,8 +164,7 @@ final class PissarraPage extends Page
                     'priority' => (int) $r['priority'],
                     'due' => $r['due_on'],
                     'overdue' => $r['due_on'] !== null && $r['due_on'] < $today,
-                    'worker' => $worker === 'all' && $r['worker_id'] !== null ? ($workers[(int) $r['worker_id']] ?? null) : null,
-                    'url' => $this->app->url('edit', ['m' => 'issues', 'id' => $r['id']]),
+                    'worker' => $r['worker_id'] !== null ? ($workers[(int) $r['worker_id']] ?? null) : null,
                 ];
             }
             unset($card);
@@ -95,40 +174,7 @@ final class PissarraPage extends Page
         usort($cards, static fn (array $a, array $b) => [$b['panic'], $b['urgent'], $a['due'] === null, $a['due'], $b['open']]
             <=> [$a['panic'], $a['urgent'], $b['due'] === null, $b['due'], $a['open']]);
 
-        foreach ($cards as &$card) {
-            $filters = ['status' => [Asteroid::STATUS_PENDING, Asteroid::STATUS_IN_PROGRESS], 'project_id' => [$card['id']]];
-            if ($worker !== 'all' && $worker !== 'none') {
-                $filters['worker_id'] = [(int) $worker];
-            }
-            $card['url'] = $issues->url(['f' => $filters]);
-            $card['estimated'] = $card['estimated'] > 0 ? DurationField::hm($card['estimated']) : null;
-            $card['worked'] = $card['worked'] > 0 ? DurationField::hm($card['worked']) : null;
-        }
-        unset($card);
-
-        $tabs = [['key' => (string) $me, 'label' => $this->text('mine')]];
-        foreach ($workers as $id => $name) {
-            if ($id !== $me) {
-                $tabs[] = ['key' => (string) $id, 'label' => $name];
-            }
-        }
-        $tabs[] = ['key' => 'none', 'label' => $this->text('unassigned')];
-        $tabs[] = ['key' => 'all', 'label' => $this->text('all')];
-        if (!isset($workers[$me])) {
-            array_shift($tabs);
-        }
-        foreach ($tabs as &$tab) {
-            $tab['url'] = $this->pageUrl('index', ['worker' => $tab['key']]);
-            $tab['active'] = $tab['key'] === $worker;
-        }
-        unset($tab);
-
-        $this->view([
-            'cards' => $cards,
-            'tabs' => $tabs,
-            'total' => count($rows),
-            'newUrl' => $this->allowed('create', $issues) ? $this->app->url('edit', ['m' => 'issues']) : null,
-        ]);
+        return [array_values($cards), $worker, $workers, count($rows)];
     }
 
     /** @return array<int,string> técnicos (equipo y administradores activos): id => nombre */

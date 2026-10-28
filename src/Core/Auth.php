@@ -13,6 +13,7 @@ final class Auth
 {
     private ?User $user = null;
     private bool $resolved = false;
+    private ?int $apiTokenId = null;
 
     public function __construct(
         private readonly Database $db,
@@ -63,9 +64,32 @@ final class Auth
         return new User($row, $permissions->forUser((int) $row['id'], array_keys($groups)), array_values($groups));
     }
 
+    /**
+     * Petición de la API autenticada con un token: el usuario de esta petición, sin sesión ni cookies.
+     * Los permisos y el "scope" son los mismos que si hubiera entrado en la web.
+     */
+    public function actAs(array $row, int $tokenId): void
+    {
+        $this->user = $this->build($row);
+        $this->resolved = true;
+        $this->apiTokenId = $tokenId;
+    }
+
+    /** Id del token si la petición viene de la API (null en la web). */
+    public function apiTokenId(): ?int
+    {
+        return $this->apiTokenId;
+    }
+
     /** Fuerza recargar el usuario (p. ej. tras editar el perfil). */
     public function refresh(): void
     {
+        if ($this->apiTokenId !== null) {
+            // En la API no hay sesión de la que recargarlo
+            $row = $this->user ? $this->db->fetch('SELECT * FROM users WHERE id = ? AND active = 1', [$this->user->id()]) : null;
+            $this->user = $row !== null ? $this->build($row) : null;
+            return;
+        }
         $this->resolved = false;
         $this->user = null;
     }

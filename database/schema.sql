@@ -192,3 +192,20 @@ CREATE TABLE IF NOT EXISTS settings (
   updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- API (apps y bots): tokens personales. Solo se guarda el hash; el token se enseña una vez al crearlo
+CREATE TABLE IF NOT EXISTS api_tokens (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id       INT UNSIGNED NOT NULL,
+  name          VARCHAR(100) NOT NULL DEFAULT '',
+  token_hash    CHAR(64)     NOT NULL,
+  hint          VARCHAR(8)   NOT NULL DEFAULT '',   -- últimos caracteres, para reconocerlo
+  expires_at    DATETIME     NULL,
+  last_used_at  DATETIME     NULL,
+  last_ip       VARCHAR(45)  NULL,
+  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_api_tokens_hash (token_hash),
+  KEY ix_api_tokens_user (user_id),
+  CONSTRAINT fk_api_tokens_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

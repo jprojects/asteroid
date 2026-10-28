@@ -115,6 +115,17 @@
     "max_items": "Com a màxim {max} opcions",
     "duration": "Durada no vàlida (p. ex. 1:30, 1h30 o 1,5)"
   },
+  "api": {
+    "disabled": "La API no està activada en aquesta instal·lació",
+    "unknown_version": "Versió de l'API desconeguda (fes servir /api/v1/)",
+    "unauthorized": "Falta el token o no és vàlid",
+    "two_factor": "Aquest usuari té la verificació en dos passos: crea un token des del perfil, a la web",
+    "validation": "Hi ha errors en les dades",
+    "unknown_field": "Camp desconegut",
+    "bad_json": "El cos de la petició no és un objecte JSON vàlid",
+    "no_page_api": "Aquesta pàgina no ofereix dades a l'API",
+    "download_action": "Aquesta acció genera un fitxer: fes-la des de la web"
+  },
   "errors": {
     "title": "Error",
     "400": "Petició incorrecta",

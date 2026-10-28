@@ -841,6 +841,10 @@ textarea.qs-input { height: auto; padding: 6px 8px; resize: vertical; min-height
 .qs-verify-links .qs-linkbtn:disabled { color: var(--text-muted); cursor: default; }
 .qs-login-card p { margin: 0; }
 .qs-trusted { flex-direction: row !important; align-items: center; gap: 12px !important; }
+/* Perfil: tokens de la API */
+.qs-api-token { display: block; width: 100%; margin-top: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.qs-api-tokens { margin: 8px 0 12px; min-height: 0; border-radius: var(--radius); }
+.qs-api-create { justify-content: flex-end; }
 
 /* ------------------------------------------------------------------ diálogos (Quasar.dialog) */
 

@@ -60,9 +60,11 @@ final class FormHandler
     }
 
     /**
+     * @param bool $partial solo cambian los campos que vienen en $input; el resto conserva su valor
+     *                      (o el de por defecto en un alta). Lo usa la API (PATCH).
      * @return array{ok:bool,id:?string,values:array,errors:array<string,string>}
      */
-    public function process(array $input, ?string $id, User $user): array
+    public function process(array $input, ?string $id, User $user, bool $partial = false): array
     {
         $isNew = $id === null;
         $existing = $isNew ? null : $this->load($id);
@@ -75,7 +77,7 @@ final class FormHandler
 
         $fields = $this->module->formFields();
         foreach ($fields as $f) {
-            if (!$f->isReadonly()) {
+            if (!$f->isReadonly() && (!$partial || array_key_exists($f->name, $input))) {
                 $values[$f->name] = $f->fromRequest($input);
             }
         }

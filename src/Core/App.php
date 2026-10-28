@@ -6,6 +6,7 @@ namespace Quasar\Core;
 use Quasar\Controllers\ActionController;
 use Quasar\Controllers\AdminController;
 use Quasar\Controllers\AiController;
+use Quasar\Controllers\ApiController;
 use Quasar\Controllers\AuthController;
 use Quasar\Controllers\ChatController;
 use Quasar\Controllers\ExportController;
@@ -92,6 +93,17 @@ final class App
     {
         $route = is_string($_GET['r'] ?? null) ? $_GET['r'] : 'home';
 
+        // API para apps y bots: /api/v1/… (reescrito por .htaccess o el servidor) o index.php?r=api&p=v1/…
+        $uriPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        if (!isset($_GET['r']) && preg_match('#/api/(v\d+(?:/.*)?)$#', $uriPath, $m)) {
+            $this->runApi(rawurldecode($m[1]), true);
+            return;
+        }
+        if ($route === 'api') {
+            $this->runApi(is_string($_GET['p'] ?? null) ? $_GET['p'] : '', false);
+            return;
+        }
+
         if ($route === 'asset') {
             $this->serveAsset(is_string($_GET['f'] ?? null) ? $_GET['f'] : '');
             return;
@@ -158,6 +170,18 @@ final class App
             ]);
             $this->renderError(500, $this->lang->get('errors.500'), $e);
         }
+    }
+
+    /** API: sin sesión ni cookies; se autentica con un token en cada petición. */
+    private function runApi(string $path, bool $pretty): void
+    {
+        $this->securityHeaders();
+        if (State::maintenance() !== null) {
+            header('Retry-After: 120');
+            $this->json(['error' => $this->lang->get('errors.503'), 'code' => 'maintenance'], 503);
+            return;
+        }
+        (new ApiController($this))->handle($path, $pretty);
     }
 
     public function modules(): ModuleRegistry

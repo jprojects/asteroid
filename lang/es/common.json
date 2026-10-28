@@ -115,6 +115,17 @@
     "max_items": "Como máximo {max} opciones",
     "duration": "Duración no válida (p. ej. 1:30, 1h30 o 1,5)"
   },
+  "api": {
+    "disabled": "La API no está activada en esta instalación",
+    "unknown_version": "Versión de la API desconocida (usa /api/v1/)",
+    "unauthorized": "Falta el token o no es válido",
+    "two_factor": "Este usuario tiene la verificación en dos pasos: crea un token desde el perfil, en la web",
+    "validation": "Hay errores en los datos",
+    "unknown_field": "Campo desconocido",
+    "bad_json": "El cuerpo de la petición no es un objeto JSON válido",
+    "no_page_api": "Esta página no ofrece datos a la API",
+    "download_action": "Esta acción genera un fichero: hazla desde la web"
+  },
   "errors": {
     "title": "Error",
     "400": "Petición incorrecta",

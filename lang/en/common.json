@@ -115,6 +115,17 @@
     "max_items": "At most {max} options",
     "duration": "Invalid duration (e.g. 1:30, 1h30 or 1.5)"
   },
+  "api": {
+    "disabled": "The API is not enabled on this installation",
+    "unknown_version": "Unknown API version (use /api/v1/)",
+    "unauthorized": "Missing or invalid token",
+    "two_factor": "This user has two-step verification: create a token from the profile, on the web",
+    "validation": "The data has errors",
+    "unknown_field": "Unknown field",
+    "bad_json": "The request body is not a valid JSON object",
+    "no_page_api": "This page does not provide data to the API",
+    "download_action": "This action generates a file: run it from the web"
+  },
   "errors": {
     "title": "Error",
     "400": "Bad request",

@@ -26,6 +26,13 @@ final class OptionsController extends Controller
         $field = is_string($path) ? $m->fieldByPath($path) : null;
         $q = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '';
 
+        // Solo de campos que el usuario puede rellenar o usar como filtro: las opciones de uno de solo
+        // lectura (p. ej. "creado por", con todos los usuarios) no se enseñan
+        $filters = array_map(static fn ($f) => $f['field']->name, $m->filters());
+        if ($field !== null && $field->isReadonly() && !in_array($path, $filters, true)) {
+            throw new HttpException(404);
+        }
+
         if ($field instanceof SelectField) {
             $value = $_GET['value'] ?? null;
             if (is_string($value) && $value !== '') {

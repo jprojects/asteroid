@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Quasar\Controllers;
 
+use Quasar\Core\ApiTokens;
 use Quasar\Core\Log;
 use Quasar\Core\Session;
 use Quasar\Fields\Field;
@@ -11,7 +12,7 @@ use Quasar\Fields\FieldFactory;
 /**
  * Perfil del usuario conectado: datos personales, idioma, contraseña y
  * verificación en dos pasos. Para cambiar email, contraseña o desactivar
- * el 2FA se exige la contraseña actual.
+ * el 2FA se exige la contraseña actual. Si la API está activada, también los tokens del usuario.
  */
 final class ProfileController extends Controller
 {
@@ -40,6 +41,9 @@ final class ProfileController extends Controller
                 Session::flash('success', $this->t('profile:flash.devices_forgotten'));
                 $this->app->redirect($this->app->url('profile'));
             }
+            if ($this->apiEnabled() && (isset($_POST['_api_create']) || isset($_POST['_api_revoke']))) {
+                $this->apiTokens($user->id());
+            }
             [$values, $errors] = $this->save($row, $fields, $values);
         }
 
@@ -56,7 +60,44 @@ final class ProfileController extends Controller
             'trustedDevices' => $twoFactor->trustedCount($user->id()),
             'lastLogin' => $row['last_login'],
             'username' => $row['username'],
+            'api' => $this->apiEnabled() ? [
+                'tokens' => (new ApiTokens($this->app->db))->forUser($user->id()),
+                'new' => $this->takeNewToken(),
+                'url' => $this->app->absoluteUrl('api/v1/'),
+            ] : null,
         ], 'layout', $errors ? 422 : 200);
+    }
+
+    private function apiEnabled(): bool
+    {
+        return !empty($this->app->config['api']['enabled']);
+    }
+
+    /** Crear o revocar un token de la API (formularios propios, fuera del de los datos del perfil). */
+    private function apiTokens(int $userId): never
+    {
+        $tokens = new ApiTokens($this->app->db);
+        if (isset($_POST['_api_revoke'])) {
+            if ($tokens->revoke($userId, (int) $_POST['_api_revoke'])) {
+                Log::info('Perfil: token de la API revocado', ['token' => (int) $_POST['_api_revoke']]);
+                Session::flash('success', $this->t('profile:api.revoked'));
+            }
+        } else {
+            $name = is_string($_POST['api_name'] ?? null) && trim($_POST['api_name']) !== '' ? trim($_POST['api_name']) : 'API';
+            $days = (int) ($_POST['api_days'] ?? 0);
+            $created = $tokens->create($userId, $name, in_array($days, [30, 90, 365], true) ? $days : null);
+            Log::info('Perfil: token de la API "{name}" creado', ['name' => $name, 'token' => $created['id']]);
+            // Se enseña una sola vez, en la página siguiente
+            Session::set('api_new_token', $created['token']);
+        }
+        $this->app->redirect($this->app->url('profile') . '#api');
+    }
+
+    private function takeNewToken(): ?string
+    {
+        $token = Session::get('api_new_token');
+        Session::remove('api_new_token');
+        return is_string($token) ? $token : null;
     }
 
     /** @return array{0:array,1:array<string,string>} valores y errores (si no hay errores, redirige) */

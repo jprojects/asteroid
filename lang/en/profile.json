@@ -44,5 +44,24 @@
   "notify": {
     "instant": "Receive them immediately",
     "off": "Do not receive email notifications"
+  },
+  "api": {
+    "title": "Apps and API",
+    "intro": "A token lets an app or a bot (e.g. a Telegram bot) work on your behalf, with your same permissions. Treat it like a password. API address: {url}",
+    "token": "Token",
+    "created": "Copy this token now: you won't see it again.",
+    "name": "Name",
+    "name_placeholder": "e.g. Telegram bot",
+    "created_at": "Created",
+    "last_used": "Last used",
+    "expires": "Expires",
+    "never": "Never",
+    "days_30": "In 30 days",
+    "days_90": "In 90 days",
+    "days_365": "In a year",
+    "create": "Create a token",
+    "revoke": "Revoke",
+    "revoke_confirm": "The app or bot using “{name}” will stop working. Continue?",
+    "revoked": "Token revoked"
   }
 }

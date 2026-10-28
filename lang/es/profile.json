@@ -44,5 +44,24 @@
   "notify": {
     "instant": "Recibirlos al momento",
     "off": "No recibir avisos por correo"
+  },
+  "api": {
+    "title": "Aplicaciones y API",
+    "intro": "Un token permite que una app o un bot (p. ej. de Telegram) trabaje en tu nombre, con tus mismos permisos. Trátalo como una contraseña. Dirección de la API: {url}",
+    "token": "Token",
+    "created": "Copia este token ahora: no lo volverás a ver.",
+    "name": "Nombre",
+    "name_placeholder": "p. ej. Bot de Telegram",
+    "created_at": "Creado",
+    "last_used": "Último uso",
+    "expires": "Caduca",
+    "never": "Nunca",
+    "days_30": "Dentro de 30 días",
+    "days_90": "Dentro de 90 días",
+    "days_365": "Dentro de un año",
+    "create": "Crear un token",
+    "revoke": "Revocar",
+    "revoke_confirm": "La app o el bot que use «{name}» dejará de funcionar. ¿Quieres continuar?",
+    "revoked": "Token revocado"
   }
 }

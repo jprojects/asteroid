@@ -4,4 +4,8 @@ DirectoryIndex index.php
 # Corta la herencia de las reglas del .htaccess de la raíz (evita un bucle public/public/…)
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # API: /api/v1/… → index.php, y la cabecera Authorization llega a PHP (PHP-FPM/CGI la pierde si no)
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^api/ index.php [L,QSA]
 </IfModule>

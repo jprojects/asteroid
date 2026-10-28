@@ -275,12 +275,13 @@ class SelectField extends Field
     }
 
     /**
-     * Opciones que se pintan en el <select>: todas, o en modo remoto solo las seleccionadas.
+     * Opciones que se pintan en el <select>: todas, o en modo remoto o de solo lectura solo las
+     * seleccionadas (un campo que no se puede cambiar no enseña el resto, p. ej. todos los usuarios).
      * @param list<string> $current
      */
-    private function renderOptions(array $current): array
+    private function renderOptions(array $current, bool $onlySelected = false): array
     {
-        if ($this->searchMode() !== 'remote') {
+        if (!$onlySelected && $this->searchMode() !== 'remote') {
             return $this->options();
         }
         $out = [];
@@ -341,7 +342,7 @@ class SelectField extends Field
         if (!$required || $current === '') {
             $html .= '<option value="">' . self::e($placeholder) . '</option>';
         }
-        foreach ($this->renderOptions([$current]) as $v => $label) {
+        foreach ($this->renderOptions([$current], $readonly) as $v => $label) {
             $v = (string) $v; // PHP convierte las claves numéricas en int
             $html .= '<option value="' . self::e($v) . '"' . ($v === $current ? ' selected' : '') . '>'
                 . self::e($label) . '</option>';
