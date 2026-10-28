@@ -38,6 +38,7 @@ return [
 
     'session_name' => 'QUASARSID',
     'session_lifetime' => 7200,      // segundos de inactividad antes de cerrar sesión (0 = sin límite)
+    'login_field' => 'username',     // con qué se entra: username | email | both (usuario o email)
     'login_max_attempts' => 5,       // intentos fallidos antes de bloquear la cuenta
     'login_lockout' => 300,          // segundos de bloqueo
 

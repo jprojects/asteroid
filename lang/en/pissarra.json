@@ -1,0 +1,17 @@
+{
+  "title": "Board",
+  "description": "Projects with pending or in-progress issues",
+  "new": "New issue",
+  "mine": "Mine",
+  "unassigned": "Unassigned",
+  "all": "Whole team",
+  "open": "open",
+  "summary": "{issues} issues in {projects} projects",
+  "estimated": "Estimated {time}",
+  "worked": "Worked {time}",
+  "due": "Due {date}",
+  "overdue": "Overdue since {date}",
+  "see_all": "Open in the list",
+  "empty": "No pending or in-progress issues",
+  "no_access": "You are not allowed to see the board"
+}

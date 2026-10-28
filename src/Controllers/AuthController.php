@@ -22,6 +22,7 @@ final class AuthController extends Controller
             $this->app->redirect($this->app->url('home'));
         }
 
+        $loginField = $this->app->auth->loginField();
         $error = null;
         $username = '';
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
@@ -51,10 +52,15 @@ final class AuthController extends Controller
             Log::warning('Login fallido para "{username}": {reason}', ['username' => $username, 'reason' => $error]);
         }
 
+        // "Usuario o contraseña incorrectos" → "Email o contraseña…" si se entra con el email
+        if ($error === 'login.invalid' && $loginField !== 'username') {
+            $error = 'login.invalid_' . $loginField;
+        }
         $this->render('login', [
             'title' => $this->t('login.title'),
             'error' => $error ? $this->t($error) : null,
             'username' => $username,
+            'loginField' => $loginField,
         ], 'blank', $error ? 401 : 200);
     }
 

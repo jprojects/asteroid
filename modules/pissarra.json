@@ -1,0 +1,6 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\PissarraPage",
+  "requires": ["issues"],
+  "menu": { "group": "main", "order": 11, "icon": "layout-dashboard", "access": ["equip"] }
+}

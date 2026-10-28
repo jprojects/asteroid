@@ -23,6 +23,7 @@ const GROUP_PERMISSIONS = [
     'equip' => [
         'issues' => ['view', 'create', 'edit', 'delete', 'export'],
         'agenda' => ['view'],
+        'pissarra' => ['view'],
         'clients' => ['view', 'create', 'edit', 'delete', 'export'],
         'projects' => ['view', 'create', 'edit', 'delete', 'export'],
         'client_users' => ['view', 'create', 'edit', 'delete', 'export'],

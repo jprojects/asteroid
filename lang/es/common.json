@@ -7,10 +7,14 @@
   "login": {
     "title": "Iniciar sesión",
     "username": "Usuario",
+    "email": "Correo electrónico",
+    "both": "Usuario o correo electrónico",
     "password": "Contraseña",
     "language": "Idioma",
     "submit": "Entrar",
     "invalid": "Usuario o contraseña incorrectos",
+    "invalid_email": "Correo electrónico o contraseña incorrectos",
+    "invalid_both": "Usuario, correo electrónico o contraseña incorrectos",
     "locked": "Cuenta bloqueada temporalmente por demasiados intentos fallidos. Inténtalo más tarde.",
     "inactive": "Este usuario está desactivado",
     "logged_out": "Has cerrado la sesión"

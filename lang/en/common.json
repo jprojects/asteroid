@@ -7,10 +7,14 @@
   "login": {
     "title": "Sign in",
     "username": "Username",
+    "email": "Email",
+    "both": "Username or email",
     "password": "Password",
     "language": "Language",
     "submit": "Sign in",
     "invalid": "Wrong username or password",
+    "invalid_email": "Wrong email or password",
+    "invalid_both": "Wrong username, email or password",
     "locked": "Account temporarily locked after too many failed attempts. Try again later.",
     "inactive": "This user is disabled",
     "logged_out": "You have been logged out"

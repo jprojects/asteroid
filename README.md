@@ -976,6 +976,9 @@ contraseña y desactivar la verificación exigen la contraseña actual.
 - Login obligatorio para todas las rutas, con verificación en dos pasos opcional. Bloqueo temporal tras
   `login_max_attempts` fallos, caducidad por inactividad (`session_lifetime`), regeneración de sesión al
   entrar y CSRF en todos los POST.
+- Con qué se entra: `'login_field' => 'username'` (por defecto), `'email'` o `'both'` (usuario o email). Con el
+  email, un correo que tengan varios usuarios no sirve para entrar (queda en el log); los campos email de
+  `users.json` y del perfil ya son únicos.
 - `is_admin = 1` concede todo. El resto de usuarios tiene permisos por **módulo × acción**
   (ver, crear, editar, eliminar, exportar y las acciones propias del módulo; tabla `user_permissions`), que se
   gestionan en *Administración → Usuarios → icono de llave*.

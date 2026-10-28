@@ -7,10 +7,14 @@
   "login": {
     "title": "Inicia la sessió",
     "username": "Usuari",
+    "email": "Correu electrònic",
+    "both": "Usuari o correu electrònic",
     "password": "Contrasenya",
     "language": "Idioma",
     "submit": "Entra",
     "invalid": "Usuari o contrasenya incorrectes",
+    "invalid_email": "Correu electrònic o contrasenya incorrectes",
+    "invalid_both": "Usuari, correu electrònic o contrasenya incorrectes",
     "locked": "Compte bloquejat temporalment per massa intents fallits. Torna-ho a provar més tard.",
     "inactive": "Aquest usuari està desactivat",
     "logged_out": "Has tancat la sessió"

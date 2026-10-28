@@ -1,0 +1,17 @@
+{
+  "title": "Pissarra",
+  "description": "Projectes amb incidències pendents o en curs",
+  "new": "Nova incidència",
+  "mine": "Les meves",
+  "unassigned": "Sense assignar",
+  "all": "Tot l'equip",
+  "open": "obertes",
+  "summary": "{issues} incidències en {projects} projectes",
+  "estimated": "Previst {time}",
+  "worked": "Dedicat {time}",
+  "due": "Límit {date}",
+  "overdue": "Vençuda el {date}",
+  "see_all": "Obre-les al llistat",
+  "empty": "No hi ha cap incidència pendent ni en curs",
+  "no_access": "No tens permís per veure la pissarra"
+}

@@ -2,6 +2,7 @@
 /** @var \Quasar\Core\View $this */
 /** @var ?string $error */
 /** @var string $username */
+/** @var string $loginField username | email | both */
 ?>
 <div class="qs-login">
   <form method="post" action="<?= $this->url('login') ?>" class="qs-login-card">
@@ -23,8 +24,8 @@
 
     <?= $this->csrfField() ?>
     <label class="qs-field">
-      <span><?= $this->e($this->t('login.username')) ?></span>
-      <input class="qs-input" type="text" name="username" value="<?= $this->e($username) ?>"
+      <span><?= $this->e($this->t($loginField === 'username' ? 'login.username' : 'login.' . $loginField)) ?></span>
+      <input class="qs-input" type="<?= $loginField === 'email' ? 'email' : 'text' ?>" name="username" value="<?= $this->e($username) ?>"
              autocomplete="username" required autofocus>
     </label>
     <label class="qs-field">

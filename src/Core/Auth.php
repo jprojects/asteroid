@@ -70,13 +70,20 @@ final class Auth
         $this->user = null;
     }
 
+    /** Con qué se identifica el usuario en el login: username | email | both (config 'login_field'). */
+    public function loginField(): string
+    {
+        $field = $this->config['login_field'] ?? 'username';
+        return in_array($field, ['username', 'email', 'both'], true) ? $field : 'username';
+    }
+
     /**
-     * Comprueba usuario y contraseña SIN iniciar sesión.
+     * Comprueba usuario (o email, según 'login_field') y contraseña SIN iniciar sesión.
      * @return array{error:?string,row:?array} error = clave de idioma
      */
-    public function verifyCredentials(string $username, string $password): array
+    public function verifyCredentials(string $login, string $password): array
     {
-        $row = $this->db->fetch('SELECT * FROM users WHERE username = ?', [$username]);
+        $row = $this->findForLogin($login);
         if ($row === null) {
             // Igualamos el tiempo de respuesta para no revelar qué usuarios existen
             password_verify($password, password_hash('quasar-dummy', PASSWORD_DEFAULT));
@@ -95,6 +102,24 @@ final class Auth
             $this->db->update('users', ['password_hash' => password_hash($password, PASSWORD_DEFAULT)], 'id', $row['id']);
         }
         return ['error' => null, 'row' => $row];
+    }
+
+    /** Usuario por nombre o por email. Un email repetido en varios usuarios no sirve para entrar. */
+    private function findForLogin(string $login): ?array
+    {
+        $field = $this->loginField();
+        if ($field !== 'email' && ($row = $this->db->fetch('SELECT * FROM users WHERE username = ?', [$login])) !== null) {
+            return $row;
+        }
+        if ($field === 'username' || !str_contains($login, '@')) {
+            return null;
+        }
+        $rows = $this->db->fetchAll('SELECT * FROM users WHERE email = ? LIMIT 2', [$login]);
+        if (count($rows) > 1) {
+            Log::warning('Login con el email {email}: lo tienen varios usuarios', ['email' => $login]);
+            return null;
+        }
+        return $rows[0] ?? null;
     }
 
     /**

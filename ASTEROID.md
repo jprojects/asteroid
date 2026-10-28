@@ -7,7 +7,8 @@ sustituye con cada actualización; lo propio de Asteroid está aquí.
 
 | | |
 |---|---|
-| `modules/` | `issues`, `agenda`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `src/Pages/`, `templates/default/pages/` | `PissarraPage` y su plantilla `pissarra.php` (con sus estilos) |
 | `src/Hooks/` | `Asteroid` (utilidades), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
@@ -25,6 +26,14 @@ sustituye con cada actualización; lo propio de Asteroid está aquí.
 
 Los permisos de cada grupo están en *Administració → Grups → llave*; `tools/asteroid-migrate.php` crea los iniciales.
 Los usuarios de los clientes se gestionan en *Clients → Usuaris de clients* (entran siempre en el grupo `client`).
+
+## Pissarra
+
+*Suport → Pissarra* (solo `equip`): una tarjeta por proyecto con incidencias pendientes o en curso, con cuántas hay
+(pánico, urgentes, pendientes, en curso), el tiempo previsto y dedicado, la fecha límite más próxima (en rojo si ha
+vencido) y las cuatro más urgentes. Primero los proyectos con pánico, después urgentes y por fecha límite. Por defecto
+muestra las del técnico que entra; arriba se cambia a otro técnico, «Sense assignar» o «Tot l'equip». La tarjeta abre el
+listado de incidencias con esos filtros. No salen las incidencias sin proyecto.
 
 ## Avisos
 
@@ -52,6 +61,7 @@ php tools/import-asteroid.php --host=… --name=bd_antigua --user=… --pass=…
 ```php
 <?php return [
     'app_name' => 'Asteroid',
+    'login_field' => 'email',   // se entra con el correo, como en el Asteroid antiguo
     'base_url' => 'https://asteroid.afi.cat',
     'db' => ['host' => 'localhost', 'name' => '…', 'user' => '…', 'pass' => '…'],
     'mail' => ['host' => '…', 'username' => '…', 'password' => '…', 'from' => ['address' => 'suport@afi.cat', 'name' => 'Asteroid']],
@@ -114,4 +124,4 @@ se conservan. Resultado con la copia del 26/10/2026: 272 clientes, 238 proyectos
   `getIssuesById`, `setIssue`, `getIssuesByProjectId`, `getHoresPendentsFacturar`, `canviaEstatHoresPendentsFacturar`,
   autenticada con `projects.api_key`). Las claves se han importado, pero los endpoints no existen todavía: las
   aplicaciones que la usen dejarán de funcionar hasta que se haga una página `api` equivalente.
-- Encuestas de satisfacción al resolver (`onSendSurvey`), panel "Pissarra" y tareas (`todo`), accesos (`accesos`).
+- Encuestas de satisfacción al resolver (`onSendSurvey`), tareas (`todo`), accesos (`accesos`).

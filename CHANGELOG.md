@@ -30,6 +30,7 @@ las tablas `notifications`, `messages`, `message_reads` y `settings`, y la colum
   guardar) y en los filtros. `source.dir` para ordenar las opciones de forma descendente.
 - **Alta rápida** (`quickCreate`): botón en la barra superior que abre el alta de un módulo en una ventana, rellenada
   con el registro que se está viendo (`context`); `?modal=1` en cualquier alta. Fechas con `"default": "today"`.
+- **`login_field`**: entrar con el nombre de usuario (por defecto), con el email o con cualquiera de los dos.
 - **`menu.access`**: un módulo en el menú solo para algunos grupos. **`requires`**: un módulo solo existe si existen otros
   (el calendario de ejemplo ya no da 404 sin `activities`).
 - **`lang/{idioma}/app.json`**: textos propios de la instalación compartidos por todos los módulos, que una

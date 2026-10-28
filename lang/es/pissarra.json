@@ -1,0 +1,17 @@
+{
+  "title": "Pizarra",
+  "description": "Proyectos con incidencias pendientes o en curso",
+  "new": "Nueva incidencia",
+  "mine": "Las mías",
+  "unassigned": "Sin asignar",
+  "all": "Todo el equipo",
+  "open": "abiertas",
+  "summary": "{issues} incidencias en {projects} proyectos",
+  "estimated": "Previsto {time}",
+  "worked": "Dedicado {time}",
+  "due": "Límite {date}",
+  "overdue": "Vencida el {date}",
+  "see_all": "Abrirlas en el listado",
+  "empty": "No hay ninguna incidencia pendiente ni en curso",
+  "no_access": "No tienes permiso para ver la pizarra"
+}
