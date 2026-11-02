@@ -1,0 +1,35 @@
+{
+  "title": "Encuestas",
+  "description": "Valoraciones de los clientes al resolver las incidencias",
+  "fields": {
+    "id": "Núm.",
+    "issue_id": "Incidencia",
+    "client_id": "Cliente",
+    "user_id": "Enviada a",
+    "state": "Estado",
+    "rating": "General",
+    "speed_rating": "Rapidez",
+    "resolution_rating": "Solución",
+    "comment": "Comentario",
+    "sent_by": "Enviada por",
+    "sent_at": "Fecha de envío",
+    "expires_at": "Caduca",
+    "answered_at": "Fecha de respuesta"
+  },
+  "state": {
+    "pending": "Pendiente",
+    "answered": "Respondida",
+    "expired": "Caducada"
+  },
+  "stars": {
+    "1": "★☆☆☆☆",
+    "2": "★★☆☆☆",
+    "3": "★★★☆☆",
+    "4": "★★★★☆",
+    "5": "★★★★★"
+  },
+  "sections": {
+    "answer": "Valoración",
+    "info": "Información"
+  }
+}

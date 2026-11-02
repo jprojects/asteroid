@@ -10,7 +10,8 @@ use Quasar\Core\User;
 
 /**
  * Horas: por defecto son del usuario que las apunta y del proyecto de la incidencia. Al imputar se puede
- * cambiar el estado de la incidencia (campo virtual issue_status). Acciones para facturar.
+ * cambiar el estado de la incidencia (campo virtual issue_status) y, al resolverla, enviar la encuesta de
+ * satisfacción (send_survey). Acciones para facturar.
  */
 final class HoursHooks extends ModuleHooks
 {
@@ -34,6 +35,11 @@ final class HoursHooks extends ModuleHooks
         $issueId = $this->db->fetchValue('SELECT issue_id FROM hours WHERE id = ?', [(int) $id]);
         if ($status !== '' && $status !== null && $issueId !== null) {
             Asteroid::setStatus($this->db, $issueId, (int) $status, $user);
+            // Encuesta de satisfacción al resolverla desde las horas
+            if ((int) $status === Asteroid::STATUS_RESOLVED && !empty($this->values['send_survey'])
+                && ($issue = Asteroid::issue($this->db, $issueId)) !== null) {
+                Survey::send($this->db, $issue, $user);
+            }
         }
     }
 

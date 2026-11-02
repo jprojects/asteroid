@@ -52,6 +52,7 @@ abstract class Page extends Controller
     protected function view(array $vars = [], ?string $template = null, int $status = 200): void
     {
         $m = $this->module;
+        // Las públicas, sin menú ni barra (puede no haber usuario)
         $this->render($template ?? 'pages/' . $m->name, $vars + [
             'title' => $m->title(),
             'icon' => $m->icon(),
@@ -61,7 +62,7 @@ abstract class Page extends Controller
                 [$m->title(), null],
             ]),
             'module' => $m,
-        ], 'layout', $status);
+        ], $m->isPublic() ? 'blank' : 'layout', $status);
     }
 
     protected function json(mixed $data, int $status = 200): void

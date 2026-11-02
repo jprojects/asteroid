@@ -194,7 +194,14 @@ final class Module
     /** URL de entrada al módulo: el listado o, si es una página, la página. Sin escapar. */
     public function url(array $params = []): string
     {
-        return $this->ctx->url($this->isPage() ? 'page' : 'list', ['m' => $this->name] + $params);
+        $route = $this->isPage() ? ($this->isPublic() ? 'public' : 'page') : 'list';
+        return $this->ctx->url($route, ['m' => $this->name] + $params);
+    }
+
+    /** Página que se abre sin iniciar sesión ("public": true). */
+    public function isPublic(): bool
+    {
+        return $this->isPage() && ($this->def['public'] ?? false) === true;
     }
 
     public function primaryKey(): string

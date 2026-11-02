@@ -1,0 +1,35 @@
+{
+  "title": "Enquestes",
+  "description": "Valoracions dels clients en resoldre les incidències",
+  "fields": {
+    "id": "Núm.",
+    "issue_id": "Incidència",
+    "client_id": "Client",
+    "user_id": "Enviada a",
+    "state": "Estat",
+    "rating": "General",
+    "speed_rating": "Rapidesa",
+    "resolution_rating": "Solució",
+    "comment": "Comentari",
+    "sent_by": "Enviada per",
+    "sent_at": "Data d'enviament",
+    "expires_at": "Caduca",
+    "answered_at": "Data de resposta"
+  },
+  "state": {
+    "pending": "Pendent",
+    "answered": "Resposta",
+    "expired": "Caducada"
+  },
+  "stars": {
+    "1": "★☆☆☆☆",
+    "2": "★★☆☆☆",
+    "3": "★★★☆☆",
+    "4": "★★★★☆",
+    "5": "★★★★★"
+  },
+  "sections": {
+    "answer": "Valoració",
+    "info": "Informació"
+  }
+}

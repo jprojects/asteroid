@@ -21,6 +21,8 @@
     "issue_status": { "type": "select", "virtual": true, "width": "half", "help": "help.issue_status", "placeholder": "placeholders.issue_status",
                       "options": { "1": "issues:status.pending", "2": "issues:status.in_progress", "3": "issues:status.resolved", "4": "issues:status.discarded" },
                       "showon": "issue_id!:" },
+    "send_survey":  { "type": "checkbox", "virtual": true, "default": 0, "width": "half", "help": "issues:help.send_survey",
+                      "label": "issues:fields.send_survey", "showon": "issue_status:3" },
     "project_id":   { "type": "select", "width": "half", "search": "remote", "help": "help.project",
                       "source": { "table": "projects", "value": "id", "label": "title" },
                       "dependsOn": { "field": "client_id", "column": "client_id", "form": false } },
@@ -76,7 +78,7 @@
 
   "form": {
     "sections": [
-      { "title": "sections.entry", "fields": ["worked_on", "user_id", "minutes", "billing", "project_id", "client_id", "issue_id", "issue_status", "comment"] },
+      { "title": "sections.entry", "fields": ["worked_on", "user_id", "minutes", "billing", "project_id", "client_id", "issue_id", "issue_status", "send_survey", "comment"] },
       { "title": "sections.info", "fields": ["modality", "cost", "billing_id", "created_at"] }
     ]
   }

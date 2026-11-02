@@ -1,0 +1,35 @@
+{
+  "title": "Satisfaction survey",
+  "heading": "How did it go?",
+  "intro": "Your issue has been resolved. We'd love to hear what you thought of our support: it only takes a minute.",
+  "questions": {
+    "rating": "Overall satisfaction with the support",
+    "speed_rating": "Response and resolution time",
+    "resolution_rating": "Quality of the solution",
+    "comment": "Anything else you'd like to add? (optional)"
+  },
+  "comment_placeholder": "Write your feedback here…",
+  "submit": "Send rating",
+  "error_required": "Please answer the three rating questions.",
+  "scale": {
+    "1": "Very poor",
+    "2": "Poor",
+    "3": "Fair",
+    "4": "Good",
+    "5": "Very good"
+  },
+  "states": {
+    "answered": {
+      "title": "Thanks for your feedback!",
+      "text": "It helps us improve. You can close this page now."
+    },
+    "expired": {
+      "title": "This link has expired",
+      "text": "The time to answer the survey is over. Thank you anyway!"
+    },
+    "invalid": {
+      "title": "Invalid link",
+      "text": "Check that you copied the whole link from the email."
+    }
+  }
+}

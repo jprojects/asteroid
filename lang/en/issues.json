@@ -19,7 +19,9 @@
     "attachments": "Attachments",
     "created_by": "Created by",
     "created_at": "Created",
-    "resolved_at": "Resolved"
+    "resolved_at": "Resolved",
+    "send_survey": "Send the satisfaction survey",
+    "survey_rating": "Client rating"
   },
   "status": {
     "pending": "Pending",
@@ -36,7 +38,8 @@
     "worker": "Unassigned"
   },
   "help": {
-    "client_visible": "The client sees it, gets the notifications and can write in the conversation."
+    "client_visible": "The client sees it, gets the notifications and can write in the conversation.",
+    "send_survey": "When saved as resolved, the client gets a link to rate the support (one per user, expires after 30 days)."
   },
   "columns": {
     "visible": "Client"
@@ -52,7 +55,10 @@
     "created": "Issue created by {user}",
     "assigned": "Assigned to {user}",
     "status": "Status: {from} → {to}",
-    "shared": "{user} made it visible to the client"
+    "shared": "{user} made it visible to the client",
+    "survey_sent": "Satisfaction survey sent to {users}",
+    "survey_none": "The survey was not sent: the client has no users with an email address",
+    "survey_answered": "{user} rated the support: {stars}"
   },
   "notify": {
     "new_from_client": "New issue from {client}: {record}",
@@ -60,6 +66,10 @@
     "assigned_body": "Assigned by {user} · {client}",
     "status": "{record}: {status}",
     "status_body": "{user} changed the status to \"{status}\"",
-    "opened": "New issue opened: {record}"
+    "opened": "New issue opened: {record}",
+    "survey": "How did issue {record} go? Rate our support",
+    "survey_body": "Your issue has been resolved. Open the link and answer three questions: it only takes a minute. The link expires in {days} days.",
+    "survey_answered": "Rating for {record}: {stars}",
+    "survey_answered_body": "{user} answered the satisfaction survey"
   }
 }

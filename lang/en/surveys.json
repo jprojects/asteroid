@@ -1,0 +1,35 @@
+{
+  "title": "Surveys",
+  "description": "Customer ratings when issues are resolved",
+  "fields": {
+    "id": "No.",
+    "issue_id": "Issue",
+    "client_id": "Client",
+    "user_id": "Sent to",
+    "state": "Status",
+    "rating": "Overall",
+    "speed_rating": "Speed",
+    "resolution_rating": "Solution",
+    "comment": "Comment",
+    "sent_by": "Sent by",
+    "sent_at": "Sent on",
+    "expires_at": "Expires",
+    "answered_at": "Answered on"
+  },
+  "state": {
+    "pending": "Pending",
+    "answered": "Answered",
+    "expired": "Expired"
+  },
+  "stars": {
+    "1": "★☆☆☆☆",
+    "2": "★★☆☆☆",
+    "3": "★★★☆☆",
+    "4": "★★★★☆",
+    "5": "★★★★★"
+  },
+  "sections": {
+    "answer": "Rating",
+    "info": "Information"
+  }
+}

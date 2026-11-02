@@ -7,9 +7,9 @@ sustituye con cada actualización; lo propio de Asteroid está aquí.
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
-| `src/Pages/`, `templates/default/pages/` | `PissarraPage` y su plantilla `pissarra.php` (con sus estilos) |
-| `src/Hooks/` | `Asteroid` (utilidades), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `src/Pages/`, `templates/default/pages/` | `PissarraPage` y `SurveyPage` con sus plantillas `pissarra.php` y `survey.php` (con sus estilos) |
+| `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
 | `tools/asteroid-migrate.php` | crea o pone al día las tablas, `users.client_id` y los grupos con sus permisos |
@@ -34,6 +34,22 @@ Los usuarios de los clientes se gestionan en *Clients → Usuaris de clients* (e
 vencido) y las cuatro más urgentes. Primero los proyectos con pánico, después urgentes y por fecha límite. Por defecto
 muestra las del técnico que entra; arriba se cambia a otro técnico, «Sense assignar» o «Tot l'equip». La tarjeta abre el
 listado de incidencias con esos filtros. No salen las incidencias sin proyecto.
+
+## Encuestas de satisfacción
+
+En la ficha de una incidencia, al ponerla en **Resolta** aparece la casilla **Envia l'enquesta de satisfacció**
+(desmarcada; solo la ve el equipo). También en *Imputar hores* cuando «Estat de la incidència» es «Resolta».
+
+- Al guardar, cada destinatario recibe un aviso (campana y correo, en su idioma) con **su propio enlace**: vale una vez y
+  caduca a los 30 días (`Survey::DAYS`). Destinatarios: quien abrió la incidencia si es del cliente; si la abrió el
+  equipo, todos los usuarios activos del cliente con correo. Si no hay ninguno, queda anotado en la conversación.
+- La encuesta (página pública `survey`, sin login): satisfacción general, tiempo de respuesta y calidad de la solución,
+  de 1 a 5 estrellas, y un comentario opcional.
+- Al responder: apunte en la conversación («… ha valorat l'atenció: ★★★★☆») y aviso al técnico (o al equipo si no hay).
+- *Suport → Enquestes* (solo `equip`): enviadas, respondidas y caducadas, con filtros y exportación. La ficha de la
+  incidencia muestra la valoración media («Valoració del client»).
+- El correo sale como los avisos: hace falta `mail` configurado (no `'transport' => 'log'`) y los usuarios con los
+  avisos por correo desactivados en su perfil solo la ven en la campana.
 
 ## API (apps y bots)
 
@@ -136,4 +152,4 @@ se conservan. Resultado con la copia del 26/10/2026: 272 clientes, 238 proyectos
 
 ## Pendiente respecto al Asteroid antiguo
 
-- Encuestas de satisfacción al resolver (`onSendSurvey`), tareas (`todo`), accesos (`accesos`).
+- Tareas (`todo`), accesos (`accesos`).

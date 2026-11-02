@@ -19,7 +19,9 @@
     "attachments": "Adjuntos",
     "created_by": "Creada por",
     "created_at": "Fecha de creación",
-    "resolved_at": "Fecha de resolución"
+    "resolved_at": "Fecha de resolución",
+    "send_survey": "Enviar la encuesta de satisfacción",
+    "survey_rating": "Valoración del cliente"
   },
   "status": {
     "pending": "Pendiente",
@@ -36,7 +38,8 @@
     "worker": "Sin asignar"
   },
   "help": {
-    "client_visible": "El cliente la ve, recibe los avisos y puede escribir en la conversación."
+    "client_visible": "El cliente la ve, recibe los avisos y puede escribir en la conversación.",
+    "send_survey": "Al guardarla resuelta, el cliente recibe un enlace para valorar la atención (uno por usuario, caduca a los 30 días)."
   },
   "columns": {
     "visible": "Cliente"
@@ -52,7 +55,10 @@
     "created": "Incidencia creada por {user}",
     "assigned": "Asignada a {user}",
     "status": "Estado: {from} → {to}",
-    "shared": "{user} la ha hecho visible para el cliente"
+    "shared": "{user} la ha hecho visible para el cliente",
+    "survey_sent": "Encuesta de satisfacción enviada a {users}",
+    "survey_none": "No se ha enviado la encuesta: el cliente no tiene usuarios con correo electrónico",
+    "survey_answered": "{user} ha valorado la atención: {stars}"
   },
   "notify": {
     "new_from_client": "Nueva incidencia de {client}: {record}",
@@ -60,6 +66,10 @@
     "assigned_body": "Asignada por {user} · {client}",
     "status": "{record}: {status}",
     "status_body": "{user} ha cambiado el estado a «{status}»",
-    "opened": "Nueva incidencia abierta: {record}"
+    "opened": "Nueva incidencia abierta: {record}",
+    "survey": "¿Qué tal ha ido la incidencia {record}? Valora la atención",
+    "survey_body": "Tu incidencia se ha resuelto. Abre el enlace y responde tres preguntas: solo te llevará un minuto. El enlace caduca dentro de {days} días.",
+    "survey_answered": "Valoración de {record}: {stars}",
+    "survey_answered_body": "{user} ha respondido la encuesta de satisfacción"
   }
 }

@@ -596,6 +596,17 @@ final class DashboardPage extends Page
 - Helpers de `Page`: `view()`, `json()`, `pageUrl()`, `param()`, `allowed()`, `otherModule()`, `text()`, `flash()`.
 - `api()`: datos de la página para la API (`GET /api/v1/pages/{módulo}`; ver "API para apps y bots").
 
+### Páginas públicas (sin iniciar sesión)
+
+`"public": true` abre la página sin login en `index.php?r=public&m={módulo}[&a=…]`: encuestas, formularios para
+clientes, confirmaciones por enlace… Se pinta sin menú ni barra (layout `blank`), no tiene permisos (no sale en la
+matriz de permisos) y `$this->user()` puede no existir. **La propia página decide quién puede usarla**, normalmente con
+un token aleatorio en la URL que se guarda como hash en la BD. Los POST siguen llevando CSRF (`requirePost()`).
+
+```json
+{ "type": "page", "controller": "Quasar\\Pages\\SurveyPage", "public": true, "menu": { "visible": false } }
+```
+
 ### Calendario (incluido)
 
 `Quasar\Pages\CalendarPage` muestra en una vista mensual los registros de cualquier módulo con un campo de
@@ -1242,7 +1253,7 @@ En Apache, `public/.htaccess` ya reescribe `/api/` y pasa la cabecera `Authoriza
 ## Rutas
 
 `index.php?r=` `login` · `logout` · `home` · `list&m=` · `data&m=` (JSON) · `edit&m=&id=` · `save&m=` ·
-`delete&m=` · `action&m=&a=` (POST) · `ask&m=` (POST, IA) · `page&m=[&a=]` · `verify` · `profile` · `notifications&a=` (poll · read · open) · `chat&a=&m=&id=` (poll · post · upload · delete · mute · people · meet) · `permissions&id=` (usuario) · `permissions&group=` · `upload&m=&field=` · `media&id=` · `export&m=&format=` · `api&p=v1/…` (= `/api/v1/…`, JSON, con token) · `status` y `remote&a=` (JSON, con token) · `logo` · `asset&f=`
+`delete&m=` · `action&m=&a=` (POST) · `ask&m=` (POST, IA) · `page&m=[&a=]` · `public&m=[&a=]` (páginas públicas) · `verify` · `profile` · `notifications&a=` (poll · read · open) · `chat&a=&m=&id=` (poll · post · upload · delete · mute · people · meet) · `permissions&id=` (usuario) · `permissions&group=` · `upload&m=&field=` · `media&id=` · `export&m=&format=` · `api&p=v1/…` (= `/api/v1/…`, JSON, con token) · `status` y `remote&a=` (JSON, con token) · `logo` · `asset&f=`
 
 ## Versiones
 

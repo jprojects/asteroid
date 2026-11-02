@@ -12,7 +12,8 @@ use Quasar\Core\User;
 /**
  * Incidencias: el cliente sale del proyecto, se anota quién la crea y cuándo se resuelve, y cada
  * novedad (alta, asignación, cambio de estado, visible para el cliente) deja un apunte en la
- * conversación y avisa a quien corresponde.
+ * conversación y avisa a quien corresponde. Al resolverla, si se marca "send_survey", envía la encuesta
+ * de satisfacción al cliente (Survey).
  */
 final class IssuesHooks extends ModuleHooks
 {
@@ -71,6 +72,7 @@ final class IssuesHooks extends ModuleHooks
             if ($visible && (int) $issue['created_by_client'] === 0) {
                 $this->notifyClient($issue, $user, 'opened');
             }
+            $this->maybeSurvey($issue, $user);
             return;
         }
 
@@ -84,6 +86,15 @@ final class IssuesHooks extends ModuleHooks
         if ($visible && array_key_exists('client_visible', $data) && (int) ($before['client_visible'] ?? 0) === 0) {
             Chat::system('issues', $id, ['issues:log.shared', ['user' => $user->name()]], $user->id());
             $this->notifyClient($issue, $user, 'opened');
+        }
+        $this->maybeSurvey($issue, $user);
+    }
+
+    /** Casilla "send_survey" (virtual, solo del equipo) marcada con la incidencia resuelta. */
+    private function maybeSurvey(array $issue, User $user): void
+    {
+        if (!empty($this->values['send_survey']) && (int) $issue['status'] === Asteroid::STATUS_RESOLVED) {
+            Survey::send($this->db, $issue, $user);
         }
     }
 

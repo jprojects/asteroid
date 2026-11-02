@@ -1,0 +1,62 @@
+{
+  "table": "surveys",
+  "primaryKey": "id",
+  "actions": ["view", "delete", "export"],
+  "menu": { "group": "main", "order": 13, "icon": "star", "access": ["equip"] },
+
+  "fields": {
+    "id":                { "type": "number", "readonly": true },
+    "issue_id":          { "type": "select", "readonly": true, "search": "remote",
+                           "source": { "table": "issues", "value": "id", "label": "title", "order": "id", "dir": "desc" } },
+    "client_id":         { "type": "select", "readonly": true, "width": "half", "source": { "table": "clients", "value": "id", "label": "name" } },
+    "user_id":           { "type": "select", "readonly": true, "width": "half", "source": { "table": "users", "value": "id", "label": "name" } },
+    "state":             { "type": "select", "readonly": true, "width": "quarter",
+                           "sql": "CASE WHEN surveys.answered_at IS NOT NULL THEN 'answered' WHEN surveys.expires_at < NOW() THEN 'expired' ELSE 'pending' END",
+                           "options": { "pending": "state.pending", "answered": "state.answered", "expired": "state.expired" },
+                           "colors": { "pending": "amber", "answered": "green", "expired": "gray" } },
+    "rating":            { "type": "select", "readonly": true, "width": "quarter",
+                           "options": { "1": "stars.1", "2": "stars.2", "3": "stars.3", "4": "stars.4", "5": "stars.5" },
+                           "colors": { "1": "red", "2": "orange", "3": "amber", "4": "teal", "5": "green" } },
+    "speed_rating":      { "type": "select", "readonly": true, "width": "quarter",
+                           "options": { "1": "stars.1", "2": "stars.2", "3": "stars.3", "4": "stars.4", "5": "stars.5" },
+                           "colors": { "1": "red", "2": "orange", "3": "amber", "4": "teal", "5": "green" } },
+    "resolution_rating": { "type": "select", "readonly": true, "width": "quarter",
+                           "options": { "1": "stars.1", "2": "stars.2", "3": "stars.3", "4": "stars.4", "5": "stars.5" },
+                           "colors": { "1": "red", "2": "orange", "3": "amber", "4": "teal", "5": "green" } },
+    "comment":           { "type": "textarea", "readonly": true, "rows": 4 },
+    "sent_by":           { "type": "select", "readonly": true, "width": "third", "source": { "table": "users", "value": "id", "label": "name" } },
+    "sent_at":           { "type": "datetime", "readonly": true, "width": "third" },
+    "expires_at":        { "type": "datetime", "readonly": true, "width": "third" },
+    "answered_at":       { "type": "datetime", "readonly": true, "width": "third" }
+  },
+
+  "list": {
+    "columns": [
+      { "field": "issue_id", "minWidth": "220px" },
+      { "field": "client_id", "maxWidth": "200px" },
+      { "field": "user_id", "maxWidth": "160px" },
+      { "field": "sent_at", "width": "130px" },
+      { "field": "state", "width": "110px" },
+      { "field": "rating", "width": "110px" },
+      { "field": "speed_rating", "width": "110px" },
+      { "field": "resolution_rating", "width": "110px" }
+    ],
+    "expand": ["comment"],
+    "defaultSort": { "field": "sent_at", "dir": "desc" },
+    "search": ["comment"],
+    "filters": [
+      { "field": "state" },
+      { "field": "rating" },
+      { "field": "client_id" },
+      { "field": "sent_at", "operator": "between" }
+    ],
+    "export": { "columns": ["issue_id", "client_id", "user_id", "sent_at", "answered_at", "state", "rating", "speed_rating", "resolution_rating", "comment"] }
+  },
+
+  "form": {
+    "sections": [
+      { "title": "sections.answer", "fields": ["issue_id", "client_id", "user_id", "state", "rating", "speed_rating", "resolution_rating", "comment"] },
+      { "title": "sections.info", "fields": ["sent_by", "sent_at", "expires_at", "answered_at"] }
+    ]
+  }
+}

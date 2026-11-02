@@ -19,7 +19,9 @@
     "attachments": "Adjunts",
     "created_by": "Creada per",
     "created_at": "Data de creació",
-    "resolved_at": "Data de resolució"
+    "resolved_at": "Data de resolució",
+    "send_survey": "Envia l'enquesta de satisfacció",
+    "survey_rating": "Valoració del client"
   },
   "status": {
     "pending": "Pendent",
@@ -36,7 +38,8 @@
     "worker": "Sense assignar"
   },
   "help": {
-    "client_visible": "El client la veu, rep els avisos i pot escriure a la conversa."
+    "client_visible": "El client la veu, rep els avisos i pot escriure a la conversa.",
+    "send_survey": "En guardar-la resolta, el client rep un enllaç per valorar l'atenció (un per usuari, caduca als 30 dies)."
   },
   "columns": {
     "visible": "Client"
@@ -52,7 +55,10 @@
     "created": "Incidència creada per {user}",
     "assigned": "Assignada a {user}",
     "status": "Estat: {from} → {to}",
-    "shared": "{user} l'ha fet visible pel client"
+    "shared": "{user} l'ha fet visible pel client",
+    "survey_sent": "Enquesta de satisfacció enviada a {users}",
+    "survey_none": "No s'ha enviat l'enquesta: el client no té usuaris amb correu electrònic",
+    "survey_answered": "{user} ha valorat l'atenció: {stars}"
   },
   "notify": {
     "new_from_client": "Nova incidència de {client}: {record}",
@@ -60,6 +66,10 @@
     "assigned_body": "Assignada per {user} · {client}",
     "status": "{record}: {status}",
     "status_body": "{user} ha canviat l'estat a «{status}»",
-    "opened": "Nova incidència oberta: {record}"
+    "opened": "Nova incidència oberta: {record}",
+    "survey": "Com ha anat la incidència {record}? Valora l'atenció",
+    "survey_body": "La teva incidència s'ha resolt. Obre l'enllaç i respon tres preguntes: només et portarà un minut. L'enllaç caduca d'aquí a {days} dies.",
+    "survey_answered": "Valoració de {record}: {stars}",
+    "survey_answered_body": "{user} ha respost l'enquesta de satisfacció"
   }
 }

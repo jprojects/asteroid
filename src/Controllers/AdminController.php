@@ -36,8 +36,9 @@ final class AdminController extends Controller
         }
         $paramName = $subject === 'group' ? 'group' : 'id';
 
+        // Las páginas públicas no tienen permisos: las abre cualquiera
         /** @var array<string,Module> $modules */
-        $modules = array_filter($this->app->modules()->all(), static fn (Module $m) => !$m->isAdminOnly());
+        $modules = array_filter($this->app->modules()->all(), static fn (Module $m) => !$m->isAdminOnly() && !$m->isPublic());
         $permissions = new Permissions($this->app->db);
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {

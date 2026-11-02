@@ -143,3 +143,26 @@ CREATE TABLE IF NOT EXISTS files (
   KEY ix_files_client (client_id),
   CONSTRAINT fk_files_folder FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Encuestas de satisfacción: una por destinatario (usuario del cliente) cada vez que se envía al resolver
+CREATE TABLE IF NOT EXISTS surveys (
+  id                 INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  issue_id           INT UNSIGNED NOT NULL,
+  client_id          INT UNSIGNED NULL,
+  user_id            INT UNSIGNED NULL     COMMENT 'Usuario del cliente que la recibe',
+  sent_by            INT UNSIGNED NULL,
+  token_hash         CHAR(64)     NOT NULL,
+  sent_at            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at         DATETIME     NOT NULL,
+  answered_at        DATETIME     NULL,
+  rating             TINYINT      NULL     COMMENT '1-5: satisfacción general',
+  speed_rating       TINYINT      NULL     COMMENT '1-5: tiempo de respuesta y resolución',
+  resolution_rating  TINYINT      NULL     COMMENT '1-5: calidad de la solución',
+  comment            TEXT         NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_surveys_token (token_hash),
+  KEY ix_surveys_issue (issue_id),
+  KEY ix_surveys_client (client_id, answered_at),
+  CONSTRAINT fk_surveys_issue FOREIGN KEY (issue_id) REFERENCES issues (id) ON DELETE CASCADE,
+  CONSTRAINT fk_surveys_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,35 @@
+{
+  "title": "Encuesta de satisfacción",
+  "heading": "¿Qué tal ha ido?",
+  "intro": "Tu incidencia se ha resuelto. Nos gustaría conocer tu opinión sobre la atención recibida: solo te llevará un minuto.",
+  "questions": {
+    "rating": "Satisfacción general con la atención recibida",
+    "speed_rating": "Tiempo de respuesta y de resolución",
+    "resolution_rating": "Calidad de la solución",
+    "comment": "¿Quieres añadir algún comentario? (opcional)"
+  },
+  "comment_placeholder": "Escribe aquí tu opinión…",
+  "submit": "Enviar la valoración",
+  "error_required": "Responde las tres preguntas de valoración.",
+  "scale": {
+    "1": "Muy mal",
+    "2": "Mal",
+    "3": "Regular",
+    "4": "Bien",
+    "5": "Muy bien"
+  },
+  "states": {
+    "answered": {
+      "title": "¡Gracias por tu valoración!",
+      "text": "Nos ayuda a mejorar. Ya puedes cerrar esta página."
+    },
+    "expired": {
+      "title": "Este enlace ha caducado",
+      "text": "El plazo para responder la encuesta ha pasado. ¡Gracias igualmente!"
+    },
+    "invalid": {
+      "title": "Enlace no válido",
+      "text": "Comprueba que lo has copiado entero desde el correo."
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Enquesta de satisfacció",
+  "heading": "Com ha anat?",
+  "intro": "La teva incidència s'ha resolt. Ens agradaria saber la teva opinió sobre l'atenció rebuda: només et portarà un minut.",
+  "questions": {
+    "rating": "Satisfacció general amb l'atenció rebuda",
+    "speed_rating": "Temps de resposta i de resolució",
+    "resolution_rating": "Qualitat de la solució",
+    "comment": "Vols afegir algun comentari? (opcional)"
+  },
+  "comment_placeholder": "Escriu aquí la teva opinió…",
+  "submit": "Envia la valoració",
+  "error_required": "Respon les tres preguntes de valoració.",
+  "scale": {
+    "1": "Molt malament",
+    "2": "Malament",
+    "3": "Regular",
+    "4": "Bé",
+    "5": "Molt bé"
+  },
+  "states": {
+    "answered": {
+      "title": "Gràcies per la teva valoració!",
+      "text": "Ens ajuda a millorar. Ja pots tancar aquesta pàgina."
+    },
+    "expired": {
+      "title": "Aquest enllaç ha caducat",
+      "text": "El termini per respondre l'enquesta ha passat. Gràcies igualment!"
+    },
+    "invalid": {
+      "title": "Enllaç no vàlid",
+      "text": "Comprova que l'has copiat sencer des del correu."
+    }
+  }
+}

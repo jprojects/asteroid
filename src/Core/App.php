@@ -43,6 +43,7 @@ final class App
         'media' => [MediaController::class, 'show', true],
         'export' => [ExportController::class, 'export', true],
         'page' => [PageController::class, 'dispatch', true],
+        'public' => [PageController::class, 'dispatchPublic', false],
         'options' => [OptionsController::class, 'index', true],
         'notifications' => [NotificationsController::class, 'handle', true],
         'chat' => [ChatController::class, 'handle', true],

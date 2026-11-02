@@ -35,6 +35,8 @@ las tablas `notifications`, `messages`, `message_reads` y `settings`, y la colum
   `POST auth/token`, tabla `api_tokens`), listado con los filtros de la web, ficha, alta, modificación parcial, borrado,
   opciones de selects, archivos, conversación, acciones propias, avisos y datos de páginas (`Page::api()`). Mismos
   permisos, `scope` y hooks que la web.
+- **Páginas públicas** (`"public": true`): se abren sin iniciar sesión en `index.php?r=public&m=…`, sin menú y sin
+  permisos; la página valida el acceso (p. ej. con un token en la URL).
 - Seguridad: un select de solo lectura ya no incluye en la página todas sus opciones (solo la elegida), y
   `r=options` solo responde para campos editables o filtros.
 - **`menu.access`**: un módulo en el menú solo para algunos grupos. **`requires`**: un módulo solo existe si existen otros

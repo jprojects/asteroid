@@ -1,0 +1,7 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\SurveyPage",
+  "public": true,
+  "requires": ["issues"],
+  "menu": { "visible": false }
+}

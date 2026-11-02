@@ -369,7 +369,10 @@ final class ApiController extends Controller
         $row = (new FormHandler($m, $this->app->db))->load($id) ?? throw new HttpException(404);
         $fields = [];
         foreach ($this->viewableFields($m) as $f) {
-            $fields[$f->name] = $f;
+            // Los "virtual" sin "sql" no tienen valor que leer (se pueden enviar al guardar)
+            if ($f->isStored() || $f->sqlExpr() !== null || $f->computeFunction() !== null) {
+                $fields[$f->name] = $f;
+            }
         }
         $out = $this->present($m, $fields, $row, $id, false);
 
