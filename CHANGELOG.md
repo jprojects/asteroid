@@ -2,6 +2,12 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.17.0 — 2026-11-03
+
+- **Desa i nou** en los formularios (Ctrl+Mayús+S), para quien puede crear registros: guarda y abre un alta vacía.
+  `"form": { "keepOnNew": [...] }` conserva esos campos en el alta nueva (p. ej. la carpeta al subir documentos
+  seguidos). No sale en las altas rápidas en ventana.
+
 ## 0.16.0 — 2026-11-03
 
 `bin/install.php` (o `migrate`) crea la tabla `api_tokens`.

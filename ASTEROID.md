@@ -40,6 +40,12 @@ vencido) y las cuatro más urgentes. Primero los proyectos con pánico, después
 muestra las del técnico que entra; arriba se cambia a otro técnico, «Sense assignar» o «Tot l'equip». La tarjeta abre el
 listado de incidencias con esos filtros. No salen las incidencias sin proyecto.
 
+## Archivos de los clientes
+
+En *Clients → Arxius* se pueden soltar **varios archivos a la vez** (hasta 50): cada uno queda como un documento de la
+carpeta, con su nombre (sin extensión) como título y las mismas observaciones (`FilesHooks`). El título es opcional.
+**Desa i nou** (Ctrl+Mayús+S) abre otra alta con la misma carpeta (`form.keepOnNew`).
+
 ## Encuestas de satisfacción
 
 En la ficha de una incidencia, al ponerla en **Resolta** aparece la casilla **Envia l'enquesta de satisfacció**

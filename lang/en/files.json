@@ -9,5 +9,9 @@
     "file": "File",
     "notes": "Notes",
     "created_at": "Date"
+  },
+  "help": {
+    "title": "Empty: the file name.",
+    "file": "You can add several at once: each file becomes a document in the folder, titled with its name."
   }
 }

@@ -1502,7 +1502,8 @@
       if (Dialog.isOpen()) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        const save = $('[data-shortcut="save"]', form);
+        // Ctrl+Mayús+S: "Desa i nou" (si el usuario puede crear); si no, guardar
+        const save = (e.shiftKey && $('[data-shortcut="save-new"]', form)) || $('[data-shortcut="save"]', form);
         if (save) form.requestSubmit(save);
       } else if (e.key === 'Escape' && !e.target.closest?.('select')) {
         const back = $('[data-role="back"]', form);

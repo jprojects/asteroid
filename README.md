@@ -693,6 +693,18 @@ En las fechas, `"default": "today"` (y `"now"` en `datetime`) pone la del día e
 Cualquier formulario de alta acepta valores por URL: `index.php?r=edit&m=activities&v[starts_at]=2026-10-21T09:00&v[type]=visit`.
 Cada valor pasa por su tipo de campo y solo se aplica si es válido.
 
+### Desa i nou
+
+Junto a *Desa* y *Desa i tanca*, quien puede crear registros tiene **Desa i nou** (Ctrl+Mayús+S): guarda y abre un
+alta vacía, para entrar varios registros seguidos. Con `"form": { "keepOnNew": [...] }` el alta nueva conserva esos
+campos del registro que se acaba de guardar (por la URL, como en «Valores iniciales en las altas»):
+
+```json
+"form": { "keepOnNew": ["folder_id", "client_id"], "fields": ["folder_id", "client_id", "title", "file"] }
+```
+
+No se ofrece en las altas rápidas en ventana (`quickCreate`). `keepOnNew` no admite campos media ni repeater.
+
 ## Filtrar con lenguaje natural (IA)
 
 Opcional por instalación. El usuario escribe lo que quiere ver («clientes activos de España con más de 10.000 de
@@ -1426,6 +1438,7 @@ navegador solo permite su aviso nativo).
 | Tabla     | Supr                  | Eliminar                  |
 | Tabla     | RePág / AvPág         | Página anterior/siguiente |
 | Formulario | Ctrl+S / Esc         | Guardar / volver          |
+| Formulario | Ctrl+Mayús+S         | Desa i nou (guardar y abrir un alta vacía) |
 | Tabla     | /                     | Ir al buscador            |
 | Todas     | Ctrl+B                | Plegar / desplegar el menú lateral |
 

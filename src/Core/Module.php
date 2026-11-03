@@ -131,6 +131,7 @@ final class Module
         $this->aiConfig();
         $this->chatConfig();
         $this->quickCreate();
+        $this->keepOnNew();
         $this->accessRule($def['menu']['access'] ?? null, 'el menú');
     }
 
@@ -783,6 +784,26 @@ final class Module
             'icon' => (string) ($cfg['icon'] ?? 'plus'),
             'context' => array_map('strval', $context),
         ];
+    }
+
+    /**
+     * Campos que "Desa i nou" copia al formulario nuevo ("form": { "keepOnNew": ["folder_id"] }), p. ej. la carpeta al
+     * subir varios documentos seguidos. Sin la opción, el formulario nuevo sale vacío (con sus valores por defecto).
+     * @return list<string>
+     */
+    public function keepOnNew(): array
+    {
+        $names = $this->def['form']['keepOnNew'] ?? [];
+        if (!is_array($names) || !array_is_list($names)) {
+            throw new \RuntimeException("Módulo '{$this->name}': \"form.keepOnNew\" debe ser una lista de campos");
+        }
+        foreach ($names as $n) {
+            $f = $this->field((string) $n);
+            if ($f instanceof \Quasar\Fields\MediaField || $f instanceof \Quasar\Fields\RepeaterField) {
+                throw new \RuntimeException("Módulo '{$this->name}': \"form.keepOnNew\" no admite el campo '{$f->name}' (media o repeater)");
+            }
+        }
+        return array_values(array_map('strval', $names));
     }
 
     /** Panel de filtros desplegado al entrar por primera vez ("list.filtersOpen"; por defecto plegado). */

@@ -9,6 +9,7 @@
  * @var bool $isNew
  * @var bool $readonly
  * @var bool $canDelete
+ * @var bool $canCreate  muestra "Desa i nou" 
  * @var list<array<string,mixed>> $buttons botones propios ("form.buttons")
  * @var list<array{title:?string,fields:list<\Quasar\Fields\Field>}> $sections
  * @var array $values
@@ -42,6 +43,11 @@ $listUrl = $this->url('list', ['m' => $module->name]);
       </button>
       <?php if (!$modal): ?>
         <button type="submit" class="qs-btn" name="_close" value="1"><?= $this->e($this->t('actions.save_close')) ?></button>
+        <?php if ($canCreate ?? false): ?>
+          <button type="submit" class="qs-btn" name="_new" value="1" data-shortcut="save-new" title="Ctrl+Shift+S">
+            <?= $this->icon('plus') ?> <?= $this->e($this->t('actions.save_new')) ?>
+          </button>
+        <?php endif ?>
       <?php endif ?>
     <?php endif ?>
     <?= $this->render('buttons', ['buttons' => $buttons], null) ?>

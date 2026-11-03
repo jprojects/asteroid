@@ -17,8 +17,8 @@
                     "source": { "module": "folders", "value": "id", "label": "name" } },
     "client_id":  { "type": "select", "readonly": true, "width": "half", "access": ["equip"],
                     "source": { "table": "clients", "value": "id", "label": "name" } },
-    "title":      { "type": "text", "required": true, "maxlength": 150 },
-    "file":       { "type": "media", "required": true, "maxSize": "50M" },
+    "title":      { "type": "text", "maxlength": 150, "help": "help.title" },
+    "file":       { "type": "media", "required": true, "multiple": true, "maxFiles": 50, "maxSize": "50M", "help": "help.file" },
     "notes":      { "type": "textarea", "rows": 3 },
     "created_at": { "type": "datetime", "readonly": true, "width": "half" }
   },
@@ -31,5 +31,5 @@
     "filters": [{ "field": "folder_id" }, { "field": "client_id" }]
   },
 
-  "form": { "fields": ["folder_id", "client_id", "title", "file", "notes", "created_at"] }
+  "form": { "keepOnNew": ["folder_id"], "fields": ["folder_id", "client_id", "file", "title", "notes", "created_at"] }
 }

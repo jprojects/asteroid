@@ -179,6 +179,17 @@ final class ModuleController extends Controller
             return;
         }
         Session::flash('success', $this->t('flash.saved'));
+        if (isset($_POST['_new']) && $this->can($m, 'create')) {
+            // "Desa i nou": formulario vacío, con los campos de "form.keepOnNew" del que se acaba de guardar
+            $keep = [];
+            foreach ($m->keepOnNew() as $name) {
+                $value = $result['values'][$name] ?? null;
+                if ($value !== null && $value !== '' && $value !== []) {
+                    $keep[$name] = is_array($value) ? array_map('strval', $value) : (string) $value;
+                }
+            }
+            $this->app->redirect($this->app->url('edit', ['m' => $m->name] + ($keep ? ['v' => $keep] : [])));
+        }
         $this->app->redirect(isset($_POST['_close'])
             ? $this->app->url('list', ['m' => $m->name])
             : $this->app->url('edit', ['m' => $m->name, 'id' => $result['id']]));
@@ -316,6 +327,7 @@ final class ModuleController extends Controller
             'isNew' => $isNew,
             'readonly' => $readonly,
             'canDelete' => !$isNew && $this->can($m, 'delete'),
+            'canCreate' => $this->can($m, 'create'),
             // Botones propios: solo en registros guardados y si cumplen su "showon"
             'buttons' => $isNew ? [] : array_values(array_map(
                 fn ($b) => $this->buttonConfig($m, $b, $id),

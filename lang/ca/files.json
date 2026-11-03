@@ -9,5 +9,9 @@
     "file": "Arxiu",
     "notes": "Observacions",
     "created_at": "Data"
+  },
+  "help": {
+    "title": "Buit: el nom de l'arxiu.",
+    "file": "Pots afegir-ne diversos de cop: cada arxiu queda com un document de la carpeta, amb el seu nom com a títol."
   }
 }

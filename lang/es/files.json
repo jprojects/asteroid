@@ -9,5 +9,9 @@
     "file": "Archivo",
     "notes": "Observaciones",
     "created_at": "Fecha"
+  },
+  "help": {
+    "title": "Vacío: el nombre del archivo.",
+    "file": "Puedes añadir varios a la vez: cada archivo queda como un documento de la carpeta, con su nombre como título."
   }
 }
