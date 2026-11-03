@@ -12,6 +12,7 @@
   },
   "help": {
     "title": "Buit: el nom de l'arxiu.",
-    "file": "Pots afegir-ne diversos de cop: cada arxiu queda com un document de la carpeta, amb el seu nom com a títol."
+    "file": "Pots afegir-ne diversos de cop: cada arxiu queda com un document de la carpeta, amb el seu nom com a títol.",
+    "client": "Tria'l primer: la carpeta només mostra les d'aquest client."
   }
 }

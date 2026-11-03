@@ -14,9 +14,10 @@
   "fields": {
     "id":         { "type": "number", "readonly": true, "grouping": false },
     "folder_id":  { "type": "select", "required": true, "width": "half", "search": "remote",
-                    "source": { "module": "folders", "value": "id", "label": "name" } },
-    "client_id":  { "type": "select", "readonly": true, "width": "half", "access": ["equip"],
-                    "source": { "table": "clients", "value": "id", "label": "name" } },
+                    "source": { "module": "folders", "value": "id", "label": "name" },
+                    "dependsOn": { "field": "client_id", "column": "client_id" } },
+    "client_id":  { "type": "select", "width": "half", "access": ["equip"], "search": "remote", "help": "help.client",
+                    "source": { "module": "clients", "value": "id", "label": "name" } },
     "title":      { "type": "text", "maxlength": 150, "help": "help.title" },
     "file":       { "type": "media", "required": true, "multiple": true, "maxFiles": 50, "maxSize": "50M", "help": "help.file" },
     "notes":      { "type": "textarea", "rows": 3 },
@@ -31,5 +32,5 @@
     "filters": [{ "field": "folder_id" }, { "field": "client_id" }]
   },
 
-  "form": { "keepOnNew": ["folder_id"], "fields": ["folder_id", "client_id", "file", "title", "notes", "created_at"] }
+  "form": { "keepOnNew": ["client_id", "folder_id"], "fields": ["client_id", "folder_id", "file", "title", "notes", "created_at"] }
 }

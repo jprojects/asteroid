@@ -12,6 +12,7 @@
   },
   "help": {
     "title": "Vacío: el nombre del archivo.",
-    "file": "Puedes añadir varios a la vez: cada archivo queda como un documento de la carpeta, con su nombre como título."
+    "file": "Puedes añadir varios a la vez: cada archivo queda como un documento de la carpeta, con su nombre como título.",
+    "client": "Elígelo primero: la carpeta solo muestra las de este cliente."
   }
 }
