@@ -685,6 +685,16 @@ página; al guardar se cierra, avisa y recarga las tablas de la página. Con `co
 módulo el alta se rellena con él (en una incidencia, «Imputar horas» ya lleva la incidencia). Cualquier alta se puede
 abrir así con `index.php?r=edit&m=…&modal=1`.
 
+Para rellenar **varios campos** desde el registro abierto, el `context` de ese módulo es un objeto *campo del alta →
+campo del registro* (`"id"` es su identificador). Solo se copian los campos que el usuario puede ver en ese registro:
+
+```jsonc
+"context": { "issues": { "issue_id": "id", "project_id": "project_id" }, "projects": "project_id" }
+```
+
+`"default": "{user.id}"` pone el usuario conectado (p. ej. el técnico de unas horas o el responsable de una tarea);
+cualquier `{user.columna}` toma esa columna de `users`, como en el `scope`.
+
 En las fechas, `"default": "today"` (y `"now"` en `datetime`) pone la del día en las altas. También se admiten
 `first_of_month`, `last_of_month`, `first_of_last_month`, `last_of_last_month`, `first_of_year` y `last_of_year`.
 

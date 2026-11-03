@@ -64,7 +64,7 @@ class SelectField extends Field
 
     public function defaultValue(): mixed
     {
-        return $this->isMultiple() ? $this->toList($this->def['default'] ?? []) : parent::defaultValue();
+        return $this->isMultiple() ? $this->toList(parent::defaultValue() ?? []) : parent::defaultValue();
     }
 
     protected function isEmpty(mixed $value): bool

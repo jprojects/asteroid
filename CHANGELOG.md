@@ -2,6 +2,13 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.18.0 — 2026-11-03
+
+- **Alta rápida con varios campos del registro abierto**: `quickCreate.context` admite, por módulo, un objeto
+  *campo del alta → campo del registro* (p. ej. desde una incidencia, la incidencia y su proyecto). La forma de antes
+  (`"issues": "issue_id"`) sigue igual.
+- `"default": "{user.id}"` (o `{user.columna}`): el usuario conectado como valor por defecto de un campo en las altas.
+
 ## 0.17.0 — 2026-11-03
 
 - **Desa i nou** en los formularios (Ctrl+Mayús+S), para quien puede crear registros: guarda y abre un alta vacía.

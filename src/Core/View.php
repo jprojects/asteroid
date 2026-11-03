@@ -213,6 +213,7 @@ final class View
         $out = [];
         $current = $this->currentModule();
         $id = $this->currentRoute() === 'edit' && is_string($_GET['id'] ?? null) ? $_GET['id'] : null;
+        $record = null; // el registro abierto, solo si algún "context" pide otros campos además del id
         foreach ($this->app->modules()->all() as $m) {
             $q = $m->isPage() ? null : $m->quickCreate();
             if ($q === null || !ModuleRegistry::canAccess($user, $m, 'create')) {
@@ -220,11 +221,40 @@ final class View
             }
             $params = ['m' => $m->name, 'modal' => 1];
             if ($id !== null && $current !== null && isset($q['context'][$current])) {
-                $params['v'] = [$q['context'][$current] => $id];
+                $values = [];
+                foreach ($q['context'][$current] as $field => $from) {
+                    if ($from === 'id') {
+                        $values[$field] = $id;
+                        continue;
+                    }
+                    $record ??= $this->currentRecord($current, $id);
+                    $value = $record[$from] ?? null;
+                    if (is_scalar($value) && (string) $value !== '') {
+                        $values[$field] = (string) $value;
+                    }
+                }
+                if ($values) {
+                    $params['v'] = $values;
+                }
             }
             $out[] = ['label' => $q['label'], 'icon' => $q['icon'], 'url' => $this->app->url('edit', $params)];
         }
         return $out;
+    }
+
+    /**
+     * Valores del registro abierto (los campos que el usuario puede ver, con su "scope"), para rellenar las altas
+     * rápidas que piden más que su id. [] si no existe o no lo ve.
+     * @return array<string,mixed>
+     */
+    private function currentRecord(string $module, string $id): array
+    {
+        $m = $this->app->modules()->get($module);
+        if ($m === null || $m->isPage()) {
+            return [];
+        }
+        $row = (new FormHandler($m, $this->app->db))->load($id) ?? [];
+        return array_intersect_key($row, array_filter($m->fields(), static fn ($f) => $f->canView()));
     }
 
     /** Lo que necesita la campana de avisos de la barra superior (app.js). */

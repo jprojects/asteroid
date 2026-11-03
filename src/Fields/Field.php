@@ -235,9 +235,16 @@ abstract class Field
         return $this->sqlExpr() !== null;
     }
 
+    /** Valor en las altas: "default" del JSON; "{user.id}" o "{user.columna}" es el del usuario conectado. */
     public function defaultValue(): mixed
     {
-        return $this->def['default'] ?? null;
+        $default = $this->def['default'] ?? null;
+        if (is_string($default) && preg_match('/^\{user\.([a-z0-9_]+)\}$/', $default, $m)) {
+            $user = $this->ctx->user();
+            $value = $user === null ? null : ($m[1] === 'id' ? $user->id() : $user->get($m[1]));
+            return $value === null ? null : (string) $value;
+        }
+        return $default;
     }
 
     /** Operador de filtro si el JSON no indica ninguno: like | = | between */

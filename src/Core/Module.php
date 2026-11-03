@@ -775,14 +775,26 @@ final class Module
         if (!is_array($cfg) || $this->isPage()) {
             throw new \RuntimeException("Módulo '{$this->name}': \"quickCreate\" debe ser true o un objeto (y no en una página)");
         }
-        $context = (array) ($cfg['context'] ?? []);
-        foreach ($context as $module => $field) {
-            $this->field((string) $field);
+        // "context": { "issues": "issue_id" } → el id del registro abierto en ese campo; o con varios campos:
+        // { "issues": { "issue_id": "id", "project_id": "project_id" } } → campo del alta ← campo del registro abierto
+        $context = [];
+        foreach ((array) ($cfg['context'] ?? []) as $module => $map) {
+            $map = is_string($map) ? [$map => 'id'] : $map;
+            if (!is_array($map) || !$map || array_is_list($map)) {
+                throw new \RuntimeException("Módulo '{$this->name}': \"quickCreate.context.$module\" debe ser un campo o un objeto {campo del alta: campo del registro}");
+            }
+            foreach ($map as $field => $from) {
+                $this->field((string) $field);
+                if (!is_string($from) || !preg_match('/^[a-z0-9_]+$/', $from)) {
+                    throw new \RuntimeException("Módulo '{$this->name}': \"quickCreate.context.$module.$field\" debe ser el nombre de un campo de '$module' (o \"id\")");
+                }
+            }
+            $context[(string) $module] = array_map('strval', $map);
         }
         return [
             'label' => isset($cfg['label']) ? $this->t((string) $cfg['label']) : $this->title(),
             'icon' => (string) ($cfg['icon'] ?? 'plus'),
-            'context' => array_map('strval', $context),
+            'context' => $context,
         ];
     }
 

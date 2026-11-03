@@ -4,12 +4,12 @@
   "hooks": "Quasar\\Hooks\\HoursHooks",
   "actions": ["view", "create", "edit", "delete", "export", "bill"],
   "menu": { "group": "team", "order": 30, "icon": "clock" },
-  "quickCreate": { "label": "quick.new", "icon": "clock-plus", "context": { "issues": "issue_id", "projects": "project_id" } },
+  "quickCreate": { "label": "quick.new", "icon": "clock-plus", "context": { "issues": { "issue_id": "id", "project_id": "project_id" }, "projects": "project_id" } },
 
   "fields": {
     "id":           { "type": "number", "readonly": true, "grouping": false },
     "worked_on":    { "type": "date", "required": true, "default": "today", "width": "quarter" },
-    "user_id":      { "type": "select", "width": "quarter", "help": "help.user",
+    "user_id":      { "type": "select", "default": "{user.id}", "width": "quarter", "help": "help.user",
                       "source": { "table": "users", "value": "id", "label": "name", "where": "users.active = 1 AND (users.is_admin = 1 OR JSON_CONTAINS(users.`groups`, (SELECT CONCAT(g.id) FROM user_groups g WHERE g.code = 'equip')))" } },
     "minutes":      { "type": "duration", "required": true, "min": 1, "width": "quarter", "help": "help.minutes" },
     "billing":      { "type": "select", "required": true, "default": "0", "width": "quarter",
