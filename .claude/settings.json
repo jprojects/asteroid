@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "php \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-core.php\"",
+            "timeout": 10,
+            "statusMessage": "Comprobando que no sea un fichero del núcleo de Quasar…"
+          }
+        ]
+      }
+    ]
+  }
+}

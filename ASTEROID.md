@@ -4,7 +4,8 @@ Gestor de incidencias de AFI, migrado de Franky CMS a Quasar (núcleo actual: 0.
 es el del núcleo (Quasar) y se sustituye con cada actualización; lo propio de Asteroid está aquí.
 
 **Cambios en el núcleo**: se hacen en el repositorio de Quasar y se publica una versión; Asteroid se actualiza desde
-ella. Si se cambia un fichero del núcleo solo aquí, la siguiente actualización lo pisa.
+ella con `php tools/update-core.php X.Y.Z` (en el servidor, desde Cosmo). Si se cambia un fichero del núcleo solo aquí,
+la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el núcleo es idéntico al de Quasar.
 
 ## Qué es de Asteroid (no lo toca una actualización de Quasar)
 
@@ -15,6 +16,7 @@ ella. Si se cambia un fichero del núcleo solo aquí, la siguiente actualizació
 | `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
+| `tools/check-core.php`, `tools/update-core.php` | comprobar que el núcleo no se ha tocado y traer el de una versión de Quasar |
 | `tools/asteroid-migrate.php` | crea o pone al día las tablas, `users.client_id` y los grupos con sus permisos |
 | `tools/import-asteroid.php` | importa los datos del Asteroid antiguo |
 | `config/config.local.php` | credenciales (no versionar) |
