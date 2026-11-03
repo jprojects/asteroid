@@ -37,6 +37,7 @@ const GROUP_PERMISSIONS = [
         'files' => ['view', 'create', 'edit', 'delete', 'export'],
     ],
     'client' => [
+        'client_home' => ['view'],
         'issues' => ['view', 'create', 'edit'],
         'folders' => ['view'],
         'files' => ['view'],

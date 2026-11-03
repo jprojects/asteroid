@@ -1,0 +1,18 @@
+{
+  "title": "Mi espacio",
+  "description": "Tus incidencias, mensajes y documentos",
+  "welcome": "Hola, {name}",
+  "new_issue": "Nueva incidencia",
+  "open_title": "Incidencias abiertas",
+  "open_empty": "No tienes ninguna incidencia abierta",
+  "all_issues": "Todas las incidencias",
+  "unread_title": "Mensajes sin leer",
+  "unread_empty": "Estás al día: no tienes mensajes pendientes de leer",
+  "meet": "Videollamada",
+  "files_title": "Documentos nuevos",
+  "files_empty": "Todavía no hay documentos en tus carpetas",
+  "all_files": "Todos los documentos",
+  "download": "Descargar",
+  "resolved_title": "Resueltas recientemente",
+  "resolved_on": "Resuelta el {date}"
+}

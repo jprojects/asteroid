@@ -1,0 +1,18 @@
+{
+  "title": "El meu espai",
+  "description": "Les teves incidències, missatges i documents",
+  "welcome": "Hola, {name}",
+  "new_issue": "Nova incidència",
+  "open_title": "Incidències obertes",
+  "open_empty": "No tens cap incidència oberta",
+  "all_issues": "Totes les incidències",
+  "unread_title": "Missatges sense llegir",
+  "unread_empty": "Estàs al dia: no tens missatges pendents de llegir",
+  "meet": "Videotrucada",
+  "files_title": "Documents nous",
+  "files_empty": "Encara no hi ha documents a les teves carpetes",
+  "all_files": "Tots els documents",
+  "download": "Descarrega",
+  "resolved_title": "Resoltes recentment",
+  "resolved_on": "Resolta el {date}"
+}

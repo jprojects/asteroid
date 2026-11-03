@@ -11,8 +11,8 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
-| `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage` y `PendingBillingPage` con sus plantillas `pissarra.php`, `survey.php` y `pending_billing.php` (con sus estilos) |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage` y `ClientHomePage` con sus plantillas `pissarra.php`, `survey.php`, `pending_billing.php` y `client_home.php` (con sus estilos) |
 | `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
@@ -39,6 +39,14 @@ Los usuarios de los clientes se gestionan en *Clients → Usuaris de clients* (e
 vencido) y las cuatro más urgentes. Primero los proyectos con pánico, después urgentes y por fecha límite. Por defecto
 muestra las del técnico que entra; arriba se cambia a otro técnico, «Sense assignar» o «Tot l'equip». La tarjeta abre el
 listado de incidencias con esos filtros. No salen las incidencias sin proyecto.
+
+## El meu espai (inicio de los clientes)
+
+Con `'home' => 'client_home'` en `config.local.php`, los usuarios de los clientes entran en **El meu espai**: sus
+incidencias abiertas, los mensajes sin leer de sus conversaciones (con el último mensaje), los documentos nuevos de sus
+carpetas (se descargan directamente) y las resueltas en los últimos 30 días, con el botón *Nova incidència*. Todo pasa
+por el `scope`: cada cliente ve solo lo suyo. El equipo y los administradores siguen viendo el inicio de siempre. Los
+mismos datos, en la API: `GET /api/v1/pages/client_home`.
 
 ## Pendent de facturar
 
@@ -120,6 +128,7 @@ php tools/import-asteroid.php --host=… --name=bd_antigua --user=… --pass=…
     'app_name' => 'Asteroid',
     'login_field' => 'email',   // se entra con el correo, como en el Asteroid antiguo
     'api' => ['enabled' => true],   // API para apps y bots (ver «API» abajo)
+    'home' => 'client_home',        // los usuarios de los clientes entran en «El meu espai»
     'base_url' => 'https://asteroid.afi.cat',
     'db' => ['host' => 'localhost', 'name' => '…', 'user' => '…', 'pass' => '…'],
     'mail' => ['host' => '…', 'username' => '…', 'password' => '…', 'from' => ['address' => 'suport@afi.cat', 'name' => 'Asteroid']],

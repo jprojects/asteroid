@@ -1,0 +1,6 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\ClientHomePage",
+  "requires": ["issues", "files"],
+  "menu": { "group": "main", "order": 1, "icon": "house", "access": ["client"] }
+}

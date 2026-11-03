@@ -1,0 +1,18 @@
+{
+  "title": "My space",
+  "description": "Your issues, messages and documents",
+  "welcome": "Hello, {name}",
+  "new_issue": "New issue",
+  "open_title": "Open issues",
+  "open_empty": "You have no open issues",
+  "all_issues": "All issues",
+  "unread_title": "Unread messages",
+  "unread_empty": "You're up to date: no unread messages",
+  "meet": "Video call",
+  "files_title": "New documents",
+  "files_empty": "There are no documents in your folders yet",
+  "all_files": "All documents",
+  "download": "Download",
+  "resolved_title": "Recently resolved",
+  "resolved_on": "Resolved on {date}"
+}
