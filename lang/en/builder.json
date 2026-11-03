@@ -1,0 +1,105 @@
+{
+  "title": "Builder",
+  "description": "Create new tables with their list and form from a description or an Excel or CSV file",
+  "intro": "Describe what you want to manage or upload an Excel or CSV file (or both). The AI proposes the table, list and form; you review it, ask for changes or edit the proposal, and only when you confirm are the database table and module files created and, if you uploaded a file, its rows imported.",
+  "ask": {
+    "label": "What do you want to manage?",
+    "placeholder": "E.g. \"projects with client, owner, start and delivery dates, budget and status (pending, in progress, delivered)\"",
+    "file": "Excel or CSV (optional)",
+    "file_help": "First sheet of the .xlsx or .csv with headers; up to 20 MB and 50,000 rows. Its columns are used to propose the fields and imported when the module is created.",
+    "submit": "Propose the module",
+    "working": "The AI is designing the module…",
+    "empty": "Write a description or upload a file."
+  },
+  "file": {
+    "format": "The file must be .xlsx or .csv.",
+    "empty": "The file has no data.",
+    "too_big": "The file is larger than 20 MB.",
+    "upload": "The file could not be uploaded."
+  },
+  "from_file": "{name} · {rows} rows",
+  "file_truncated": "only the first 50,000 will be imported",
+  "errors": {
+    "title": "Fix this before creating the module",
+    "name": "The name \"{name}\" is not valid: lowercase letters without accents, digits and _, starting with a letter, and not a MySQL reserved word.",
+    "module_exists": "A module \"{name}\" already exists.",
+    "table_exists": "A table \"{name}\" already exists in the database.",
+    "fields_count": "The module needs between 1 and {max} fields.",
+    "field_duplicate": "The field \"{field}\" is repeated.",
+    "field_name": "The field name \"{field}\" is not valid (lowercase, digits and _; not \"id\" or \"created_at\", which are added automatically; no reserved words such as order or group).",
+    "field_type": "The field \"{field}\" has an unknown type: \"{type}\".",
+    "option": "The option \"{value}\" of the field \"{field}\" is not valid or is repeated.",
+    "options_count": "The list \"{field}\" needs between 1 and 100 options or a relation to another table.",
+    "source_table": "The field \"{field}\" refers to \"{table}\", which does not exist.",
+    "source_pk": "The table \"{table}\" of the field \"{field}\" does not have a single-column primary key.",
+    "source_label": "There is no text column to show from the table \"{table}\" in the field \"{field}\".",
+    "lang_exists": "The file {file} already exists."
+  },
+  "col": {
+    "field": "Field",
+    "label": "Label",
+    "type": "Type",
+    "details": "Details",
+    "required": "Required",
+    "list": "List",
+    "filter": "Filter",
+    "search": "Search",
+    "from": "File column"
+  },
+  "types": {
+    "text": "Text",
+    "textarea": "Long text",
+    "richtext": "Formatted text",
+    "number": "Number",
+    "email": "Email",
+    "date": "Date",
+    "datetime": "Date and time",
+    "checkbox": "Yes/no",
+    "select": "List",
+    "tags": "Tags"
+  },
+  "details": {
+    "source": "Relation to {table} (shows {label})",
+    "multiple": "several",
+    "maxlength": "up to {n} characters",
+    "decimals": "{n} decimals"
+  },
+  "sections": "Form sections",
+  "refine": {
+    "label": "Ask the AI for changes",
+    "placeholder": "Ask for changes, e.g. \"add a phone field\" or \"status with the options open, on hold and closed\"",
+    "submit": "Apply",
+    "working": "Applying…",
+    "empty": "Write what you want to change."
+  },
+  "sql": "SQL to be run",
+  "json": "Edit the proposal (JSON)",
+  "save_json": "Apply the changes",
+  "json_invalid": "The JSON is not valid: {error}",
+  "discard": "Discard",
+  "confirm_discard": "Discard this proposal?",
+  "create": "Create the module",
+  "create_import": "Create the module and import",
+  "confirm_create": "The table \"{name}\" and the module files will be created. Continue?",
+  "confirm_create_import": "The table \"{name}\" and the module files will be created and {rows} rows imported. Continue?",
+  "create_working": "Creating the module…",
+  "not_writable": "Cannot write to {dirs}: give the web server write permission to create modules.",
+  "no_draft": "There is no proposal in progress.",
+  "ai_failed": "The AI did not return a valid proposal. Try another description.",
+  "flash": {
+    "edited": "Proposal updated",
+    "discarded": "Proposal discarded",
+    "has_errors": "Fix the errors before creating the module.",
+    "invalid_module": "The generated module is not valid: {error}",
+    "sql_error": "The table could not be created: {error}",
+    "created": "Module \"{module}\" created.",
+    "imported": "{n} rows imported.",
+    "unrecognized": "{n} unrecognised values in \"{field}\" (left empty).",
+    "truncated": "{n} texts shortened because they were too long.",
+    "import_error": "The rows could not be imported: {error}"
+  },
+  "auto": {
+    "id": "ID",
+    "created_at": "Created"
+  }
+}

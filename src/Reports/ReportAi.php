@@ -11,6 +11,7 @@ namespace Quasar\Reports;
 final class ReportAi
 {
     public const TYPES = ['text', 'integer', 'decimal', 'money', 'percent', 'date', 'datetime', 'boolean'];
+    public const CHARTS = ['column', 'bar', 'line', 'pie'];
     private const LANGUAGES = ['ca' => 'catalán', 'es' => 'castellano', 'en' => 'inglés'];
 
     public function __construct(
@@ -38,6 +39,7 @@ final class ReportAi
             '- Incluye columnas que identifiquen cada fila para una persona (nombre, fecha…), no solo ids.',
             '- "Agrupar por X" o "separar por X" suele significar ordenar por X para que queden juntos: usa GROUP BY solo si se piden totales, recuentos, medias… por grupo.',
             '- Fechas relativas (hoy, este año, el mes pasado, los últimos 30 días): escríbelas con CURDATE(), YEAR(CURDATE())…, no con fechas fijas, para que el informe siga valiendo si se guarda y se repite otro día. La fecha de hoy del mensaje es para interpretar la petición.',
+            '- "chart": el gráfico que mejor muestra el resultado, o null si no tiene sentido (listados de fichas, sin columnas numéricas). "x": alias de la columna de categorías o fechas; "series": alias de 1 a 8 columnas numéricas (integer, decimal, money, percent). "type": line para la evolución en el tiempo (meses, días…), pie para el reparto de un total entre pocas categorías (una sola serie), bar (barras horizontales) para comparar muchas categorías o nombres largos, column en los demás casos.',
             '- "title": título corto del informe. "explanation": una o dos frases, en el idioma de la petición, con qué filas salen y qué criterios se han usado, para que el usuario compruebe que es lo que pedía.',
             '- Si la petición no se puede responder con este esquema o no es una petición de datos: "understood": false, "sql": "", "columns": [] y en "note" por qué, en el idioma de la petición. Si se responde solo en parte, di en "note" (y no en "explanation") qué falta o qué has sustituido; si no, "note": null.',
             '- Si el idioma de la petición no se distingue, usa el ' . $lang . '.',
@@ -64,7 +66,7 @@ final class ReportAi
         return [
             'type' => 'object',
             'additionalProperties' => false,
-            'required' => ['understood', 'title', 'explanation', 'sql', 'columns', 'sort', 'limit', 'note'],
+            'required' => ['understood', 'title', 'explanation', 'sql', 'columns', 'sort', 'limit', 'chart', 'note'],
             'properties' => [
                 'understood' => ['type' => 'boolean'],
                 'title' => ['type' => 'string'],
@@ -96,6 +98,19 @@ final class ReportAi
                     ],
                 ],
                 'limit' => ['anyOf' => [['type' => 'integer'], ['type' => 'null']]],
+                'chart' => ['anyOf' => [
+                    [
+                        'type' => 'object',
+                        'additionalProperties' => false,
+                        'required' => ['type', 'x', 'series'],
+                        'properties' => [
+                            'type' => ['type' => 'string', 'enum' => self::CHARTS],
+                            'x' => ['type' => 'string'],
+                            'series' => ['type' => 'array', 'items' => ['type' => 'string']],
+                        ],
+                    ],
+                    ['type' => 'null'],
+                ]],
                 'note' => $nullableString,
             ],
         ];

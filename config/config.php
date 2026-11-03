@@ -17,6 +17,9 @@ return [
         'charset' => 'utf8mb4',
     ],
 
+    // Página de inicio: el nombre de un módulo (p. ej. 'tpv') para quien puede verlo; null = el inicio con el menú
+    'home' => null,
+
     // Carpeta dentro de templates/
     'template' => 'default',
 
@@ -26,6 +29,7 @@ return [
         'logo_pdf' => null,   // PNG/JPG para los PDF si 'logo' es SVG/WEBP (por defecto se usa 'logo')
         'color' => null,      // color principal, p. ej. '#c8102e' (botones, enlaces, cabeceras de PDF)
         'company' => null,    // nombre en exportaciones y pies de página (por defecto app_name)
+        'logo_plate' => true, // false: el logo sin la placa blanca de la barra lateral (logos transparentes)
     ],
 
     // Máximo de filas por exportación a Excel/PDF
@@ -45,11 +49,20 @@ return [
     // Archivos subidos (campo media). Debe quedar FUERA de public/
     'uploads_dir' => dirname(__DIR__) . '/storage/uploads',
 
-    // API para apps y bots (/api/v1/…, ver README "API"). Tokens personales desde el perfil o POST /api/v1/auth/token
+    // API para apps y bots (/api/v1/…, ver README "API para apps y bots"). Tokens personales desde el perfil o POST /api/v1/auth/token
     'api' => [
         'enabled' => false,
         'token_days' => 365,   // caducidad de los tokens creados al iniciar sesión desde una app (0 = no caducan)
         'cors' => [],          // orígenes web permitidos (p. ej. ['https://app.example.com']); las apps y bots no lo necesitan
+    ],
+
+    // Recuperar la contraseña desde el login con un enlace por email (requiere 'mail' configurado)
+    'password_reset' => [
+        'enabled' => true,
+        'ttl' => 3600,            // segundos de validez del enlace pedido desde el login
+        'invite_ttl' => 604800,   // de los que envía un administrador (invitaciones y botón de la ficha): 7 días
+        'max_per_hour' => 3,      // enlaces por usuario y hora
+        'min_length' => 8,        // longitud mínima de la contraseña nueva
     ],
 
     // Verificación en dos pasos con código por email (requiere 'mail' configurado)
@@ -132,6 +145,16 @@ return [
         'db' => null,                 // usuario de MySQL de solo lectura (recomendado): ['user' => 'informes', 'pass' => '…']
         'timeout' => 15,              // segundos máximos de cada consulta
         'max_rows' => 10000,          // filas máximas de un informe (pantalla y exportación)
+        'comment' => true,            // botón "Comenta el informe": envía a la IA los totales y las primeras 200 filas del resultado
+    ],
+
+    // Constructor de módulos (Administración → Constructor): la IA propone la tabla, el listado y el formulario
+    // a partir de una descripción o de un Excel/CSV. Usa la clave y el límite de 'ai'. Ver README, "Constructor".
+    'builder' => [
+        'model' => 'claude-sonnet-5-5',
+        'effort' => 'medium',
+        'max_tokens' => 16000,        // una tabla con muchos campos y textos en tres idiomas es una respuesta larga
+        'timeout' => 180,             // segundos
     ],
 
     // URL pública de la instalación (p. ej. 'https://gestio.cliente.com'): enlaces de los correos de avisos y

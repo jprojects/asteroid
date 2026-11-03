@@ -29,6 +29,8 @@ final class App
         'login' => [AuthController::class, 'login', false],
         'logout' => [AuthController::class, 'logout', false],
         'verify' => [AuthController::class, 'verify', false],
+        'forgot' => [AuthController::class, 'forgot', false],
+        'reset' => [AuthController::class, 'reset', false],
         'profile' => [ProfileController::class, 'index', true],
         'home' => [HomeController::class, 'index', true],
         'list' => [ModuleController::class, 'list', true],
@@ -38,6 +40,7 @@ final class App
         'delete' => [ModuleController::class, 'delete', true],
         'action' => [ActionController::class, 'run', true],
         'ask' => [AiController::class, 'ask', true],
+        'write' => [AiController::class, 'write', true],
         'permissions' => [AdminController::class, 'permissions', true],
         'upload' => [MediaController::class, 'upload', true],
         'media' => [MediaController::class, 'show', true],
@@ -83,6 +86,7 @@ final class App
         Mail::setFactory(fn () => $this->mailer());
         Notify::setFactory(fn () => $this->notifier());
         Chat::setFactory(fn () => $this->chat());
+        PasswordReset::setFactory(fn () => $this->passwordReset());
 
         $this->db = new Database($config['db']);
         $this->auth = new Auth($this->db, $config);
@@ -211,6 +215,7 @@ final class App
             $this->media(),
             fn () => $this->auth->user(),
             fn (string $name) => $this->modules()->get($name),
+            \Quasar\Ai\LlmFactory::enabled((array) ($this->config['ai'] ?? [])),
         );
     }
 
@@ -221,6 +226,17 @@ final class App
             $this->lang,
             (array) ($this->config['two_factor'] ?? []),
             (string) ($this->config['app_name'] ?? 'Quasar'),
+        );
+    }
+
+    public function passwordReset(): PasswordReset
+    {
+        return new PasswordReset(
+            $this->db,
+            $this->lang,
+            (array) ($this->config['password_reset'] ?? []),
+            (string) ($this->config['app_name'] ?? 'Quasar'),
+            fn (string $relative) => $this->absoluteUrl($relative),
         );
     }
 
@@ -364,7 +380,9 @@ final class App
             ?? $this->brandFile($b['logo'] ?? null, ['png', 'jpg', 'jpeg']);
         $color = is_string($b['color'] ?? null) && preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $b['color']) ? $b['color'] : null;
         $company = is_string($b['company'] ?? null) && trim($b['company']) !== '' ? trim($b['company']) : (string) ($this->config['app_name'] ?? 'Quasar');
-        return ['logo' => $logo, 'logo_pdf' => $pdfLogo, 'color' => $color, 'company' => $company];
+        // logo_plate = false: el logo va sin la placa blanca (logos transparentes pensados para fondo claro y oscuro)
+        $plate = !array_key_exists('logo_plate', $b) || $b['logo_plate'] !== false;
+        return ['logo' => $logo, 'logo_pdf' => $pdfLogo, 'color' => $color, 'company' => $company, 'logo_plate' => $plate];
     }
 
     private function brandFile(mixed $path, array $extensions): ?string

@@ -29,12 +29,13 @@ abstract class Controller
     /**
      * Módulo indicado en ?m= tras comprobar el permiso para la acción.
      * Las rutas de tabla (listado, ficha, datos…) no admiten páginas personalizadas y viceversa.
+     * Con $reports también se admiten informes PDF (las opciones de sus filtros).
      */
-    protected function module(string $action): Module
+    protected function module(string $action, bool $reports = false): Module
     {
         $name = $_GET['m'] ?? $_POST['m'] ?? '';
         $module = is_string($name) ? $this->app->modules()->get($name) : null;
-        if ($module === null || $module->isPage() !== ($this instanceof PageController)) {
+        if ($module === null || ($module->isPage() !== ($this instanceof PageController) && !($reports && $module->isReport()))) {
             throw new HttpException(404);
         }
         $this->authorize($module, $action);

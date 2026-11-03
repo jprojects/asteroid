@@ -63,6 +63,60 @@ final class ReportRunner
         return $this->run($outer, static fn (\PDOStatement $st) => $st->fetchAll(PDO::FETCH_NUM));
     }
 
+    /**
+     * Suma, mínimo, máximo y media de unas columnas numéricas sobre todas las filas del informe (hasta el límite).
+     * @param list<string> $names alias de columnas del resultado
+     * @return array<string,array{sum:mixed,min:mixed,max:mixed,avg:mixed}>
+     */
+    public function stats(string $sql, array $base, ?int $limit, array $names): array
+    {
+        $names = array_values(array_filter($names, static fn ($n) => preg_match('/^[A-Za-z_][A-Za-z0-9_]{0,63}$/', $n)));
+        if ($names === []) {
+            return [];
+        }
+        $parts = [];
+        foreach ($names as $i => $n) {
+            $c = Database::ident($n);
+            $parts[] = "SUM($c) AS s$i, MIN($c) AS mn$i, MAX($c) AS mx$i, AVG($c) AS a$i";
+        }
+        $inner = "SELECT * FROM ($sql) AS q" . self::orderBy($base) . ' LIMIT ' . $this->cap($limit);
+        $row = $this->run('SELECT ' . implode(', ', $parts) . " FROM ($inner) AS r", static fn (\PDOStatement $st) => $st->fetch(PDO::FETCH_ASSOC) ?: []);
+        $out = [];
+        foreach ($names as $i => $n) {
+            $out[$n] = ['sum' => $row["s$i"] ?? null, 'min' => $row["mn$i"] ?? null, 'max' => $row["mx$i"] ?? null, 'avg' => $row["a$i"] ?? null];
+        }
+        return $out;
+    }
+
+    /**
+     * Filas de una consulta con parámetros (? posicionales), en su orden, hasta $max (informes PDF).
+     * @param list<mixed> $params
+     * @return array{columns:list<string>,rows:list<array<string,mixed>>,truncated:bool}
+     */
+    public function select(string $sql, array $params, int $max): array
+    {
+        return $this->run($sql, static function (\PDOStatement $st) use ($max): array {
+            $columns = [];
+            for ($i = 0; $i < $st->columnCount(); $i++) {
+                $columns[] = (string) (($st->getColumnMeta($i) ?: [])['name'] ?? "col$i");
+            }
+            $rows = [];
+            while (($row = $st->fetch(PDO::FETCH_ASSOC)) !== false) {
+                if (count($rows) === $max) {
+                    return ['columns' => $columns, 'rows' => $rows, 'truncated' => true];
+                }
+                $rows[] = $row;
+            }
+            return ['columns' => $columns, 'rows' => $rows, 'truncated' => false];
+        }, $params);
+    }
+
+    /** Primer valor de una consulta con parámetros (null si no hay filas). */
+    public function value(string $sql, array $params): mixed
+    {
+        return $this->run($sql, static fn (\PDOStatement $st) => ($v = $st->fetchColumn()) === false ? null : $v, $params);
+    }
+
     /** @param list<array{0:int,1:string}> $order */
     private static function orderBy(array $order): string
     {
@@ -82,21 +136,36 @@ final class ReportRunner
      * Ejecuta en una transacción de solo lectura con tiempo máximo y la deshace siempre.
      * @template T
      * @param \Closure(\PDOStatement):T $read
+     * @param list<mixed>|null $params null = consulta sin parámetros
      * @return T
      */
-    private function run(string $sql, \Closure $read): mixed
+    private function run(string $sql, \Closure $read, ?array $params = null): mixed
     {
         $pdo = $this->db->pdo();
+        $mariadb = $this->isMariaDb();
         $pdo->exec('START TRANSACTION READ ONLY');
         try {
-            // MariaDB: SET STATEMENT max_statement_time (segundos); MySQL: pista MAX_EXECUTION_TIME (ms)
-            $sql = $this->isMariaDb()
-                ? sprintf('SET STATEMENT max_statement_time=%d FOR %s', $this->timeout, $sql)
-                : preg_replace('/^SELECT/', sprintf('SELECT /*+ MAX_EXECUTION_TIME(%d) */', $this->timeout * 1000), $sql, 1);
-            $st = $pdo->query((string) $sql);
+            // MariaDB: max_statement_time (segundos), con SET STATEMENT o, en una consulta preparada, en la sesión
+            // mientras dura; MySQL: pista MAX_EXECUTION_TIME (ms)
+            if ($mariadb && $params !== null) {
+                $pdo->exec(sprintf('SET SESSION max_statement_time = %d', $this->timeout));
+            } else {
+                $sql = $mariadb
+                    ? sprintf('SET STATEMENT max_statement_time=%d FOR %s', $this->timeout, $sql)
+                    : preg_replace('/^\s*SELECT\b/i', sprintf('SELECT /*+ MAX_EXECUTION_TIME(%d) */', $this->timeout * 1000), $sql, 1);
+            }
+            if ($params === null) {
+                $st = $pdo->query((string) $sql);
+            } else {
+                $st = $pdo->prepare((string) $sql);
+                $st->execute($params);
+            }
             return $read($st);
         } finally {
             $pdo->exec('ROLLBACK');
+            if ($mariadb && $params !== null) {
+                $pdo->exec('SET SESSION max_statement_time = DEFAULT');
+            }
         }
     }
 

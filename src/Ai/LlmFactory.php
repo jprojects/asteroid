@@ -26,6 +26,7 @@ final class LlmFactory
                 in_array($config['effort'] ?? 'low', ['low', 'medium', 'high'], true) ? $config['effort'] : 'low',
                 max(5, (int) ($config['timeout'] ?? 20)),
                 isset($config['base_url']) ? (string) $config['base_url'] : null,
+                max(1024, (int) ($config['max_tokens'] ?? 4096)),
             ),
             default => throw new LlmException('Proveedor de IA desconocido: ' . $config['provider']),
         };

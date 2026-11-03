@@ -16,5 +16,6 @@
 </head>
 <body class="qs-blank">
 <?= $content ?>
+<?= $this->iconSprite() ?>
 </body>
 </html>

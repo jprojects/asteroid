@@ -14,6 +14,8 @@ final class Auth
     private ?User $user = null;
     private bool $resolved = false;
     private ?int $apiTokenId = null;
+    /** Fin del bloqueo de la última cuenta bloqueada en esta petición (timestamp) */
+    private ?int $lockedUntil = null;
 
     public function __construct(
         private readonly Database $db,
@@ -156,6 +158,7 @@ final class Auth
         $lockedUntil = null;
         if ($fails >= (int) ($this->config['login_max_attempts'] ?? 5)) {
             $lockedUntil = date('Y-m-d H:i:s', time() + (int) ($this->config['login_lockout'] ?? 300));
+            $this->lockedUntil = time() + (int) ($this->config['login_lockout'] ?? 300);
             $fails = 0;
             Log::warning('Cuenta {username} bloqueada temporalmente por intentos fallidos', ['username' => $row['username']]);
         }
@@ -166,7 +169,17 @@ final class Auth
     public function isLocked(array $row): bool
     {
         $until = $this->db->fetchValue('SELECT locked_until FROM users WHERE id = ?', [$row['id']]);
-        return $until !== null && strtotime((string) $until) > time();
+        $locked = $until !== null && strtotime((string) $until) > time();
+        if ($locked) {
+            $this->lockedUntil = (int) strtotime((string) $until);
+        }
+        return $locked;
+    }
+
+    /** Minutos que faltan para desbloquear la última cuenta bloqueada en esta petición (para el mensaje). */
+    public function lockMinutes(): int
+    {
+        return max(1, (int) ceil((($this->lockedUntil ?? time()) - time()) / 60));
     }
 
     /** Inicia la sesión del usuario (credenciales y, en su caso, 2FA ya verificados). */

@@ -12,10 +12,12 @@
     "password": "Contraseña",
     "language": "Idioma",
     "submit": "Entrar",
+    "forgot": "¿Has olvidado la contraseña?",
     "invalid": "Usuario o contraseña incorrectos",
     "invalid_email": "Correo electrónico o contraseña incorrectos",
     "invalid_both": "Usuario, correo electrónico o contraseña incorrectos",
-    "locked": "Cuenta bloqueada temporalmente por demasiados intentos fallidos. Inténtalo más tarde.",
+    "locked": "Cuenta bloqueada temporalmente por demasiados intentos fallidos. Vuelve a intentarlo dentro de {minutes} min.",
+    "locked_reset": "Si no recuerdas la contraseña, recupérala.",
     "inactive": "Este usuario está desactivado",
     "logged_out": "Has cerrado la sesión"
   },
@@ -222,6 +224,42 @@
     "mail_expires": "El código caduca en {minutes} minutos y solo puede usarse una vez.",
     "mail_warning": "Si no has sido tú (intento desde la IP {ip}), cambia tu contraseña cuanto antes: alguien la conoce."
   },
+  "reset": {
+    "title": "Recuperar la contraseña",
+    "intro_username": "Escribe tu usuario y te enviaremos un enlace a tu correo electrónico para elegir una contraseña nueva.",
+    "intro_email": "Escribe tu correo electrónico y te enviaremos un enlace para elegir una contraseña nueva.",
+    "intro_both": "Escribe tu usuario o correo electrónico y te enviaremos un enlace para elegir una contraseña nueva.",
+    "send": "Enviar el enlace",
+    "sent": "Si hay una cuenta activa con estos datos, te hemos enviado un correo con un enlace para elegir una contraseña nueva. Revisa también la carpeta de correo no deseado.",
+    "back": "Volver al inicio de sesión",
+    "invalid_link": "El enlace no es válido o ha caducado. Pide uno nuevo.",
+    "new_title": "Contraseña nueva",
+    "new_intro": "Hola {name}, elige una contraseña nueva de al menos {min} caracteres.",
+    "password": "Contraseña nueva",
+    "password_confirm": "Repite la contraseña",
+    "save": "Guardar la contraseña",
+    "mismatch": "Las contraseñas no coinciden.",
+    "done": "Contraseña cambiada. Ya puedes iniciar sesión.",
+    "mail_subject": "Recupera tu contraseña de {app}",
+    "mail_hello": "Hola {name}:",
+    "mail_body": "Hemos recibido una petición para cambiar la contraseña de tu cuenta. Haz clic en el botón para elegir una nueva:",
+    "mail_button": "Elegir una contraseña nueva",
+    "mail_expires": "El enlace caduca dentro de {minutes} minutos y solo se puede usar una vez.",
+    "mail_link": "Si el botón no funciona, copia este enlace en el navegador:",
+    "mail_warning": "Si no lo has pedido tú (petición desde la IP {ip}), ignora este correo: tu contraseña no cambiará.",
+    "changed_subject": "Tu contraseña de {app} ha cambiado",
+    "changed_preheader": "Aviso de seguridad",
+    "changed_body": "La contraseña de tu cuenta se acaba de cambiar con un enlace de recuperación. Por seguridad, los dispositivos de confianza se tendrán que volver a verificar.",
+    "changed_warning": "Si no has sido tú (cambio desde la IP {ip}), avisa a un administrador inmediatamente.",
+    "mail_expires_days": "El enlace caduca dentro de {days} días y solo se puede usar una vez.",
+    "admin_body": "{by} te envía este enlace para que elijas una contraseña nueva para tu cuenta:",
+    "invite_subject": "Te han dado acceso a {app}",
+    "invite_body": "{by} te ha creado una cuenta en {app}. Tu usuario es {username}. Elige tu contraseña para entrar:",
+    "invite_button": "Elegir la contraseña",
+    "invite_sent": "Invitación enviada a {email}",
+    "link_sent": "Enlace enviado a {email}",
+    "link_failed": "No se ha podido enviar el correo. Revisa la configuración de correo."
+  },
   "profile": {
     "link": "Mi perfil"
   },
@@ -236,10 +274,14 @@
     "unsavedTitle": "Cambios sin guardar",
     "unsaved": "Tienes cambios sin guardar. Si sales ahora, se perderán.",
     "leave": "Salir sin guardar",
-    "stay": "Seguir editando"
+    "stay": "Seguir editando",
+    "showPassword": "Mostrar la contraseña",
+    "hidePassword": "Ocultar la contraseña",
+    "capsLock": "Tienes las mayúsculas activadas (Bloq Mayús)"
   },
   "nav": {
-    "toggle": "Mostrar u ocultar el menú"
+    "toggle": "Mostrar u ocultar el menú",
+    "group": "Plegar o desplegar el grupo"
   },
   "tags": {
     "placeholder": "Escribe y pulsa Enter…",
@@ -274,6 +316,20 @@
     "link_prompt": "https://… y pulsa Intro",
     "image": "Imagen",
     "clear": "Quitar formato"
+  },
+  "assist": {
+    "button": "Ayuda a redactar",
+    "improve": "Mejorar la redacción",
+    "formal": "Hacerlo más formal",
+    "shorter": "Hacerlo más breve",
+    "fix": "Corregir la ortografía",
+    "translate_ca": "Traducir al catalán",
+    "translate_es": "Traducir al castellano",
+    "translate_en": "Traducir al inglés",
+    "title": "Propuesta de la IA",
+    "replace": "Sustituir el texto",
+    "empty": "Escribe primero el texto que quieres mejorar.",
+    "working": "La IA está redactando…"
   },
   "notifications": {
     "title": "Avisos",
@@ -328,5 +384,85 @@
     "no_attachments": "Esta conversación no admite archivos",
     "attachment_used": "El archivo ya está en otro mensaje",
     "meet_failed": "No se ha podido crear la videollamada. Revisa la conexión con Google en Integraciones."
+  },
+  "report": {
+    "menu": "Informes",
+    "generate": "Generar el PDF",
+    "total": "Total",
+    "subtotal": "Total {group}",
+    "empty": "No hay datos con estos filtros",
+    "run_error": "No se ha podido generar el informe. Revisa su configuración o avisa al administrador.",
+    "too_many": "El informe supera las {max} filas. Acótalo con los filtros."
+  },
+  "cal": {
+    "new": "Nuevo",
+    "today": "Hoy",
+    "view": "Vista",
+    "views": {
+      "month": "Mes",
+      "week": "Semana",
+      "day": "Día"
+    },
+    "prev_month": "Mes anterior",
+    "next_month": "Mes siguiente",
+    "prev_week": "Semana anterior",
+    "next_week": "Semana siguiente",
+    "prev_day": "Día anterior",
+    "next_day": "Día siguiente",
+    "add_on": "Nuevo el {date}",
+    "more": "+{n} más",
+    "empty": "No hay nada en este periodo",
+    "no_time": "Sin hora",
+    "range": "{from} – {to} {year}",
+    "move_denied": "No puedes cambiar la fecha",
+    "move_missing": "Este registro ya no existe o no puedes verlo",
+    "move_invalid": "Fecha o duración no válidas",
+    "move_error": "No se ha podido cambiar: {error}",
+    "months": [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre"
+    ],
+    "months_short": [
+      "ene.",
+      "feb.",
+      "mar.",
+      "abr.",
+      "may.",
+      "jun.",
+      "jul.",
+      "ago.",
+      "sept.",
+      "oct.",
+      "nov.",
+      "dic."
+    ],
+    "weekdays": [
+      "lun.",
+      "mar.",
+      "mié.",
+      "jue.",
+      "vie.",
+      "sáb.",
+      "dom."
+    ],
+    "weekdays_long": [
+      "Lunes",
+      "Martes",
+      "Miércoles",
+      "Jueves",
+      "Viernes",
+      "Sábado",
+      "Domingo"
+    ]
   }
 }

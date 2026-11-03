@@ -14,6 +14,7 @@ use Quasar\Export\PdfTableReport;
 use Quasar\Export\XlsxWriter;
 use Quasar\Reports\Report;
 use Quasar\Reports\ReportAi;
+use Quasar\Reports\ReportComment;
 use Quasar\Reports\ReportRunner;
 use Quasar\Reports\ReportSchema;
 
@@ -22,16 +23,19 @@ use Quasar\Reports\ReportSchema;
  *
  * El usuario describe los datos que quiere; la IA escribe una consulta SELECT sobre las tablas
  * permitidas; Quasar la valida (SqlGuard), la ejecuta en solo lectura (ReportRunner) y muestra el
- * resultado como una tabla con paginación, orden y Excel/PDF. El navegador nunca envía SQL: solo el
- * id del informe, que se lee de la tabla reports.
+ * resultado como una tabla con paginación, orden y Excel/PDF, y como gráfico en otra pestaña. El
+ * navegador nunca envía SQL: solo el id del informe, que se lee de la tabla reports.
  *
  * Permisos de la página: view (ver informes guardados), ask (pedir informes nuevos a la IA),
- * save (guardar con nombre y borrar), export (Excel y PDF).
+ * save (guardar con nombre, guardar el gráfico y borrar), export (Excel y PDF). El comentario de la IA
+ * sobre el resultado lo puede pedir quien tenga "ask" y lo ven todos los que ven el informe.
  */
 final class ReportsPage extends Page
 {
     private const PAGE_SIZES = [25, 50, 100];
     private const MAX_PHRASE = 1000;
+    /** Filas como mucho en un gráfico (más no se leerían) */
+    private const CHART_ROWS = 500;
 
     public function index(): void
     {
@@ -42,6 +46,7 @@ final class ReportsPage extends Page
         }
         $this->view([
             'canAsk' => $this->canAsk(),
+            'canComment' => $this->canComment(),
             'canSave' => $this->allowed('save'),
             'canExport' => $this->allowed('export'),
             'report' => $report,
@@ -53,6 +58,7 @@ final class ReportsPage extends Page
             ),
             'askUrl' => $this->pageUrl('ask'),
             'table' => $report !== null ? $this->tableConfig($report) : null,
+            'chart' => $report !== null ? $this->chartConfig($report, $report->userId === $user->id() || $user->isAdmin()) : null,
         ]);
     }
 
@@ -157,6 +163,7 @@ final class ReportsPage extends Page
                 'columns' => json_encode($columns, JSON_UNESCAPED_UNICODE),
                 'sort' => json_encode($sort, JSON_UNESCAPED_UNICODE),
                 'row_limit' => $limit,
+                'chart' => ($chart = Report::cleanChart($data['chart'] ?? null, $columns)) !== null ? json_encode($chart, JSON_UNESCAPED_UNICODE) : null,
             ]);
             Log::info('Informes IA: informe {id} creado', ['id' => $id]);
             $this->json(['ok' => true, 'url' => $this->pageUrl('index', ['id' => $id])]);
@@ -193,6 +200,129 @@ final class ReportsPage extends Page
             $out[] = ['id' => (string) (($page - 1) * $size + $n + 1), 'cells' => $cells];
         }
         $this->json(['rows' => $out, 'total' => $total, 'page' => $page, 'pages' => $pages, 'size' => $size, 'sort' => $sortKey, 'dir' => $dir]);
+    }
+
+    /**
+     * GET id → filas del gráfico (las primeras CHART_ROWS en el orden del informe): cada celda es
+     * [texto como en la tabla, número o null], para que el navegador elija columnas sin volver a pedirlas.
+     */
+    public function actionChart(): void
+    {
+        $report = $this->load((string) $this->param('id', '')) ?? throw new HttpException(404);
+        $runner = $this->runner();
+        try {
+            $total = $runner->count($report->query, $report->limit);
+            $rows = $runner->rows($report->query, $report->baseOrder(), $report->limit, [], self::CHART_ROWS, 0);
+        } catch (\PDOException $e) {
+            Log::warning('Informes: el gráfico del informe {id} no se puede ejecutar: {error}', ['id' => $report->id, 'error' => $e->getMessage()]);
+            $this->json(['error' => $this->text('run_error')], 500);
+            return;
+        }
+        $t = fn (string $k) => $this->t($k);
+        $out = [];
+        foreach ($rows as $row) {
+            $cells = [];
+            foreach ($row as $i => $v) {
+                $numeric = Report::isNumericType($report->columns[$i]['type'] ?? 'text') && is_numeric($v);
+                $cells[] = [$report->format($i, $v, $t), $numeric ? (float) $v : null];
+            }
+            $out[] = $cells;
+        }
+        $this->json([
+            'rows' => $out,
+            'total' => $total,
+            'truncated' => $total > count($out) ? $this->text('chart.truncated', ['n' => count($out), 'total' => $total]) : '',
+        ]);
+    }
+
+    /** POST id, chart (JSON {type, x, series}): guarda el gráfico del informe (permiso "save", autor o administrador). */
+    public function actionChartSave(): void
+    {
+        $this->requirePost();
+        $report = $this->ownReport();
+        $chart = Report::cleanChart(json_decode((string) $this->param('chart', ''), true), $report->columns);
+        if ($chart === null) {
+            throw new HttpException(400);
+        }
+        $this->app->db->update('reports', ['chart' => json_encode($chart, JSON_UNESCAPED_UNICODE)], 'id', $report->id);
+        $this->json(['ok' => true, 'message' => $this->text('chart.saved')]);
+    }
+
+    /**
+     * POST id: la IA comenta el resultado actual del informe (totales y primeras filas) y el comentario
+     * se guarda con el informe. → {ok} o {error}.
+     */
+    public function actionComment(): void
+    {
+        $this->requirePost();
+        if (!$this->canComment()) {
+            throw new HttpException(403);
+        }
+        $report = $this->load((string) $this->param('id', '')) ?? throw new HttpException(404);
+        $user = $this->user();
+        $ai = (array) ($this->app->config['ai'] ?? []);
+        $usage = new Usage($this->app->db, $ai);
+        if ($usage->state()['state'] === 'blocked') {
+            $this->json(['error' => $this->t('ai.limit_reached')], 429);
+            return;
+        }
+        if ($usage->userOverRate($user->id())) {
+            $this->json(['error' => $this->t('ai.too_many')], 429);
+            return;
+        }
+
+        $runner = $this->runner();
+        $t = fn (string $k) => $this->t($k);
+        $numeric = array_keys(array_filter($report->columns, static fn ($c) => Report::isNumericType($c['type'])));
+        try {
+            $total = $runner->count($report->query, $report->limit);
+            $rows = $runner->rows($report->query, $report->baseOrder(), $report->limit, [], ReportComment::ROWS, 0);
+            $stats = $runner->stats($report->query, $report->baseOrder(), $report->limit, array_map(fn ($i) => $report->columns[$i]['name'], $numeric));
+        } catch (\PDOException $e) {
+            Log::warning('Informes: el informe {id} no se puede comentar: {error}', ['id' => $report->id, 'error' => $e->getMessage()]);
+            $this->json(['error' => $this->text('run_error')], 500);
+            return;
+        }
+        $totals = [];
+        foreach ($numeric as $i) {
+            $st = $stats[$report->columns[$i]['name']] ?? null;
+            if ($st !== null && $st['sum'] !== null) {
+                $totals[$report->columns[$i]['label']] = sprintf(
+                    'suma %s · mínimo %s · máximo %s · media %s',
+                    $report->format($i, $st['sum'], $t), $report->format($i, $st['min'], $t),
+                    $report->format($i, $st['max'], $t), $report->format($i, round((float) $st['avg'], 2), $t)
+                );
+            }
+        }
+        $formatted = array_map(fn ($row) => array_map(fn ($i) => $report->format($i, $row[$i] ?? null, $t), array_keys($report->columns)), $rows);
+
+        $cfg = $this->reportsConfig();
+        $model = (string) ($cfg['model'] ?? $ai['model'] ?? '');
+        $provider = LlmFactory::make(['model' => $model, 'effort' => 'low'] + $ai);
+        $prompt = new ReportComment($this->app->lang->locale());
+        $log = ['user_id' => $user->id(), 'module' => $this->module->name, 'provider' => $provider->name(), 'model' => $model, 'prompt' => 'Comentario del informe ' . $report->id];
+        $start = hrtime(true);
+        try {
+            $response = $provider->complete(
+                $prompt->system(),
+                $prompt->userMessage($report, $report->columns, $formatted, $total, $totals, new \DateTimeImmutable('now')),
+                $prompt->responseSchema()
+            );
+        } catch (LlmException $e) {
+            Log::error('Informes IA (comentario): {error}', ['error' => $e->getMessage()]);
+            $usage->log($log + ['status' => 'error', 'result' => $e->getMessage(), 'duration_ms' => self::ms($start)], $e->usage);
+            $this->json(['error' => $this->t('ai.error')], 502);
+            return;
+        }
+        $comment = ReportComment::clean($response->data);
+        $usage->log($log + ['status' => $comment !== null ? 'ok' : 'error', 'result' => $comment ?? $response->data, 'duration_ms' => self::ms($start)], $response);
+        if ($comment === null) {
+            $this->json(['error' => $this->text('comment.failed')], 502);
+            return;
+        }
+        $this->app->db->update('reports', ['comment' => json_encode($comment, JSON_UNESCAPED_UNICODE), 'comment_at' => date('Y-m-d H:i:s')], 'id', $report->id);
+        Log::info('Informes IA: comentario del informe {id}', ['id' => $report->id]);
+        $this->json(['ok' => true]);
     }
 
     /** GET id, format = xlsx|pdf, sort, dir → descarga con todas las filas (hasta 'max_rows'). */
@@ -286,6 +416,12 @@ final class ReportsPage extends Page
     private function canAsk(): bool
     {
         return $this->allowed('ask') && LlmFactory::enabled((array) ($this->app->config['ai'] ?? []));
+    }
+
+    /** Pedir el comentario de la IA: permiso "ask", IA activada y 'reports.comment' (por defecto, sí). */
+    private function canComment(): bool
+    {
+        return $this->canAsk() && ($this->reportsConfig()['comment'] ?? true) !== false;
     }
 
     private function reportsConfig(): array
@@ -387,6 +523,28 @@ final class ReportsPage extends Page
                 'search' => $this->t('filter.search'),
                 'removeFilter' => $this->t('filter.remove'),
                 'aiNotUnderstood' => '',
+            ],
+        ];
+    }
+
+    /** Configuración del gráfico de app.js: columnas, gráfico guardado (o null) y URL de datos y de guardar. */
+    private function chartConfig(Report $report, bool $isOwner): array
+    {
+        return [
+            'id' => $report->id,
+            'dataUrl' => $this->pageUrl('chart', ['id' => $report->id]),
+            'saveUrl' => $this->allowed('save') && $isOwner ? $this->pageUrl('chartSave') : '',
+            'columns' => array_map(static fn ($c) => ['name' => $c['name'], 'label' => $c['label'], 'type' => $c['type'],
+                'numeric' => Report::isNumericType($c['type'])], $report->columns),
+            'chart' => $report->chart,
+            'i18n' => [
+                'loading' => $this->t('table.loading'),
+                'error' => $this->t('table.error'),
+                'empty' => $this->text('chart.empty'),
+                'noNumeric' => $this->text('chart.no_numeric'),
+                'other' => $this->text('chart.other'),
+                'total' => $this->text('chart.total'),
+                'download' => $this->text('chart.download'),
             ],
         ];
     }

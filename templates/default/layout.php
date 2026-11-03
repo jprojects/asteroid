@@ -30,21 +30,29 @@ $pageTitle = ($title ?? '') !== '' ? $title . ' · ' . $this->appName() : $this-
 <aside class="qs-sidebar" id="qs-sidebar">
   <a class="qs-brand" href="<?= $this->url('home') ?>" title="<?= $this->e($this->appName()) ?>">
     <?php if ($this->logoUrl()): ?>
-      <span class="qs-brand-logo"><img src="<?= $this->logoUrl() ?>" alt="<?= $this->e($this->appName()) ?>"></span>
+      <span class="<?= $this->logoClass('qs-brand-logo') ?>"><img src="<?= $this->logoUrl() ?>" alt="<?= $this->e($this->appName()) ?>"></span>
     <?php else: ?>
       <img class="qs-brand-mark" src="<?= $this->asset('logo.svg') ?>" alt="" width="28" height="28"><span class="qs-brand-name"><?= $this->e($this->appName()) ?></span>
     <?php endif ?>
   </a>
   <nav class="qs-nav">
     <?php foreach ($this->menu() as $group => $modules): ?>
-      <div class="qs-nav-group"><?= $this->e($this->t('menu.' . $group)) ?></div>
-      <?php foreach ($modules as $m): ?>
-        <a href="<?= $this->e($m->url()) ?>" title="<?= $this->e($m->title()) ?>"
-           class="qs-nav-item<?= $this->currentModule() === $m->name ? ' is-active' : '' ?>">
-          <?= $this->icon($m->icon(), 'qs-nav-icon') ?>
-          <span class="qs-nav-label"><?= $this->e($m->title()) ?></span>
-        </a>
-      <?php endforeach ?>
+      <?php $closed = $this->navGroupClosed($group, $modules); ?>
+      <div class="qs-nav-section<?= $closed ? ' is-closed' : '' ?>" data-nav-group="<?= $this->e($group) ?>">
+        <button type="button" class="qs-nav-group" aria-expanded="<?= $closed ? 'false' : 'true' ?>"
+                aria-controls="qs-nav-<?= $this->e($group) ?>" title="<?= $this->e($this->t('nav.group')) ?>">
+          <span><?= $this->e($this->t('menu.' . $group)) ?></span><?= $this->icon('chevron-down', 'qs-nav-chevron') ?>
+        </button>
+        <div class="qs-nav-items" id="qs-nav-<?= $this->e($group) ?>">
+          <?php foreach ($modules as $m): ?>
+            <a href="<?= $this->e($m->url()) ?>" title="<?= $this->e($m->title()) ?>"
+               class="qs-nav-item<?= $this->currentModule() === $m->name ? ' is-active' : '' ?>">
+              <?= $this->icon($m->icon(), 'qs-nav-icon') ?>
+              <span class="qs-nav-label"><?= $this->e($m->title()) ?></span>
+            </a>
+          <?php endforeach ?>
+        </div>
+      </div>
     <?php endforeach ?>
   </nav>
   <div class="qs-sidebar-foot" title="<?= $this->e($this->appName() . ' ' . $this->version()) ?>">v<?= $this->e($this->version()) ?></div>

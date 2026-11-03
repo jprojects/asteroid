@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Quasar\Controllers;
 
+use Quasar\Core\HttpException;
 use Quasar\Core\Log;
 use Quasar\Core\Session;
 use Quasar\Core\TwoFactor;
@@ -58,9 +59,11 @@ final class AuthController extends Controller
         }
         $this->render('login', [
             'title' => $this->t('login.title'),
-            'error' => $error ? $this->t($error) : null,
+            'error' => $error ? $this->t($error, ['minutes' => $this->app->auth->lockMinutes()]) : null,
+            'locked' => $error === 'login.locked',
             'username' => $username,
             'loginField' => $loginField,
+            'canReset' => $this->app->passwordReset()->enabled(),
         ], 'blank', $error ? 401 : 200);
     }
 
@@ -92,7 +95,7 @@ final class AuthController extends Controller
                     $this->finishLogin($row);
                 }
                 if (in_array($result, ['login.locked', 'two_factor.expired'], true)) {
-                    Session::flash('error', $this->t($result));
+                    Session::flash('error', $this->t($result, ['minutes' => $this->app->auth->lockMinutes()]));
                     $this->app->redirect($this->app->url('login'));
                 }
                 $error = $result;
@@ -109,6 +112,96 @@ final class AuthController extends Controller
             'resendWait' => $wait,
             'codeLength' => min(10, max(4, (int) ($this->app->config['two_factor']['code_length'] ?? 6))),
         ], 'blank', $error ? 401 : 200);
+    }
+
+    /** «He olvidado la contraseña»: pide el usuario o el email y envía un enlace (ver PasswordReset). */
+    public function forgot(): void
+    {
+        $reset = $this->app->passwordReset();
+        if (!$reset->enabled()) {
+            throw new HttpException(404);
+        }
+        $loginField = $this->app->auth->loginField();
+        $error = null;
+        $sent = false;
+        $send = null;
+        $login = '';
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $login = is_string($_POST['login'] ?? null) ? mb_substr(trim($_POST['login']), 0, 150) : '';
+            if (!Session::checkCsrf($_POST['_csrf'] ?? null)) {
+                $error = 'errors.419';
+            } elseif ($login === '') {
+                $error = 'validation.required';
+            } else {
+                // La respuesta es la misma tanto si el usuario existe como si no
+                $send = $reset->request($login, $loginField);
+                $sent = true;
+            }
+        }
+        $this->render('forgot', [
+            'title' => $this->t('reset.title'),
+            'error' => $error ? $this->t($error) : null,
+            'sent' => $sent,
+            'login' => $login,
+            'loginField' => $loginField,
+        ], 'blank');
+        if ($send !== null) {
+            // El correo se envía después de responder: el tiempo de respuesta no delata si el usuario existe
+            session_write_close();
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+            $send();
+        }
+    }
+
+    /**
+     * Contraseña nueva con el enlace del correo. El token pasa a la sesión y se quita de la URL
+     * (no queda en el historial ni en los registros del servidor después de la primera visita).
+     */
+    public function reset(): void
+    {
+        $reset = $this->app->passwordReset();
+        if (!$reset->enabled()) {
+            throw new HttpException(404);
+        }
+        if (is_string($_GET['token'] ?? null)) {
+            Session::set('reset_token', $_GET['token']);
+            $this->app->redirect($this->app->url('reset'));
+        }
+        $token = (string) Session::get('reset_token', '');
+        $row = $reset->userForToken($token);
+        if ($row === null) {
+            Session::remove('reset_token');
+            Session::flash('error', $this->t('reset.invalid_link'));
+            $this->app->redirect($this->app->url('forgot'));
+        }
+
+        $error = null;
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
+            $confirm = is_string($_POST['password_confirm'] ?? null) ? $_POST['password_confirm'] : '';
+            if (!Session::checkCsrf($_POST['_csrf'] ?? null)) {
+                $error = $this->t('errors.419');
+            } elseif (mb_strlen($password) < $reset->minLength() || strlen($password) > 255) {
+                $error = $this->t('validation.minlength', ['min' => $reset->minLength()]);
+            } elseif ($password !== $confirm) {
+                $error = $this->t('reset.mismatch');
+            } elseif (!$reset->complete($token, $password, $this->app->twoFactor())) {
+                $error = $this->t('reset.invalid_link');
+            } else {
+                Session::remove('reset_token');
+                Session::regenerate();
+                Session::flash('success', $this->t('reset.done'));
+                $this->app->redirect($this->app->url('login'));
+            }
+        }
+        $this->render('reset', [
+            'title' => $this->t('reset.title'),
+            'error' => $error,
+            'name' => (string) ($row['name'] ?: $row['username']),
+            'minLength' => $reset->minLength(),
+        ], 'blank', $error ? 422 : 200);
     }
 
     public function logout(): void

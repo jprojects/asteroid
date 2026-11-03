@@ -12,6 +12,7 @@
  * @var bool $canCreate
  * @var list<string> $exportFormats
  * @var list<array<string,mixed>> $toolbarButtons botones propios ("list.toolbar")
+ * @var list<array{label:string,url:string,modal:bool}> $reports informes PDF de la barra ("list.reports")
  * @var ?array{url:string,blocked:bool,message:?string} $ai barra de filtrar con lenguaje natural
  * @var array $config
  */
@@ -54,6 +55,22 @@ foreach ($module->rowActions() as $action) {
         <?= $this->e($this->t('export.' . ($format === 'xlsx' ? 'excel' : 'pdf'))) ?>
       </button>
     <?php endforeach ?>
+    <?php if ($reports): ?>
+      <div class="qs-menu" data-menu>
+        <button type="button" class="qs-btn" aria-haspopup="menu" aria-expanded="false" data-menu-toggle>
+          <?= $this->icon('printer') ?> <?= $this->e($this->t('report.menu')) ?> <?= $this->icon('chevron-down', 'qs-menu-caret') ?>
+        </button>
+        <div class="qs-menu-list" role="menu" hidden>
+          <?php foreach ($reports as $r): ?>
+            <?php if ($r['modal']): ?>
+              <button type="button" role="menuitem" data-quick-create="<?= $this->json(['label' => $r['label'], 'url' => $r['url'], 'size' => 'small']) ?>"><?= $this->icon('file-text') ?> <?= $this->e($r['label']) ?></button>
+            <?php else: ?>
+              <a role="menuitem" href="<?= $this->e($r['url']) ?>" target="_blank" rel="noopener"><?= $this->icon('file-text') ?> <?= $this->e($r['label']) ?></a>
+            <?php endif ?>
+          <?php endforeach ?>
+        </div>
+      </div>
+    <?php endif ?>
   </div>
 
   <?php if ($ai): ?>

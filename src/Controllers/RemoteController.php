@@ -369,11 +369,16 @@ final class RemoteController extends Controller
             $body = curl_exec($ch);
             $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
             $error = $body === false ? curl_error($ch) : null;
-            curl_close($ch);
         } else {
             $ctx = stream_context_create(['http' => ['header' => implode("\r\n", $headers), 'timeout' => 30, 'ignore_errors' => true]]);
-            $body = @file_get_contents($url, false, $ctx);
-            $code = isset($http_response_header[0]) && preg_match('/\s(\d{3})\s?/', $http_response_header[0], $m) ? (int) $m[1] : 0;
+            // Cabeceras con stream_get_meta_data(): $http_response_header es obsoleta en PHP 8.5
+            $fp = @fopen($url, 'r', false, $ctx);
+            $body = $fp !== false ? stream_get_contents($fp) : false;
+            $responseHeaders = $fp !== false ? (array) (stream_get_meta_data($fp)['wrapper_data'] ?? []) : [];
+            if ($fp !== false) {
+                fclose($fp);
+            }
+            $code = isset($responseHeaders[0]) && preg_match('/\s(\d{3})\s?/', (string) $responseHeaders[0], $m) ? (int) $m[1] : 0;
             $error = $body === false ? 'sin respuesta' : null;
         }
         if ($body === false || $code === 0) {

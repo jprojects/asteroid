@@ -66,7 +66,7 @@ $listUrl = $this->url('list', ['m' => $module->name]);
   <?php foreach ($sections as $section): ?>
     <?php
     // En alta no tiene sentido mostrar una sección compuesta solo por campos de solo lectura
-    $visible = array_filter($section['fields'], static fn ($f) => !($isNew && $f->isReadonly()));
+    $visible = array_filter($section['fields'], static fn ($f) => !($isNew && $f->isReadonly()) && ($isNew || !$f->isCreateOnly()));
     if (!$visible) {
         continue;
     }

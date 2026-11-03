@@ -12,7 +12,8 @@
     "last_login": "Últim accés",
     "created_at": "Creat",
     "two_factor": "Verificació en dos passos",
-    "groups": "Grups"
+    "groups": "Grups",
+    "invite": "Envia una invitació"
   },
   "sections": {
     "account": "Compte",
@@ -22,7 +23,8 @@
   "help": {
     "is_admin": "Accés total, inclosa l'administració",
     "two_factor": "Només s'aplica si two_factor.mode = optional a la configuració",
-    "groups": "Els permisos dels grups se sumen als de l'usuari"
+    "groups": "Els permisos dels grups se sumen als de l'usuari",
+    "invite": "Li arribarà un correu per triar la seva contrasenya (cal un correu electrònic). Desmarca-ho per posar-la tu."
   },
   "validation": {
     "username": "Només lletres, números, punt i guió baix"
@@ -30,9 +32,18 @@
   "errors": {
     "self_admin": "No et pots treure a tu mateix el rol d'administrador",
     "self_active": "No pots desactivar el teu propi usuari",
-    "self_delete": "No pots eliminar el teu propi usuari"
+    "self_delete": "No pots eliminar el teu propi usuari",
+    "invite_email": "Per enviar una invitació cal el correu electrònic de l'usuari",
+    "link_inactive": "L'usuari està desactivat o no té correu electrònic",
+    "reset_disabled": "La recuperació de contrasenya està desactivada en aquesta instal·lació"
   },
   "placeholders": {
     "groups": "Sense grups"
+  },
+  "actions": {
+    "send_link": "Envia l'enllaç de contrasenya"
+  },
+  "confirm": {
+    "send_link": "S'enviarà al correu de l'usuari un enllaç per triar una contrasenya nova (si encara no ha entrat mai, una invitació). La contrasenya actual continuarà funcionant fins que en triï una."
   }
 }

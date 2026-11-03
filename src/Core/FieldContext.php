@@ -16,6 +16,7 @@ final class FieldContext
      * @param \Closure(string,array):string|null $urlBuilder construye URLs internas
      * @param \Closure():?User|null $userProvider usuario de la sesión (null en consola)
      * @param \Closure(string):?Module|null $moduleProvider otro módulo por su nombre (selects con "source.module")
+     * @param bool $ai la instalación tiene la IA activada (ayuda a redactar en los campos con "assist")
      */
     public function __construct(
         public readonly Database $db,
@@ -26,6 +27,7 @@ final class FieldContext
         public readonly ?MediaStorage $media = null,
         private readonly ?\Closure $userProvider = null,
         private readonly ?\Closure $moduleProvider = null,
+        public readonly bool $ai = false,
     ) {
     }
 

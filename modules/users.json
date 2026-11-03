@@ -8,7 +8,8 @@
   "fields": {
     "id":         { "type": "number", "readonly": true, "grouping": false },
     "username":   { "type": "text", "required": true, "unique": true, "maxlength": 50, "pattern": "[A-Za-z0-9_.]+", "patternMessage": "validation.username", "autocomplete": "off", "width": "half" },
-    "password":   { "type": "password", "column": "password_hash", "requiredOnCreate": true, "minlength": 8, "width": "half" },
+    "invite":     { "type": "checkbox", "virtual": true, "createOnly": true, "default": 1, "help": "help.invite", "width": "half" },
+    "password":   { "type": "password", "column": "password_hash", "requiredOnCreate": true, "minlength": 8, "width": "half", "showon": "invite!:1" },
     "is_admin":   { "type": "checkbox", "default": 0, "help": "help.is_admin", "width": "quarter", "colors": { "1": "purple" } },
     "active":     { "type": "checkbox", "default": 1, "width": "quarter", "colors": { "1": "green", "0": "red" } },
     "two_factor": { "type": "checkbox", "default": 0, "help": "help.two_factor", "width": "half" },
@@ -47,8 +48,11 @@
   },
 
   "form": {
+    "buttons": [
+      { "label": "actions.send_link", "icon": "mail", "action": "sendLink", "confirm": "confirm.send_link", "showon": "email!:" }
+    ],
     "sections": [
-      { "title": "sections.account", "fields": ["username", "password", "is_admin", "active", "two_factor", "groups"] },
+      { "title": "sections.account", "fields": ["username", "invite", "password", "is_admin", "active", "two_factor", "groups"] },
       { "title": "sections.profile", "fields": ["name", "email", "locale"] },
       { "title": "sections.info", "fields": ["last_login", "created_at"] }
     ]

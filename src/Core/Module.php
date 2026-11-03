@@ -30,15 +30,23 @@ final class Module
     private bool $hooksResolved = false;
     private FieldContext $ctx;
     private ?Scope $scope = null;
+    private ?\Quasar\Reports\ReportDefinition $report = null;
 
     public function __construct(
         public readonly string $name,
-        private readonly array $def,
+        private array $def,
         FieldContext $ctx,
     ) {
         $this->ctx = $ctx;
 
-        if ($this->isPage()) {
+        if ($this->isReport()) {
+            // Informe PDF: sus "params" son campos (formulario de filtros) y el controlador es del núcleo
+            if (isset($def['fields']) || isset($def['controller'])) {
+                throw new \RuntimeException("Módulo '$name': un informe declara sus filtros en \"params\" (no \"fields\") y no lleva \"controller\"");
+            }
+            $def['fields'] = $def['params'] ?? [];
+            $this->def = $def;
+        } elseif ($this->isPage()) {
             // Página personalizada: no tiene tabla propia, solo un controlador
             $class = $def['controller'] ?? null;
             if (!is_string($class) || !is_subclass_of($class, \Quasar\Controllers\Page::class)) {
@@ -81,6 +89,10 @@ final class Module
                     throw new \RuntimeException("Módulo '{$this->name}': \"dependsOn\" del campo '{$field->name}' necesita un select con \"source\" y {\"field\": otro campo del módulo, \"column\": columna de la tabla de origen}");
                 }
             }
+            if (isset($def['fields'][$field->name]['assist'])
+                && (!$field instanceof \Quasar\Fields\TextareaField || !is_bool($def['fields'][$field->name]['assist']))) {
+                throw new \RuntimeException("Módulo '{$this->name}': \"assist\" del campo '{$field->name}' debe ser true o false y solo se admite en campos textarea y richtext");
+            }
             foreach (ShowOn::fields($field->showOn() ?? []) as $ref) {
                 if (!isset($this->fields[$ref]) || $ref === $field->name) {
                     throw new \RuntimeException("Módulo '{$this->name}': el showon del campo '{$field->name}' usa '$ref', que no es otro campo del módulo");
@@ -98,6 +110,16 @@ final class Module
         if (($this->scope !== null || isset($def['where'])) && $this->isPage()) {
             throw new \RuntimeException("Módulo '$name': una página no puede tener \"scope\" ni \"where\"");
         }
+        if ($this->isReport()) {
+            foreach ($this->fields as $field) {
+                if ($field->isComputed() || $field instanceof RepeaterField || $field instanceof \Quasar\Fields\MediaField
+                    || $field instanceof \Quasar\Fields\TagsField || ($field instanceof \Quasar\Fields\SelectField && $field->isMultiple())) {
+                    throw new \RuntimeException("Módulo '$name': el parámetro '{$field->name}' no puede ser calculado, repeater, media, tags ni un select múltiple (su valor tiene que ser uno solo)");
+                }
+            }
+            $this->report = new \Quasar\Reports\ReportDefinition($name, $def, array_keys($this->fields));
+        }
+        $this->listReports();
         $this->listColumns();
         $this->totalFields();
         $this->expandFields();
@@ -173,16 +195,50 @@ final class Module
         return (string) ($this->def['table'] ?? '');
     }
 
-    /** Módulo de tipo "page": página personalizada con su propio controlador (no listado/formulario). */
+    /**
+     * Módulo de tipo "page" (página personalizada con su propio controlador) o "report" (informe PDF, que
+     * es una página del núcleo): no tienen listado ni formulario.
+     */
     public function isPage(): bool
     {
-        return ($this->def['type'] ?? 'table') === 'page';
+        return in_array($this->def['type'] ?? 'table', ['page', 'report'], true);
+    }
+
+    /** Informe PDF ("type": "report"): consulta con parámetros y maquetación, ver ReportDefinition. */
+    public function isReport(): bool
+    {
+        return ($this->def['type'] ?? 'table') === 'report';
+    }
+
+    public function report(): ?\Quasar\Reports\ReportDefinition
+    {
+        return $this->report;
     }
 
     /** @return class-string<\Quasar\Controllers\Page>|null */
     public function pageController(): ?string
     {
+        if ($this->isReport()) {
+            return \Quasar\Pages\PdfReportPage::class;
+        }
         return $this->isPage() ? (string) $this->def['controller'] : null;
+    }
+
+    /**
+     * Informes PDF que se ofrecen en la barra del listado ("list": { "reports": ["horas_mes", …] }).
+     * Que existan lo comprueba ModuleRegistry al cargar todos los módulos.
+     * @return list<string>
+     */
+    public function listReports(): array
+    {
+        $names = $this->def['list']['reports'] ?? [];
+        if (!is_array($names) || array_filter($names, static fn ($n) => !is_string($n) || !preg_match('/^[a-z0-9_]+$/', $n))) {
+            throw new \RuntimeException("Módulo '{$this->name}': \"list.reports\" debe ser una lista de nombres de informes (módulos \"type\": \"report\")");
+        }
+        if ($names && $this->isPage()) {
+            throw new \RuntimeException("Módulo '{$this->name}': \"list.reports\" solo se admite en módulos con listado");
+        }
+        return array_values(array_unique($names));
     }
 
     /** Opción libre del JSON del módulo (p. ej. la configuración propia de una página). */
@@ -201,7 +257,7 @@ final class Module
     /** Página que se abre sin iniciar sesión ("public": true). */
     public function isPublic(): bool
     {
-        return $this->isPage() && ($this->def['public'] ?? false) === true;
+        return ($this->def['type'] ?? 'table') === 'page' && ($this->def['public'] ?? false) === true;
     }
 
     public function primaryKey(): string
@@ -248,7 +304,7 @@ final class Module
 
     public function icon(): string
     {
-        return (string) ($this->def['menu']['icon'] ?? 'table-2'); // nombre de icono Lucide
+        return (string) ($this->def['menu']['icon'] ?? ($this->isReport() ? 'file-text' : 'table-2')); // nombre de icono Lucide
     }
 
     public function hooks(Database $db): ?ModuleHooks

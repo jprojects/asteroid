@@ -46,6 +46,15 @@ final class ModuleRegistry
                     }
                 }
             } while ($removed);
+            // "list.reports": cada nombre tiene que ser un informe (si existe el fichero pero no está activo
+            // por "feature" o "requires", simplemente no se ofrece)
+            foreach ($modules as $m) {
+                foreach ($m->listReports() as $report) {
+                    if (isset($modules[$report]) ? !$modules[$report]->isReport() : !is_file($this->dir . "/$report.json")) {
+                        throw new \RuntimeException("Módulo '{$m->name}': \"list.reports\" incluye '$report', que no es un informe (módulo con \"type\": \"report\")");
+                    }
+                }
+            }
             uasort($modules, static fn (Module $a, Module $b) => [$a->menuOrder(), $a->name] <=> [$b->menuOrder(), $b->name]);
             $this->modules = $modules;
         }

@@ -1,10 +1,11 @@
 <?php
 /**
- * Informes con lenguaje natural: petición, resultado como tabla (app.js) e informes guardados.
+ * Informes con lenguaje natural: petición, resultado como tabla o gráfico (app.js) e informes guardados.
  *
  * @var \Quasar\Core\View $this
  * @var \Quasar\Core\Module $module
  * @var bool $canAsk
+ * @var bool $canComment
  * @var bool $canSave
  * @var bool $canExport
  * @var ?\Quasar\Reports\Report $report
@@ -13,6 +14,7 @@
  * @var list<array{id:int|string,title:string,created_at:string}> $recent
  * @var string $askUrl
  * @var ?array $table configuración de la tabla de app.js
+ * @var ?array $chart configuración del gráfico de app.js
  */
 $link = fn ($id) => $this->e($module->url(['id' => $id]));
 ?>
@@ -57,11 +59,52 @@ $link = fn ($id) => $this->e($module->url(['id' => $id]));
             </div>
           <?php endif ?>
         </header>
+        <?php if ($report->comment !== null || $canComment): ?>
+          <div class="qs-report-comment">
+            <div class="qs-report-comment-head">
+              <?= $this->icon('sparkles', 'qs-ai-icon') ?>
+              <strong><?= $this->e($this->t('comment.title')) ?></strong>
+              <?php if ($report->commentAt !== null): ?>
+                <span class="qs-muted"><?= $this->e($this->t('comment.generated', ['date' => date($this->t('format.datetime'), (int) strtotime($report->commentAt))])) ?></span>
+              <?php endif ?>
+              <span class="qs-toolbar-spacer"></span>
+              <?php if ($canComment): ?>
+                <button type="button" class="qs-btn qs-btn-sm" data-report-comment="<?= $this->e($module->url(['a' => 'comment'])) ?>"
+                        data-id="<?= (int) $report->id ?>" data-working="<?= $this->e($this->t('comment.working')) ?>">
+                  <?= $this->icon($report->comment === null ? 'sparkles' : 'refresh-cw') ?>
+                  <?= $this->e($this->t($report->comment === null ? 'comment.button' : 'comment.again')) ?>
+                </button>
+              <?php endif ?>
+            </div>
+            <?php if ($report->comment !== null): ?>
+              <p class="qs-report-comment-summary"><?= $this->e($report->comment['summary']) ?></p>
+              <?php if ($report->comment['points']): ?>
+                <ul><?php foreach ($report->comment['points'] as $point): ?><li><?= $this->e($point) ?></li><?php endforeach ?></ul>
+              <?php endif ?>
+              <?php if ($report->comment['caveats'] !== null): ?>
+                <p class="qs-report-comment-caveats"><?= $this->icon('info') ?> <?= $this->e($report->comment['caveats']) ?></p>
+              <?php endif ?>
+            <?php else: ?>
+              <p class="qs-muted"><?= $this->e($this->t('comment.intro')) ?></p>
+            <?php endif ?>
+          </div>
+        <?php endif ?>
+
         <details class="qs-report-sql">
           <summary><?= $this->e($this->t('sql')) ?></summary>
           <pre><?= $this->e($report->query) ?></pre>
         </details>
 
+        <div class="qs-tabs" role="tablist">
+          <button type="button" role="tab" class="qs-tab" id="qs-report-tab-table" data-tab="table" aria-controls="qs-report-panel-table" aria-selected="true">
+            <?= $this->icon('table') ?> <?= $this->e($this->t('tabs.table')) ?>
+          </button>
+          <button type="button" role="tab" class="qs-tab" id="qs-report-tab-chart" data-tab="chart" aria-controls="qs-report-panel-chart" aria-selected="false" tabindex="-1">
+            <?= $this->icon('chart-column') ?> <?= $this->e($this->t('tabs.chart')) ?>
+          </button>
+        </div>
+
+        <div class="qs-tab-panel" role="tabpanel" id="qs-report-panel-table" aria-labelledby="qs-report-tab-table" data-panel="table">
         <div class="qs-datatable" data-config="<?= $this->json($table) ?>">
           <div class="qs-toolbar">
             <span class="qs-toolbar-spacer"></span>
@@ -110,6 +153,51 @@ $link = fn ($id) => $this->e($module->url(['id' => $id]));
               <?= $this->e($this->t('table.per_page')) ?>
             </label>
           </div>
+        </div>
+        </div>
+
+        <div class="qs-tab-panel" role="tabpanel" id="qs-report-panel-chart" aria-labelledby="qs-report-tab-chart" data-panel="chart" hidden>
+          <?php $numeric = array_filter($chart['columns'], static fn ($c) => $c['numeric']) ?>
+          <?php if (!$numeric): ?>
+            <div class="qs-report-empty">
+              <?= $this->icon('chart-column') ?>
+              <p><?= $this->e($this->t('chart.no_numeric')) ?></p>
+            </div>
+          <?php else: ?>
+            <div class="qs-report-chart" data-chart="<?= $this->json($chart) ?>">
+              <div class="qs-toolbar qs-chart-controls">
+                <label class="qs-chart-control">
+                  <span><?= $this->e($this->t('chart.type')) ?></span>
+                  <select class="qs-input" data-role="type">
+                    <?php foreach (['column', 'bar', 'line', 'pie'] as $type): ?>
+                      <option value="<?= $type ?>"><?= $this->e($this->t('chart.types.' . $type)) ?></option>
+                    <?php endforeach ?>
+                  </select>
+                </label>
+                <label class="qs-chart-control">
+                  <span><?= $this->e($this->t('chart.x')) ?></span>
+                  <select class="qs-input" data-role="x">
+                    <?php foreach ($chart['columns'] as $c): ?>
+                      <option value="<?= $this->e($c['name']) ?>"><?= $this->e($c['label']) ?></option>
+                    <?php endforeach ?>
+                  </select>
+                </label>
+                <fieldset class="qs-chart-series" data-role="series">
+                  <legend><?= $this->e($this->t('chart.series')) ?></legend>
+                  <?php foreach ($numeric as $c): ?>
+                    <label class="qs-chart-check"><input type="checkbox" value="<?= $this->e($c['name']) ?>"> <?= $this->e($c['label']) ?></label>
+                  <?php endforeach ?>
+                </fieldset>
+                <span class="qs-toolbar-spacer"></span>
+                <?php if ($chart['saveUrl'] !== ''): ?>
+                  <button type="button" class="qs-btn" data-role="save" hidden><?= $this->icon('save') ?> <?= $this->e($this->t('chart.save')) ?></button>
+                <?php endif ?>
+                <button type="button" class="qs-btn" data-role="download"><?= $this->icon('image-down') ?> <?= $this->e($this->t('chart.download')) ?></button>
+              </div>
+              <p class="qs-chart-note" data-role="note" hidden></p>
+              <div class="qs-chart-canvas" data-role="canvas"></div>
+            </div>
+          <?php endif ?>
         </div>
       </section>
     <?php endif ?>

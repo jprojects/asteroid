@@ -15,7 +15,7 @@ use Quasar\Core\FieldContext;
  * construir su condición SQL de filtrado. La plantilla solo decide la maquetación
  * (etiqueta, errores, rejilla) alrededor del control.
  *
- * Opciones comunes del JSON: type, label, help, column, required, requiredOnCreate,
+ * Opciones comunes del JSON: type, label, help, column, required, requiredOnCreate, createOnly (solo en las altas),
  * readonly, unique, default, width (full|half|third|quarter|two-thirds), placeholder,
  * autocomplete, virtual.
  *
@@ -206,6 +206,12 @@ abstract class Field
     public function isRequired(bool $isNew): bool
     {
         return !empty($this->def['required']) || ($isNew && !empty($this->def['requiredOnCreate']));
+    }
+
+    /** "createOnly": solo en el formulario de alta (p. ej. «enviar una invitación»); en la edición ni se ve ni se procesa. */
+    public function isCreateOnly(): bool
+    {
+        return !empty($this->def['createOnly']);
     }
 
     public function isUnique(): bool

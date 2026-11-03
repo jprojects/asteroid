@@ -68,6 +68,21 @@ CREATE TABLE IF NOT EXISTS media (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- "Confiar en este dispositivo" de la verificación en dos pasos (solo se guarda el hash del token)
+-- Enlaces para recuperar la contraseña (solo el hash; ver Quasar\Core\PasswordReset)
+CREATE TABLE IF NOT EXISTS password_resets (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id     INT UNSIGNED NOT NULL,
+  token_hash  CHAR(64)     NOT NULL,
+  ip          VARCHAR(45)  NOT NULL DEFAULT '',
+  expires_at  DATETIME     NOT NULL,
+  used_at     DATETIME     NULL,
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_password_resets_token (token_hash),
+  KEY ix_password_resets_user (user_id, created_at),
+  CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS user_trusted_devices (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id     INT UNSIGNED NOT NULL,
@@ -124,6 +139,9 @@ CREATE TABLE IF NOT EXISTS reports (
   columns      TEXT          NOT NULL,          -- JSON: [{name, label, type}]
   sort         TEXT          NULL,              -- JSON: [{column, dir}]
   row_limit    INT UNSIGNED  NULL,
+  chart        TEXT          NULL,              -- JSON: {type, x, series} (gráfico propuesto por la IA o guardado)
+  comment      TEXT          NULL,              -- JSON: {summary, points, caveats} (comentario de la IA sobre el resultado)
+  comment_at   DATETIME      NULL,
   created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   saved_at     DATETIME      NULL,
   PRIMARY KEY (id),

@@ -26,6 +26,38 @@
   "failed": "A valid query could not be created for this request. Try other words or more detail.",
   "run_error": "This report could not be run.",
   "not_allowed": "This report uses data that is no longer allowed in reports.",
+  "tabs": {
+    "table": "Table",
+    "chart": "Chart"
+  },
+  "chart": {
+    "type": "Type",
+    "types": {
+      "column": "Columns",
+      "bar": "Bars",
+      "line": "Lines",
+      "pie": "Pie"
+    },
+    "x": "Categories",
+    "series": "Values",
+    "save": "Save chart",
+    "saved": "Chart saved",
+    "download": "Download image",
+    "empty": "Nothing to draw. Choose at least one value.",
+    "no_numeric": "This report has no numeric columns to draw a chart. Ask, for example, for \"number of clients per country\" or \"activities per month this year\".",
+    "other": "Other",
+    "total": "Total",
+    "truncated": "The chart shows the first {n} rows of {total}."
+  },
+  "comment": {
+    "title": "AI commentary",
+    "button": "Comment on the report",
+    "again": "Comment again",
+    "intro": "The AI can read the result and point out what matters: trends, peaks, concentrations or odd values.",
+    "generated": "Generated on {date} with the data at that time",
+    "working": "The AI is analysing the data…",
+    "failed": "The report could not be commented on. Please try again."
+  },
   "flash": {
     "saved": "Report saved",
     "deleted": "Report deleted"

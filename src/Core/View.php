@@ -18,6 +18,7 @@ final class View
         'circle-help', 'circle-check', 'info', 'triangle-alert', 'circle-alert', 'chevrons-up-down', 'chevron-right',
         'message-circle', 'bell', 'video', 'paperclip', 'download', 'check-check', 'send', 'bell-off', 'at-sign',
         'bold', 'italic', 'underline', 'list', 'list-ordered', 'link', 'quote', 'image', 'remove-formatting',
+        'sparkles', 'eye-off',
     ];
 
     private string $domain = 'common';
@@ -251,11 +252,31 @@ final class View
         return ($_COOKIE['qs_sidebar'] ?? '') === 'collapsed';
     }
 
+    /**
+     * Si un grupo del menú se pinta plegado: los plegados van en la cookie qs_nav (nombres separados por comas), pero
+     * el grupo del módulo abierto se muestra siempre desplegado.
+     *
+     * @param list<Module> $modules los módulos del grupo
+     */
+    public function navGroupClosed(string $group, array $modules): bool
+    {
+        $closed = explode(',', (string) ($_COOKIE['qs_nav'] ?? ''));
+        if (!in_array($group, $closed, true)) {
+            return false;
+        }
+        foreach ($modules as $m) {
+            if ($m->name === $this->currentModule()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Textos de los diálogos y avisos de app.js (Quasar.dialog / Quasar.toast). */
     public function dialogTexts(): array
     {
         $out = [];
-        foreach (['ok', 'cancel', 'close', 'confirmTitle', 'alertTitle', 'errorTitle', 'deleteTitle', 'unsavedTitle', 'unsaved', 'leave', 'stay'] as $key) {
+        foreach (['ok', 'cancel', 'close', 'confirmTitle', 'alertTitle', 'errorTitle', 'deleteTitle', 'unsavedTitle', 'unsaved', 'leave', 'stay', 'showPassword', 'hidePassword', 'capsLock'] as $key) {
             $out[$key] = $this->app->lang->get('dialog.' . $key);
         }
         return $out;
@@ -269,6 +290,12 @@ final class View
     }
 
     /** Color principal del cliente (#rrggbb) o null. */
+    /** Clase del logo: sin la placa blanca si branding.logo_plate es false */
+    public function logoClass(string $base): string
+    {
+        return $this->app->branding()['logo_plate'] ? $base : $base . ' is-bare';
+    }
+
     public function brandColor(): ?string
     {
         return $this->app->branding()['color'];

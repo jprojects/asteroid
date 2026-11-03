@@ -12,10 +12,12 @@
     "password": "Contrasenya",
     "language": "Idioma",
     "submit": "Entra",
+    "forgot": "Has oblidat la contrasenya?",
     "invalid": "Usuari o contrasenya incorrectes",
     "invalid_email": "Correu electrònic o contrasenya incorrectes",
     "invalid_both": "Usuari, correu electrònic o contrasenya incorrectes",
-    "locked": "Compte bloquejat temporalment per massa intents fallits. Torna-ho a provar més tard.",
+    "locked": "Compte bloquejat temporalment per massa intents fallits. Torna-ho a provar d'aquí a {minutes} min.",
+    "locked_reset": "Si no recordes la contrasenya, recupera-la.",
     "inactive": "Aquest usuari està desactivat",
     "logged_out": "Has tancat la sessió"
   },
@@ -222,6 +224,42 @@
     "mail_expires": "El codi caduca d'aquí a {minutes} minuts i només es pot fer servir una vegada.",
     "mail_warning": "Si no has estat tu (intent des de la IP {ip}), canvia la contrasenya com més aviat millor: algú la coneix."
   },
+  "reset": {
+    "title": "Recupera la contrasenya",
+    "intro_username": "Escriu el teu usuari i t'enviarem un enllaç al teu correu electrònic per triar una contrasenya nova.",
+    "intro_email": "Escriu el teu correu electrònic i t'hi enviarem un enllaç per triar una contrasenya nova.",
+    "intro_both": "Escriu el teu usuari o correu electrònic i t'enviarem un enllaç per triar una contrasenya nova.",
+    "send": "Envia l'enllaç",
+    "sent": "Si hi ha un compte actiu amb aquestes dades, t'hem enviat un correu amb un enllaç per triar una contrasenya nova. Revisa també la carpeta de correu brossa.",
+    "back": "Torna a l'inici de sessió",
+    "invalid_link": "L'enllaç no és vàlid o ha caducat. Demana'n un de nou.",
+    "new_title": "Contrasenya nova",
+    "new_intro": "Hola {name}, tria una contrasenya nova d'almenys {min} caràcters.",
+    "password": "Contrasenya nova",
+    "password_confirm": "Repeteix la contrasenya",
+    "save": "Desa la contrasenya",
+    "mismatch": "Les contrasenyes no coincideixen.",
+    "done": "Contrasenya canviada. Ja pots iniciar la sessió.",
+    "mail_subject": "Recupera la contrasenya de {app}",
+    "mail_hello": "Hola {name}:",
+    "mail_body": "Hem rebut una petició per canviar la contrasenya del teu compte. Fes clic al botó per triar-ne una de nova:",
+    "mail_button": "Tria una contrasenya nova",
+    "mail_expires": "L'enllaç caduca d'aquí a {minutes} minuts i només es pot fer servir una vegada.",
+    "mail_link": "Si el botó no funciona, copia aquest enllaç al navegador:",
+    "mail_warning": "Si no l'has demanat tu (petició des de la IP {ip}), ignora aquest correu: la teva contrasenya no canviarà.",
+    "changed_subject": "La teva contrasenya de {app} ha canviat",
+    "changed_preheader": "Avís de seguretat",
+    "changed_body": "La contrasenya del teu compte s'acaba de canviar amb un enllaç de recuperació. Per seguretat, els dispositius de confiança s'han de tornar a verificar.",
+    "changed_warning": "Si no has estat tu (canvi des de la IP {ip}), avisa un administrador immediatament.",
+    "mail_expires_days": "L'enllaç caduca d'aquí a {days} dies i només es pot fer servir una vegada.",
+    "admin_body": "{by} t'envia aquest enllaç perquè triïs una contrasenya nova per al teu compte:",
+    "invite_subject": "T'han donat accés a {app}",
+    "invite_body": "{by} t'ha creat un compte a {app}. El teu usuari és {username}. Tria la teva contrasenya per entrar:",
+    "invite_button": "Tria la contrasenya",
+    "invite_sent": "Invitació enviada a {email}",
+    "link_sent": "Enllaç enviat a {email}",
+    "link_failed": "No s'ha pogut enviar el correu. Revisa la configuració de correu."
+  },
   "profile": {
     "link": "El meu perfil"
   },
@@ -236,10 +274,14 @@
     "unsavedTitle": "Canvis sense desar",
     "unsaved": "Tens canvis sense desar. Si surts ara, es perdran.",
     "leave": "Surt sense desar",
-    "stay": "Continua editant"
+    "stay": "Continua editant",
+    "showPassword": "Mostra la contrasenya",
+    "hidePassword": "Amaga la contrasenya",
+    "capsLock": "Tens les majúscules activades (Bloq Maj)"
   },
   "nav": {
-    "toggle": "Mostra o amaga el menú"
+    "toggle": "Mostra o amaga el menú",
+    "group": "Plega o desplega el grup"
   },
   "tags": {
     "placeholder": "Escriu i prem Enter…",
@@ -274,6 +316,20 @@
     "link_prompt": "https://… i prem Retorn",
     "image": "Imatge",
     "clear": "Treu el format"
+  },
+  "assist": {
+    "button": "Ajuda a redactar",
+    "improve": "Millora la redacció",
+    "formal": "Fes-ho més formal",
+    "shorter": "Fes-ho més breu",
+    "fix": "Corregeix l'ortografia",
+    "translate_ca": "Tradueix al català",
+    "translate_es": "Tradueix al castellà",
+    "translate_en": "Tradueix a l'anglès",
+    "title": "Proposta de la IA",
+    "replace": "Substitueix el text",
+    "empty": "Escriu primer el text que vols millorar.",
+    "working": "La IA està redactant…"
   },
   "notifications": {
     "title": "Avisos",
@@ -328,5 +384,85 @@
     "no_attachments": "Aquesta conversa no admet fitxers",
     "attachment_used": "El fitxer ja està en un altre missatge",
     "meet_failed": "No s'ha pogut crear la videotrucada. Revisa la connexió amb Google a Integracions."
+  },
+  "report": {
+    "menu": "Informes",
+    "generate": "Genera el PDF",
+    "total": "Total",
+    "subtotal": "Total {group}",
+    "empty": "No hi ha dades amb aquests filtres",
+    "run_error": "No s'ha pogut generar l'informe. Revisa'n la configuració o avisa l'administrador.",
+    "too_many": "L'informe supera les {max} files. Acota'l amb els filtres."
+  },
+  "cal": {
+    "new": "Nou",
+    "today": "Avui",
+    "view": "Vista",
+    "views": {
+      "month": "Mes",
+      "week": "Setmana",
+      "day": "Dia"
+    },
+    "prev_month": "Mes anterior",
+    "next_month": "Mes següent",
+    "prev_week": "Setmana anterior",
+    "next_week": "Setmana següent",
+    "prev_day": "Dia anterior",
+    "next_day": "Dia següent",
+    "add_on": "Nou el {date}",
+    "more": "+{n} més",
+    "empty": "No hi ha res en aquest període",
+    "no_time": "Sense hora",
+    "range": "{from} – {to} {year}",
+    "move_denied": "No pots canviar la data",
+    "move_missing": "Aquest registre ja no existeix o no el pots veure",
+    "move_invalid": "Data o durada no vàlides",
+    "move_error": "No s'ha pogut canviar: {error}",
+    "months": [
+      "gener",
+      "febrer",
+      "març",
+      "abril",
+      "maig",
+      "juny",
+      "juliol",
+      "agost",
+      "setembre",
+      "octubre",
+      "novembre",
+      "desembre"
+    ],
+    "months_short": [
+      "gen.",
+      "febr.",
+      "març",
+      "abr.",
+      "maig",
+      "juny",
+      "jul.",
+      "ag.",
+      "set.",
+      "oct.",
+      "nov.",
+      "des."
+    ],
+    "weekdays": [
+      "dl.",
+      "dt.",
+      "dc.",
+      "dj.",
+      "dv.",
+      "ds.",
+      "dg."
+    ],
+    "weekdays_long": [
+      "Dilluns",
+      "Dimarts",
+      "Dimecres",
+      "Dijous",
+      "Divendres",
+      "Dissabte",
+      "Diumenge"
+    ]
   }
 }

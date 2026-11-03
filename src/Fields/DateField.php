@@ -8,6 +8,8 @@ use DateTimeImmutable;
 /**
  * Fecha (columna DATE). Formato de visualización en lang common: format.date
  * Opciones: min, max (Y-m-d), "default": "today" (la fecha del día en las altas; en datetime, "now").
+ * Otros valores relativos de "default" (útiles en los filtros de los informes): first_of_month,
+ * last_of_month, first_of_last_month, last_of_last_month, first_of_year, last_of_year.
  */
 class DateField extends Field
 {
@@ -23,10 +25,25 @@ class DateField extends Field
         return 'between';
     }
 
+    private const RELATIVE = [
+        'first_of_month' => 'first day of this month',
+        'last_of_month' => 'last day of this month',
+        'first_of_last_month' => 'first day of last month',
+        'last_of_last_month' => 'last day of last month',
+        'first_of_year' => 'first day of january this year',
+        'last_of_year' => 'last day of december this year',
+    ];
+
     public function defaultValue(): mixed
     {
         $default = parent::defaultValue();
-        return $default === 'today' || $default === 'now' ? date($this->dbFormat) : $default;
+        if ($default === 'today' || $default === 'now') {
+            return date($this->dbFormat);
+        }
+        if (is_string($default) && isset(self::RELATIVE[$default])) {
+            return (new DateTimeImmutable('today'))->modify(self::RELATIVE[$default])->format($this->dbFormat);
+        }
+        return $default;
     }
 
     public function render(mixed $value, array $opts = []): string

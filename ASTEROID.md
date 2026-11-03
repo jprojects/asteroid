@@ -1,7 +1,10 @@
 # Asteroid (sobre Quasar)
 
-Gestor de incidencias de AFI, migrado de Franky CMS a Quasar 0.7.0. El `README.md` es el del núcleo (Quasar) y se
-sustituye con cada actualización; lo propio de Asteroid está aquí.
+Gestor de incidencias de AFI, migrado de Franky CMS a Quasar (núcleo actual: 0.16.0, ver `VERSION`). El `README.md`
+es el del núcleo (Quasar) y se sustituye con cada actualización; lo propio de Asteroid está aquí.
+
+**Cambios en el núcleo**: se hacen en el repositorio de Quasar y se publica una versión; Asteroid se actualiza desde
+ella. Si se cambia un fichero del núcleo solo aquí, la siguiente actualización lo pisa.
 
 ## Qué es de Asteroid (no lo toca una actualización de Quasar)
 

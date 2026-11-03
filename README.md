@@ -24,6 +24,12 @@ php -S localhost:8000 -t public
 
 Requiere las extensiones `pdo_mysql`, `mbstring` y `json`.
 
+**Desde Cosmo** (0.3.0+), en hostings sin SSH: *Servidores → Nueva instalación* sube el paquete por FTP y llama a
+`bin/cosmo-setup.php` (la misma lógica que `bin/install.php`, en `Quasar\Core\Installer`): escribe
+`config/config.local.php`, crea las tablas y el administrador y, sin datos de ejemplo, quita los módulos de ejemplo
+(`clients`, `countries`, `activities`). Si la base de datos ya existe (creada en el panel del hosting), no intenta
+crearla. Ver el README de Cosmo.
+
 ## Estructura
 
 ```
@@ -39,7 +45,7 @@ src/Pages/         controladores de páginas personalizadas (calendario incluido
 src/Mail/          correo: mensaje MIME, cliente SMTP, fachada Mail
 src/Remote/        API remota para Cosmo: copias, actualizaciones, log, mantenimiento
 src/Ai/            filtrar con lenguaje natural: proveedor de IA, consumo y límites
-src/Reports/       informes con lenguaje natural: esquema, validación y ejecución de solo lectura
+src/Reports/       informes con lenguaje natural e informes PDF: definición, validación y ejecución de solo lectura
 src/Google/        conexión con Google (OAuth) y salas de Google Meet
 storage/logs/      ficheros de log
 storage/backups/   copias de seguridad (API remota)
@@ -117,11 +123,12 @@ menú, en la matriz de permisos y con su tabla y formulario funcionando.
 | `repeater` | `fields` (subcampos), `layout` (`table`\|`block`), `min`, `max`, `addLabel`, `summary` | `like` sobre el JSON |
 | `media`    | `multiple`, `maxFiles`, `maxSize` (`"5M"`), `accept` (`["image/*", ".pdf"]`) | —            |
 | `duration` | `min`, `max` (minutos), `bare` (`hours`\|`minutes`), `decimal`. Se escribe `1:30`, `1h30`, `45m` o `1,5`; se guarda en minutos (INT) | `between` |
-| `richtext` | `rows`, `images`, `maxSize`, `listLength`. Texto con formato (HTML limpio) con editor propio | `like` (sobre el HTML) |
+| `richtext` | `rows`, `images`, `maxSize`, `listLength`, `assist`. Texto con formato (HTML limpio) con editor propio | `like` (sobre el HTML) |
 
 Opciones comunes: `label`, `help`, `column` (si la columna de BD tiene otro nombre), `required`,
 `requiredOnCreate`, `readonly`, `unique`, `default`, `placeholder`, `autocomplete`,
-`width` (`full`, `two-thirds`, `half`, `third`, `quarter`), `virtual` (no existe en la tabla),
+`width` (`full`, `two-thirds`, `half`, `third`, `quarter`), `virtual` (no existe en la tabla), `createOnly` (solo en
+el formulario de alta: en la edición ni se ve ni se procesa),
 `access` y `editAccess` (ver "Acceso por grupos").
 
 ### Repeater
@@ -181,6 +188,22 @@ validación se muestran en la fila y el subcampo exactos.
   http/https/mailto/internos e imágenes solo de `index.php?r=media`. Se reconstruye nodo a nodo: `script`, `style`,
   atributos `on…`, `javascript:` o imágenes externas nunca llegan a la BD.
 - En la tabla, el detalle desplegable y las exportaciones se usa el texto sin formato.
+
+### Ayuda a redactar con IA (assist)
+
+```jsonc
+"notes": { "type": "textarea", "rows": 5, "assist": true }      // también en richtext
+```
+
+Bajo el campo aparece *Ayuda a redactar* con: mejorar la redacción, más formal, más breve, corregir la ortografía y
+traducir al catalán, castellano o inglés. La IA (`ai`, el modelo por defecto) devuelve una propuesta que se ve en una
+ventana; el texto solo se sustituye si el usuario lo acepta, y se guarda con el botón de siempre (con las validaciones
+del campo, p. ej. `maxlength`). En `richtext` se conserva el formato y el resultado pasa por `HtmlSanitizer`.
+
+- Solo aparece si la IA está activada y el usuario puede editar el campo; el servidor (`index.php?r=write`) comprueba
+  de nuevo el permiso de crear o editar del módulo y el acceso al campo (`editAccess`).
+- **Se envía el texto del campo a la IA.** Cuenta para el límite mensual y queda en *Consumo de IA*.
+- No se admite en los subcampos de un repeater. `"assist"` en otro tipo de campo da error al cargar el módulo.
 
 ### Duración (duration)
 
@@ -437,7 +460,10 @@ actualización (`core.json`) nunca sobrescribe:
 | Un botón que abre otra pantalla o URL | El mismo botón con `url` | JSON |
 | Filtrar un listado escribiendo en lenguaje natural | `"list": { "ai": … }` + `ai` en la config | JSON + `config.local.php` |
 | Informes a medida pidiéndolos en lenguaje natural | `reports` en la config (tablas permitidas) + permisos | `config.local.php` |
-| Un informe fijo (siempre la misma consulta) | Una vista de MySQL + un módulo con `"actions": ["view", "export"]` | BD + `modules/*.json` |
+| Crear una tabla con su listado y formulario desde una descripción o un Excel/CSV | *Administración → Constructor* (IA) | — |
+| Un informe PDF con filtros, grupos y totales, lanzado desde los listados | Módulo `"type": "report"` + `"list": { "reports": [...] }` | `modules/*.json`, `lang/*/` |
+| Un informe fijo en pantalla (siempre la misma consulta) | Una vista de MySQL + un módulo con `"actions": ["view", "export"]` | BD + `modules/*.json` |
+| Otra página de inicio (el TPV, un panel…) | `'home' => 'módulo'` | `config.local.php` |
 | Ocultar el botón Excel o PDF | `"list": { "export": { "formats": ["pdf"] } }` o `"export": false` | JSON |
 | Ocultar Nuevo, Eliminar o Exportar a algunos usuarios | Matriz de permisos (por usuario o grupo) | Administración |
 | Un campo o botón solo para algunos grupos | `access` / `editAccess` | JSON |
@@ -604,22 +630,46 @@ matriz de permisos) y `$this->user()` puede no existir. **La propia página deci
 un token aleatorio en la URL que se guarda como hash en la BD. Los POST siguen llevando CSRF (`requirePost()`).
 
 ```json
-{ "type": "page", "controller": "Quasar\\Pages\\SurveyPage", "public": true, "menu": { "visible": false } }
+{ "type": "page", "controller": "Quasar\\Pages\\EncuestaPage", "public": true, "menu": { "visible": false } }
 ```
+
 
 ### Calendario (incluido)
 
-`Quasar\Pages\CalendarPage` muestra en una vista mensual los registros de cualquier módulo con un campo de
-fecha. Se configura en el JSON de la página:
+`Quasar\Pages\CalendarPage` muestra los registros de cualquier módulo con un campo de fecha: vista de **mes** y, si la
+fecha es `datetime`, de **semana** y de **día** con una rejilla de horas. Se configura en el JSON de la página:
 
 ```jsonc
-"calendar": { "source": "activities", "date": "starts_at", "title": "title", "color": "type" }
+"calendar": {
+  "source": "activities",          // módulo de origen
+  "date": "starts_at",             // campo date o datetime
+  "end": "ends_at",                // opcional: campo datetime de fin (la duración del evento)
+  "title": "title",                // texto del evento (puede ser un campo con "sql": nombre del cliente + notas…)
+  "color": "type",                 // opcional: un select (sus "colors" o la paleta) o un campo que guarda "#rrggbb"
+  "views": ["week", "day", "month"],  // vistas disponibles; la primera es la inicial (por defecto solo "month")
+  "hours": [8, 20],                // horas visibles en semana y día
+  "slot": 15,                      // minutos de cada franja: 5, 10, 15, 20, 30 o 60 (por defecto 30)
+  "days": [1, 2, 3, 4, 5, 6],      // días visibles en la semana: 1 = lunes … 7 = domingo (por defecto todos)
+  "duration": 60                   // minutos de un evento sin fin y de las altas desde una franja
+}
 ```
 
-Cada registro enlaza a su ficha; el `+` de cada día abre un alta con esa fecha ya puesta. Solo muestra datos
-si el usuario puede ver el módulo de origen. El ejemplo usa el módulo **Activitats** (`modules/activities.json`).
-Solo muestra los registros que el usuario ve en el módulo de origen (`scope`). Se puede crear otro calendario con
-otro nombre de módulo y la misma clase (p. ej. `modules/agenda.json` sobre incidencias por fecha límite).
+- Cada evento enlaza a su ficha. En el mes, el `+` de cada día abre un alta con esa fecha y el número del día lleva a su
+  vista de día; en semana y día, **pulsar una franja vacía** abre el alta con esa hora (y el fin, si hay `end`).
+- En semana y día, los eventos **se arrastran** (otra hora u otro día) y **se estiran** por el borde de abajo (otra
+  duración), ajustados a las franjas. Los que se solapan se reparten la columna; uno que empieza o acaba fuera de las
+  horas visibles se ve recortado (borde discontinuo) y no se estira. Uno de `datetime` a las 00:00 y sin fin va en la
+  fila «Sense hora».
+- Mover o estirar necesita el permiso **Editar** del módulo de origen y pasa por las mismas reglas que guardar la
+  ficha: `scope`, `readonly`/`editAccess` de los campos de fecha, validación y hooks (`beforeSave` puede rechazarlo:
+  el evento vuelve a su sitio y se muestra el motivo). Es `POST index.php?r=page&m={calendario}&a=move` con `id`,
+  `start` y `end` (`Y-m-d\TH:i`).
+- Solo muestra los registros que el usuario ve en el módulo de origen (`scope`). Se puede crear otro calendario con
+  otro nombre de módulo y la misma clase (p. ej. `modules/agenda.json` sobre las citas de un salón).
+- Textos: `cal.*` de `common.json` (meses, días, vistas…). Cada calendario puede redefinir los suyos en su idioma, p. ej.
+  `lang/ca/agenda.json`: `"cal": { "new": "Nova cita", "empty": "No hi ha cites" }`.
+- Un error en `calendar` (vista desconocida, `end` que no es datetime, `slot` no admitido…) da un mensaje claro al abrir
+  la página.
 
 Un módulo con `"requires": ["activities"]` solo existe si existen esos módulos (el calendario de ejemplo desaparece
 del menú en una instalación sin `activities`).
@@ -635,7 +685,8 @@ página; al guardar se cierra, avisa y recarga las tablas de la página. Con `co
 módulo el alta se rellena con él (en una incidencia, «Imputar horas» ya lleva la incidencia). Cualquier alta se puede
 abrir así con `index.php?r=edit&m=…&modal=1`.
 
-En las fechas, `"default": "today"` (y `"now"` en `datetime`) pone la del día en las altas.
+En las fechas, `"default": "today"` (y `"now"` en `datetime`) pone la del día en las altas. También se admiten
+`first_of_month`, `last_of_month`, `first_of_last_month`, `last_of_last_month`, `first_of_year` y `last_of_year`.
 
 ### Valores iniciales en las altas
 
@@ -717,6 +768,20 @@ El resultado se ve como una tabla de Quasar (paginación, orden por columnas, **
 explicación de lo que se ha entendido y la consulta SQL desplegable. Los informes útiles se **guardan con un nombre**
 y se vuelven a abrir sin llamar a la IA (sin coste); las fechas relativas («este año») se recalculan cada vez.
 
+**Gráfico.** Cada informe tiene, junto a la pestaña *Tabla*, una pestaña *Gráfico* (SVG propio, sin librerías) con las
+primeras 500 filas: columnas, barras horizontales, líneas o circular. La IA propone el gráfico al crear el informe
+(«actividades por mes» → líneas; «clientes por país» → columnas); si no propone ninguno, se elige uno a partir de las
+columnas. El usuario cambia el tipo, la columna de categorías y los valores (columnas numéricas, hasta 8; el circular,
+una), lo guarda con el informe (permiso *Guardar*, autor o administrador; columna `reports.chart`) y lo descarga como
+imagen PNG. Colores en `--chart-1`…`--chart-8` de `style.css`, comprobados para daltonismo en claro y oscuro.
+
+**Comentario de la IA.** El botón *Comentar el informe* (permiso *Pedir a la IA*) envía a la IA el resultado actual
+—totales de las columnas numéricas sobre todas las filas y las primeras 200 filas— y muestra un resumen con las
+observaciones más destacables (tendencias, máximos, concentraciones, valores raros) y sus límites. Se guarda con el
+informe (`reports.comment`, con la fecha) y lo ven todos los que ven el informe; *Volver a comentar* lo rehace con los
+datos del día. **A diferencia de la consulta, aquí sí se envían datos** a la IA: desactívalo con `'comment' => false`
+en `reports` si el cliente no lo quiere.
+
 ```php
 // config.local.php (además de 'ai' con la clave)
 'reports' => [
@@ -739,7 +804,7 @@ etiqueta de cada columna, las opciones de los select, sí/no, contenido de las c
 con solo esas columnas y pon la vista en `tables`.
 
 **Permisos** (matriz de permisos, por usuario o grupo): *Ver* (abrir los informes guardados), *Pedir a la IA*,
-*Guardar* (guardar con nombre y borrar los propios) y *Exportar*. Los informes sin nombre solo los ve quien los pidió
+*Guardar* (guardar con nombre, guardar el gráfico y borrar los propios) y *Exportar*. Los informes sin nombre solo los ve quien los pidió
 (y los administradores); los guardados, todos los que tienen acceso a la sección.
 
 **Seguridad.** Un informe lee lo que permita `tables`, **sin las reglas `access` de los módulos**: da el permiso solo
@@ -747,7 +812,7 @@ a quien pueda ver todos esos datos. La consulta de la IA nunca se ejecuta sin pa
 
 - **Validación** (`Quasar\Reports\SqlGuard`): una sola sentencia `SELECT`/`WITH`; solo tablas de `tables`; sin
   comentarios, variables, `INTO`, `SLEEP`, `LOAD_FILE`, otras bases de datos ni esquemas del sistema. `users`,
-  `user_trusted_devices` y `ai_cache` nunca se pueden consultar.
+  `user_trusted_devices`, `ai_cache` y `password_resets` nunca se pueden consultar.
 - **Ejecución de solo lectura** (`ReportRunner`): transacción `READ ONLY`, tiempo máximo (`timeout`) y filas máximas
   (`max_rows`). La paginación y el orden los pone Quasar envolviendo la consulta.
 - **Usuario de MySQL de solo lectura** (`reports.db`, recomendado): aunque todo lo anterior fallara, la BD no
@@ -759,6 +824,142 @@ a quien pueda ver todos esos datos. La consulta de la IA nunca se ejecuta sin pa
 
 Si la consulta generada no pasa la validación o da error al ejecutarse, se le devuelve a la IA con el error para que
 la corrija (una vez). Orientativo con Sonnet 5.5: 3–6 segundos y menos de un céntimo por informe nuevo.
+
+## Informes PDF
+
+Documentos PDF propios de cada instalación (resumen de horas del mes, actividades por cliente, pedidos de un
+proveedor…) con **sus propios filtros**, agrupaciones con subtotal y totales. Cada informe es un módulo
+`"type": "report"`: un JSON del proyecto, como los módulos, que las actualizaciones no tocan. No hace falta PHP.
+
+**Dónde se lanzan.** En la barra de los listados que se quiera, junto a Excel y PDF, aparece el desplegable
+*Informes*; un mismo informe puede estar en varios listados. Si tiene filtros, se piden en una ventana; el PDF se abre en
+otra pestaña. También sale en el menú (salvo `"menu": { "visible": false }`) con su página de filtros. Lo que esté
+filtrado en el listado no cuenta: el informe solo usa sus filtros.
+
+```jsonc
+// modules/clients.json y modules/activities.json
+"list": { "reports": ["activities_by_client"] }
+```
+
+```jsonc
+// modules/activities_by_client.json (el ejemplo de la demo)
+{
+  "type": "report",
+  "menu": { "group": "main", "order": 45, "icon": "file-text" },
+  "params": {
+    "from": { "type": "date", "required": true, "default": "first_of_month", "width": "half" },
+    "to": { "type": "date", "required": true, "default": "last_of_month", "width": "half" },
+    "country": { "type": "select", "source": { "table": "countries", "value": "id", "label": "name", "order": "name" } },
+    "type": { "type": "select", "options": { "call": "types.call", "meeting": "types.meeting" } }
+  },
+  "query": "SELECT c.name AS client, a.starts_at, a.title, a.type, a.done FROM activities a JOIN clients c ON c.id = a.client_id WHERE DATE(a.starts_at) BETWEEN :from AND :to AND (:country IS NULL OR c.country_id = :country) AND (:type IS NULL OR a.type = :type) ORDER BY c.name, a.starts_at",
+  "values": {
+    "clients": "SELECT COUNT(DISTINCT client_id) FROM activities WHERE DATE(starts_at) BETWEEN :from AND :to"
+  },
+  "pdf": {
+    "subtitle": "pdf.subtitle",                       // "Del {from} al {to}" en lang/*/activities_by_client.json
+    "info": [ { "label": "fields.country", "value": "{country}" } ],
+    "groupBy": { "field": "client" },
+    "columns": [
+      { "field": "starts_at", "label": "col.date", "width": 18, "format": "datetime" },
+      { "field": "title", "label": "col.title", "width": 50, "wrap": true, "total": "count" },
+      { "field": "type", "label": "col.type", "width": 14, "options": { "call": "types.call", "meeting": "types.meeting" } },
+      { "field": "done", "label": "col.done", "width": 10, "format": "yesno", "align": "center", "total": "count" }
+    ],
+    "summary": [ { "label": "summary.clients", "value": "{clients}" }, { "label": "summary.done", "value": "{total.done}" } ]
+  }
+}
+```
+
+**Filtros (`params`).** Campos como los de un formulario (`date`, `select` con `options` o `source`, `number`, `text`,
+`checkbox`…), con `required`, `default`, `width`, `help` y `access`. Las etiquetas son `fields.{nombre}` del fichero de
+idioma del informe. Se validan como en una ficha (un `select` solo admite sus opciones; con `"source": {"module": …}`,
+solo los registros que el usuario ve en ese módulo). No se admiten select múltiples, etiquetas, repeater ni media. Un
+filtro con `access` que el usuario no ve vale siempre su `default`.
+
+**Consulta (`query`).** Una sola `SELECT` (o `WITH`). Los filtros se escriben `:nombre` y se pasan a MySQL como
+parámetros de una consulta preparada: nunca se pegan en el texto del SQL. Un filtro sin valor es `NULL`; para que
+sea opcional: `(:country IS NULL OR c.country_id = :country)`. `:user_id` es siempre el usuario conectado, para
+informes como «mis horas». Las columnas del resultado se usan por su nombre (pon alias). Las filas salen en el orden
+del `ORDER BY`; para agrupar, ordena primero por el campo del grupo. `values` son consultas de un solo valor que se
+pueden usar en los textos (`{clients}`).
+
+**Maquetación (`pdf`).**
+
+| Clave | |
+|---|---|
+| `columns` | `field` (columna del resultado), `label`, `width` (ancho **relativo**: la tabla ocupa el ancho de la página), `format`, `align` (`left`, `center`, `right`; por defecto, a la derecha los números), `total` (`sum`, `avg`, `min`, `max`, `count`), `wrap` (texto en varias líneas; si no, se recorta con «…»), `options` (`{"valor": "texto"}`: el texto de un valor codificado) |
+| `groupBy` | `"client"` o `{ "field", "label": "Client: {client}", "subtotal": true, "newPage": false }`: fila de grupo, subtotal de cada grupo y, con `newPage`, una página por grupo |
+| `info` | Bloque «etiqueta: valor» en dos columnas bajo el título (solo en la primera página) |
+| `subtitle` | Línea bajo el título en **todas** las páginas (`\n` para varias) |
+| `summary` | Bloque «etiqueta: valor» al final, tras el total |
+| `totals` | `false` para no pintar la fila de total general (los subtotales siguen) |
+| `orientation`, `fontSize` | `portrait` (por defecto) o `landscape`; tamaño de letra de 6 a 12 (8 por defecto) |
+| `empty`, `totalLabel` | Textos propios para «sin datos» y la fila del total |
+
+Formatos (`format` y `{campo\|formato}` en los textos): `date`, `datetime`, `int`, `number` (2 decimales),
+`number:3`, `money` (` €`), `percent` (` %`), `yesno` o un patrón de `sprintf` (`%05d`). Los números usan los
+separadores del idioma.
+
+**Textos.** `label`, `subtitle`, `info`, `summary` y las etiquetas de `options` son claves del fichero de idioma
+del informe (`lang/{idioma}/{informe}.json`, con `common` de respaldo); si la clave no existe se muestra el texto
+tal cual. Los marcadores `{nombre}` se sustituyen por (en este orden) `total.columna` (los totales generales), un
+filtro (con su texto: la etiqueta del select, la fecha con el formato del idioma), un valor de `values`, `today`,
+`now`, `user`, `company` o una columna de la primera fila (en la etiqueta de un grupo, de la primera fila del
+grupo). `{from|date}` aplica un formato. Un par de `info` o `summary` que queda vacío (un filtro opcional sin
+elegir) no se muestra; un marcador desconocido se ve tal cual, para detectarlo al revisar el informe.
+
+**Total `count`.** Cuenta los valores no vacíos (0 y «no» no cuentan): en una columna sí/no cuenta los «sí»; en
+una de texto, las filas.
+
+**Abrirlo desde otra parte.** `index.php?r=page&m={informe}` muestra los filtros;
+`index.php?r=page&m={informe}&a=pdf&p[from]=2026-10-01&p[client]={id}` genera el PDF directamente (los filtros que
+falten toman su `default`). Así se puede poner, por ejemplo, un botón en la fila o la ficha (`rowActions`,
+`form.buttons` con `url`) que imprima ese registro.
+
+**Permisos y seguridad.**
+
+- Cada informe tiene el permiso *Ver* en la matriz de permisos (por usuario o grupo); sin él no sale en el menú ni en
+  los listados, y el servidor lo deniega también si se abre la URL.
+- Como los Informes IA, un informe ve lo que permita su consulta, **no** el `scope` ni las reglas `access` de los
+  módulos: limita el permiso a quien pueda ver esos datos o filtra en el SQL (`:user_id`).
+- Se ejecuta en una transacción de solo lectura con el tiempo máximo y las filas máximas de `reports` (`timeout`,
+  15 s; `max_rows`, 10.000: si las supera, se pide acotar los filtros) y, si está configurado, con el usuario de
+  MySQL de solo lectura de `reports.db`. No necesita `reports.enabled` ni la IA.
+- Un error en el JSON (un `:filtro` que no está en `params`, un formato o total desconocido, más de una sentencia…)
+  falla al cargar el módulo. Una columna de `pdf` que no está en el resultado da un error claro al generar el PDF.
+
+## Constructor de módulos (IA)
+
+*Administración → Constructor*, **solo para administradores** (y con la IA activada). Se describe lo que se quiere
+gestionar («proyectos con cliente, responsable, fechas, presupuesto y estado»), se sube un **Excel (.xlsx) o CSV**, o
+ambas cosas, y la IA propone el módulo completo: tabla, campos con su tipo y etiquetas en catalán, castellano e
+inglés, opciones de los select con colores, relaciones con tablas existentes (`source`), columnas del listado,
+filtros, búsqueda, orden y secciones del formulario.
+
+**Nada se crea sin revisar.** La propuesta se ve como una tabla de campos con el `CREATE TABLE` que se ejecutará, y se
+puede corregir pidiendo cambios a la IA («añade un campo teléfono») o editando el JSON a mano. Al confirmar:
+
+1. Se vuelve a validar todo (nombres, palabras reservadas, que no exista ya la tabla, el módulo ni sus textos, tipos,
+   opciones, relaciones) y se construye el módulo en memoria como lo cargará Quasar.
+2. `CREATE TABLE` generado por Quasar —**la IA nunca escribe SQL**— con `id`, `created_at`, índices, claves foráneas
+   de las relaciones y el `COMMENT` de cada columna (que luego aprovechan los informes).
+3. `lang/{ca,es,en}/{nombre}.json` y, el último, `modules/{nombre}.json`. Si algo falla, se borra la tabla y los
+   ficheros escritos.
+4. Si se subió un fichero, se importan sus filas (hasta 50.000): números en formato español o inglés, fechas
+   `dd/mm/aaaa` o de Excel, sí/no, opciones por su valor o su etiqueta y relaciones por la etiqueta de la otra tabla.
+   Los valores que no se reconocen se dejan vacíos y se avisa de cuántos hay en cada campo.
+
+Del Excel se lee la primera hoja; la cabecera es la primera fila con la mayoría de columnas rellenas (se saltan los
+títulos, como los de las exportaciones de Quasar). CSV con `;`, `,`, tabulador o `|`, en UTF-8 o Windows-1252.
+
+- El servidor web necesita **permiso de escritura** en `modules/` y `lang/{ca,es,en}/`; si no lo tiene, la página lo
+  avisa y no deja crear. El fichero subido espera en `storage/builder/` hasta crear o descartar (un día como mucho).
+- El módulo creado es un módulo normal, propio de la instalación (Cosmo no lo toca): se puede seguir editando por FTP
+  y se le dan permisos en la matriz como a cualquier otro. Para usarlo en *Informes*, añade su tabla a
+  `reports.tables`.
+- No crea campos `media`, `repeater`, `hooks` ni acciones propias: eso se añade después a mano.
+- Configuración en `builder` (modelo, `max_tokens`, `timeout`). Cada propuesta y cada cambio cuentan para el límite de la IA.
 
 ## Conversación en la ficha (chat)
 
@@ -883,11 +1084,13 @@ En `config.php` (o mejor en `config.local.php` de cada instalación):
     'logo_pdf' => null,                     // PNG/JPG para los PDF si el logo es SVG/WEBP
     'color' => '#c8102e',                   // color principal: botones, enlaces, menú activo y cabeceras de PDF
     'company' => 'ACME Corp, S.L.',         // nombre en exportaciones (por defecto app_name)
+    'logo_plate' => true,                   // false: sin la placa blanca detrás del logo (logos transparentes)
 ],
 ```
 
 El logo aparece en la barra lateral, en el login, como favicon y en la cabecera de los PDF (y el nombre de la
-empresa en el Excel). Se sirve por `index.php?r=logo`, sin necesidad de sesión.
+empresa en el Excel). En la barra lateral (y en el login en modo oscuro) va sobre una placa blanca, porque la mayoría de
+logos están pensados para fondo blanco; con `'logo_plate' => false` va sin ella. Se sirve por `index.php?r=logo`, sin necesidad de sesión.
 
 ## Log
 
@@ -976,6 +1179,42 @@ if (!Mail::trySend($msg)) { /* el error ya está en storage/logs/mail-… */ }
   (y el administrador: `php bin/install.php --email=…`) tienen email.
 - Si alguien pierde el acceso a su email, un administrador puede desactivarle la verificación (en modo
   `optional`) o cambiarle el email desde *Usuarios*.
+
+## Recuperar la contraseña
+
+En el login, el enlace *¿Has olvidado la contraseña?* pide el usuario o el email (según `login_field`) y envía al
+email del usuario un enlace para elegir una contraseña nueva. Necesita el correo (`mail`) configurado.
+
+```php
+'password_reset' => [
+    'enabled' => true,        // false quita el enlace del login y las rutas forgot y reset
+    'ttl' => 3600,            // segundos de validez del enlace pedido desde el login
+    'invite_ttl' => 604800,   // de los que envía un administrador (invitaciones y botón de la ficha): 7 días
+    'max_per_hour' => 3,      // enlaces por usuario y hora
+    'min_length' => 8,        // longitud mínima de la contraseña nueva (8 como mínimo)
+],
+```
+
+- La respuesta es la misma tanto si el usuario existe como si no, y el correo se envía después de responder: no
+  sirve para averiguar qué usuarios o emails hay. Solo reciben el enlace los usuarios activos con email; un email que
+  tienen varios usuarios no sirve (como en el login).
+- Del enlace solo se guarda el hash (tabla `password_resets`). Caduca, sirve una vez y pedir otro anula el anterior.
+  Al abrirlo, el token pasa a la sesión y se quita de la URL.
+- Al cambiar la contraseña: se desbloquea la cuenta (intentos fallidos), se revocan los dispositivos de confianza de
+  la verificación en dos pasos y se avisa al usuario por correo. No inicia sesión: se entra con la contraseña nueva
+  (y el código, si hay verificación en dos pasos).
+- Cada paso queda en el log (sin el enlace).
+
+**Desde la administración.** Al crear un usuario, la casilla *Envia una invitació* (marcada por defecto) no pide
+contraseña: el usuario recibe un correo con su nombre de usuario y un enlace para elegirla (necesita email y estar
+activo). En la ficha de un usuario con email, el botón *Envia l'enllaç de contrasenya* le envía un enlace para
+cambiarla, o la invitación otra vez si aún no ha entrado nunca; la contraseña actual sigue funcionando hasta que elige
+otra. Estos enlaces caducan en `invite_ttl` (7 días) y no cuentan para `max_per_hour`. Al aceptar una invitación no se
+envía el aviso de «contraseña cambiada».
+
+**En el login**, si la cuenta está bloqueada por intentos fallidos, el mensaje dice cuántos minutos faltan y enlaza a
+recuperar la contraseña. Todos los campos de contraseña tienen un botón para ver lo escrito y avisan si está
+activado Bloq Mayús.
 
 ## Perfil de usuario
 
@@ -1098,10 +1337,20 @@ Todo el HTML está en `templates/{nombre}/`: `layout.php`, `blank.php`, `login.p
 Las plantillas usan los helpers de `View` vía `$this`: `e()`, `t()`, `url()`, `asset()`, `csrfField()`,
 `user()`, `menu()`…
 
+## Página de inicio
+
+Por defecto, *Inicio* (y la página después del login) muestra los módulos del menú. Con `'home' => 'tpv'` en
+`config.local.php`, ese módulo (una página o un listado) es la página de inicio de quien tenga permiso para verlo; el
+resto sigue viendo el inicio de siempre. `index.php?r=home&menu=1` muestra siempre el inicio con el menú. Un módulo
+que no existe se ignora y queda en el log.
+
 ## Menú lateral y filtros plegables
 
 - El botón de menú de la barra superior (o **Ctrl+B**) reduce el menú lateral a una franja de iconos; se recuerda
   en una cookie (`qs_sidebar`), así que la página ya se pinta plegada.
+- Los **títulos de los grupos** del menú pliegan y despliegan sus módulos. Los plegados se recuerdan en una cookie
+  (`qs_nav`); el grupo del módulo abierto se muestra siempre desplegado. En la franja de iconos y en el móvil se ven
+  todos los módulos.
 - En los listados, el buscador está siempre visible y los filtros quedan tras el botón **Filtros**, con una
   insignia que indica cuántos hay activos aunque el panel esté plegado, y un botón para quitarlos. Si el panel
   está abierto o cerrado se recuerda por módulo en el navegador. Para que un módulo lo muestre abierto al
@@ -1159,6 +1408,12 @@ Quasar.toast.show('Pedido enviado', 'success');   // success | info | warning | 
 ```
 
 Los mensajes de éxito del servidor (`Session::flash('success', …)`) se muestran también como toasts.
+
+**Doble clic.** Un formulario que se está enviando ignora los envíos siguientes y su botón muestra que está trabajando
+(con el servidor lento, pulsar *Desa* tres veces no guarda tres veces ni crea tres registros). Lo mismo los botones
+de acción (`data-qs-action`) y los de Excel/PDF. Los formularios que no cambian de página (`target="_blank"`,
+descargas) se liberan solos al cabo de unos segundos; `data-no-lock` en el `<form>` lo desactiva. En JS propio:
+`Quasar.busy(boton, true|false)`.
 Al salir de un formulario con cambios sin guardar aparece un aviso propio (al cerrar la pestaña el
 navegador solo permite su aviso nativo).
 
@@ -1252,7 +1507,7 @@ En Apache, `public/.htaccess` ya reescribe `/api/` y pasa la cabecera `Authoriza
 
 ## Rutas
 
-`index.php?r=` `login` · `logout` · `home` · `list&m=` · `data&m=` (JSON) · `edit&m=&id=` · `save&m=` ·
+`index.php?r=` `login` · `logout` · `forgot` · `reset` · `home` · `list&m=` · `data&m=` (JSON) · `edit&m=&id=` · `save&m=` ·
 `delete&m=` · `action&m=&a=` (POST) · `ask&m=` (POST, IA) · `page&m=[&a=]` · `public&m=[&a=]` (páginas públicas) · `verify` · `profile` · `notifications&a=` (poll · read · open) · `chat&a=&m=&id=` (poll · post · upload · delete · mute · people · meet) · `permissions&id=` (usuario) · `permissions&group=` · `upload&m=&field=` · `media&id=` · `export&m=&format=` · `api&p=v1/…` (= `/api/v1/…`, JSON, con token) · `status` y `remote&a=` (JSON, con token) · `logo` · `asset&f=`
 
 ## Versiones

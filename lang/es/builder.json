@@ -1,0 +1,105 @@
+{
+  "title": "Constructor",
+  "description": "Crea tablas nuevas con su listado y formulario a partir de una descripción o de un Excel o CSV",
+  "intro": "Describe qué quieres gestionar o sube un Excel o CSV (o ambas cosas). La IA propone la tabla, el listado y el formulario; los revisas, pides cambios o editas la propuesta, y solo al confirmar se crea la tabla en la base de datos, los ficheros del módulo y, si has subido un fichero, se importan sus filas.",
+  "ask": {
+    "label": "¿Qué quieres gestionar?",
+    "placeholder": "P. ej. «proyectos con cliente, responsable, fecha de inicio y de entrega, presupuesto y estado (pendiente, en curso, entregado)»",
+    "file": "Excel o CSV (opcional)",
+    "file_help": "Primera hoja del .xlsx o .csv con cabeceras; hasta 20 MB y 50.000 filas. Se usan sus columnas para proponer los campos y se importan al crear el módulo.",
+    "submit": "Proponer el módulo",
+    "working": "La IA está diseñando el módulo…",
+    "empty": "Escribe una descripción o sube un fichero."
+  },
+  "file": {
+    "format": "El fichero debe ser .xlsx o .csv.",
+    "empty": "El fichero no tiene datos.",
+    "too_big": "El fichero supera los 20 MB.",
+    "upload": "No se ha podido subir el fichero."
+  },
+  "from_file": "{name} · {rows} filas",
+  "file_truncated": "solo se importarán las primeras 50.000",
+  "errors": {
+    "title": "Hay que corregir esto antes de crear el módulo",
+    "name": "El nombre «{name}» no es válido: minúsculas sin acentos, números y _, empezando por una letra, y que no sea una palabra reservada de MySQL.",
+    "module_exists": "Ya existe un módulo «{name}».",
+    "table_exists": "Ya existe una tabla «{name}» en la base de datos.",
+    "fields_count": "El módulo necesita entre 1 y {max} campos.",
+    "field_duplicate": "El campo «{field}» está repetido.",
+    "field_name": "El nombre de campo «{field}» no es válido (minúsculas, números y _; ni «id» ni «created_at», que se añaden solos; ni palabras reservadas como order o group).",
+    "field_type": "El campo «{field}» tiene un tipo desconocido: «{type}».",
+    "option": "La opción «{value}» del campo «{field}» no es válida o está repetida.",
+    "options_count": "El select «{field}» necesita entre 1 y 100 opciones o una relación con otra tabla.",
+    "source_table": "El campo «{field}» se relaciona con «{table}», que no existe.",
+    "source_pk": "La tabla «{table}» del campo «{field}» no tiene una clave primaria de una sola columna.",
+    "source_label": "No hay una columna de texto que mostrar de la tabla «{table}» en el campo «{field}».",
+    "lang_exists": "Ya existe el fichero {file}."
+  },
+  "col": {
+    "field": "Campo",
+    "label": "Etiqueta",
+    "type": "Tipo",
+    "details": "Detalles",
+    "required": "Obligatorio",
+    "list": "Listado",
+    "filter": "Filtro",
+    "search": "Búsqueda",
+    "from": "Columna del fichero"
+  },
+  "types": {
+    "text": "Texto",
+    "textarea": "Texto largo",
+    "richtext": "Texto con formato",
+    "number": "Número",
+    "email": "Email",
+    "date": "Fecha",
+    "datetime": "Fecha y hora",
+    "checkbox": "Sí/no",
+    "select": "Lista",
+    "tags": "Etiquetas"
+  },
+  "details": {
+    "source": "Relación con {table} (muestra {label})",
+    "multiple": "varias",
+    "maxlength": "hasta {n} caracteres",
+    "decimals": "{n} decimales"
+  },
+  "sections": "Secciones del formulario",
+  "refine": {
+    "label": "Pedir cambios a la IA",
+    "placeholder": "Pide cambios, p. ej. «añade un campo teléfono» o «el estado con las opciones abierto, en espera y cerrado»",
+    "submit": "Aplicar",
+    "working": "Aplicando…",
+    "empty": "Escribe qué quieres cambiar."
+  },
+  "sql": "SQL que se ejecutará",
+  "json": "Editar la propuesta (JSON)",
+  "save_json": "Aplicar los cambios",
+  "json_invalid": "El JSON no es válido: {error}",
+  "discard": "Descartar",
+  "confirm_discard": "¿Descartar esta propuesta?",
+  "create": "Crear el módulo",
+  "create_import": "Crear el módulo e importar",
+  "confirm_create": "Se creará la tabla «{name}» en la base de datos y los ficheros del módulo. ¿Continuar?",
+  "confirm_create_import": "Se creará la tabla «{name}», los ficheros del módulo y se importarán {rows} filas. ¿Continuar?",
+  "create_working": "Creando el módulo…",
+  "not_writable": "No se puede escribir en {dirs}: da permiso de escritura al servidor web para poder crear módulos.",
+  "no_draft": "No hay ninguna propuesta en curso.",
+  "ai_failed": "La IA no ha devuelto una propuesta válida. Prueba con otra descripción.",
+  "flash": {
+    "edited": "Propuesta actualizada",
+    "discarded": "Propuesta descartada",
+    "has_errors": "Corrige los errores antes de crear el módulo.",
+    "invalid_module": "El módulo generado no es válido: {error}",
+    "sql_error": "No se ha podido crear la tabla: {error}",
+    "created": "Módulo «{module}» creado.",
+    "imported": "{n} filas importadas.",
+    "unrecognized": "{n} valores no reconocidos en «{field}» (se han dejado vacíos).",
+    "truncated": "{n} textos recortados por ser demasiado largos.",
+    "import_error": "No se han podido importar las filas: {error}"
+  },
+  "auto": {
+    "id": "ID",
+    "created_at": "Creado"
+  }
+}

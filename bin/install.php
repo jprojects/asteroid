@@ -18,8 +18,7 @@ if (PHP_SAPI !== 'cli') {
 
 $config = require dirname(__DIR__) . '/src/bootstrap.php';
 
-use Quasar\Core\Database;
-use Quasar\Core\Migrator;
+use Quasar\Core\Installer;
 
 function ask(string $question, bool $hidden = false): string
 {
@@ -46,22 +45,13 @@ $c = $config['db'];
 
 try {
     echo "Conectando con MySQL en {$c['host']}:{$c['port']}…" . PHP_EOL;
-    $server = new PDO(
-        sprintf('mysql:host=%s;port=%d;charset=%s', $c['host'], (int) $c['port'], $c['charset'] ?? 'utf8mb4'),
-        $c['user'],
-        $c['pass'],
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-    $server->exec(sprintf(
-        'CREATE DATABASE IF NOT EXISTS %s CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci',
-        Database::ident($c['name'])
-    ));
-    echo "  ✓ base de datos `{$c['name']}`" . PHP_EOL;
-
-    $db = new Database($c);
-    foreach ((new Migrator($db, $c['name']))->run(!isset($opts['no-demo'])) as $step) {
+    $installer = new Installer($config);
+    $db = $installer->database();
+    $installer->migrate($db, !isset($opts['no-demo']));
+    foreach ($installer->steps() as $step) {
         echo "  ✓ $step" . PHP_EOL;
     }
+    $shown = count($installer->steps());
 
     $username = (string) ($opts['user'] ?? '') ?: (ask('Usuario administrador [admin]: ') ?: 'admin');
     $name = (string) ($opts['name'] ?? '') ?: 'Administrador';
@@ -69,34 +59,13 @@ try {
     if (!isset($opts['email'])) {
         $email = ask('Email del administrador (necesario si activas la verificación en dos pasos): ');
     }
-    if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-        throw new RuntimeException("Email no válido: $email");
-    }
     $password = (string) ($opts['password'] ?? '');
     while (mb_strlen($password) < 8) {
         $password = ask('Contraseña (mín. 8 caracteres): ', true);
     }
-
-    $hash = password_hash($password, PASSWORD_DEFAULT);
-    $existing = $db->fetchValue('SELECT id FROM users WHERE username = ?', [$username]);
-    if ($existing) {
-        $update = ['password_hash' => $hash, 'is_admin' => 1, 'active' => 1, 'failed_logins' => 0, 'locked_until' => null];
-        if ($email !== '') {
-            $update['email'] = $email;
-        }
-        $db->update('users', $update, 'id', $existing);
-        echo "  ✓ usuario '$username' actualizado como administrador" . PHP_EOL;
-    } else {
-        $db->insert('users', [
-            'username' => $username,
-            'password_hash' => $hash,
-            'name' => $name,
-            'email' => $email !== '' ? $email : null,
-            'locale' => $config['locale'] ?? 'es',
-            'is_admin' => 1,
-            'active' => 1,
-        ]);
-        echo "  ✓ usuario '$username' creado" . PHP_EOL;
+    $installer->admin($db, $username, $password, $name, $email);
+    foreach (array_slice($installer->steps(), $shown) as $step) {
+        echo "  ✓ $step" . PHP_EOL;
     }
 
     echo PHP_EOL . 'Listo. Arranca con:  php -S localhost:8000 -t public' . PHP_EOL;

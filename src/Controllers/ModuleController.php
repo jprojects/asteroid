@@ -87,8 +87,32 @@ final class ModuleController extends Controller
             'toolbarButtons' => array_map(fn ($b) => $this->buttonConfig($m, $b), $m->toolbarButtons()),
             'ai' => $ai,
             'exportFormats' => $this->can($m, 'export') ? ($m->exportConfig()['formats'] ?? []) : [],
+            'reports' => $this->listReports($m),
             'config' => $config,
         ]);
+    }
+
+    /**
+     * Informes PDF de la barra del listado ("list.reports") que el usuario puede abrir.
+     * Si el informe pide filtros, se abren en una ventana; si no, el PDF directamente.
+     * @return list<array{label:string,url:string,modal:bool}>
+     */
+    private function listReports(Module $m): array
+    {
+        $out = [];
+        foreach ($m->listReports() as $name) {
+            $report = $this->app->modules()->get($name);
+            if ($report === null || !$report->isReport() || !$this->can($report, 'view')) {
+                continue;
+            }
+            $modal = $report->fields() !== [];
+            $out[] = [
+                'label' => $report->title(),
+                'url' => $report->url($modal ? ['modal' => 1] : ['a' => 'pdf']),
+                'modal' => $modal,
+            ];
+        }
+        return $out;
     }
 
     public function data(): void

@@ -25,7 +25,7 @@ final class SqlGuard
     /** Esquemas del servidor que nunca se consultan. */
     private const SYSTEM_SCHEMAS = ['information_schema', 'mysql', 'performance_schema', 'sys'];
     /** Tablas del núcleo que nunca se exponen aunque se pongan en la configuración (secretos). */
-    public const NEVER = ['users', 'user_trusted_devices', 'ai_cache'];
+    public const NEVER = ['users', 'user_trusted_devices', 'ai_cache', 'password_resets'];
 
     /**
      * @param list<string> $allowed tablas permitidas

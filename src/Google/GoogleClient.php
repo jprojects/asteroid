@@ -228,7 +228,6 @@ final class GoogleClient
         $response = curl_exec($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $error = curl_error($ch);
-        curl_close($ch);
         if ($response === false) {
             throw new GoogleException("No se ha podido conectar con Google: $error");
         }

@@ -68,7 +68,7 @@
     return el;
   };
   const hasIcon = (name) => /^[a-z0-9-]+$/.test(name || '') && !!document.getElementById(`qs-i-${name}`);
-  const ICONS = { danger: 'circle-alert', warning: 'triangle-alert', info: 'info', success: 'circle-check', default: 'circle-help' };
+  const ICONS = { danger: 'circle-alert', warning: 'triangle-alert', info: 'info', success: 'circle-check', ai: 'sparkles', default: 'circle-help' };
 
   /**
    * Ventanas modales propias (sustituyen a confirm/alert del navegador).
@@ -77,11 +77,12 @@
    * variant: default | danger | warning | info | success
    */
   const Dialog = {
-    open({ title = '', message = '', okText = T.ok || 'OK', cancelText = T.cancel || 'Cancel', variant = 'default', showCancel = true } = {}) {
+    // content: nodo opcional que se muestra bajo el mensaje (p. ej. una vista previa); wide: diálogo más ancho
+    open({ title = '', message = '', content = null, wide = false, okText = T.ok || 'OK', cancelText = T.cancel || 'Cancel', variant = 'default', showCancel = true } = {}) {
       return new Promise((resolve) => {
         const previousFocus = document.activeElement;
         const dlg = document.createElement('dialog');
-        dlg.className = `qs-dialog qs-dialog-${variant}`;
+        dlg.className = `qs-dialog qs-dialog-${variant}${wide ? ' qs-dialog-wide' : ''}`;
         const id = `qs-dlg-${Date.now().toString(36)}`;
         dlg.setAttribute('aria-labelledby', `${id}-t`);
         dlg.setAttribute('aria-describedby', `${id}-m`);
@@ -98,6 +99,7 @@
         const p = document.createElement('p');
         p.id = `${id}-m`;
         p.textContent = message;
+        p.hidden = !message;
         const actions = document.createElement('div');
         actions.className = 'qs-dialog-actions';
         const ok = document.createElement('button');
@@ -113,7 +115,7 @@
           actions.append(cancel);
         }
         actions.append(ok);
-        box.append(badge, h, p, actions);
+        box.append(badge, h, p, ...(content ? [content] : []), actions);
         dlg.append(box);
 
         let done = false;
@@ -178,7 +180,22 @@
     },
   };
 
-  window.Quasar = Object.assign(window.Quasar || {}, { dialog: Dialog, toast: Toast, icon, tag });
+  window.Quasar = Object.assign(window.Quasar || {}, { dialog: Dialog, toast: Toast, icon, tag, busy: setBusy });
+
+  // ------------------------------------------------------------------ doble clic
+
+  /** Botón «trabajando»: no admite más clics y muestra un indicador. */
+  function setBusy(btn, busy) {
+    btn.classList.toggle('is-loading', busy);
+    btn.disabled = busy;
+    if (busy) btn.setAttribute('aria-busy', 'true');
+    else btn.removeAttribute('aria-busy');
+  }
+  /** Igual, durante un tiempo (descargas: la página no cambia y no hay respuesta que esperar). */
+  function busyFor(btn, ms) {
+    setBusy(btn, true);
+    setTimeout(() => setBusy(btn, false), ms);
+  }
 
   // ------------------------------------------------------------------ acciones de módulo
 
@@ -188,6 +205,7 @@
    * el resultado. Devuelve la respuesta, o null si no se ejecutó o falló.
    */
   async function runAction(cfg, btn = null) {
+    if (btn?.classList.contains('is-loading')) return null; // ya en marcha (doble clic)
     if (cfg.confirm) {
       const ok = await Dialog.confirm(cfg.confirm, {
         title: cfg.label, okText: cfg.label, variant: cfg.variant === 'danger' ? 'danger' : 'default',
@@ -211,9 +229,10 @@
       document.body.append(form);
       form.submit();
       form.remove();
+      if (btn) busyFor(btn, 3000); // la descarga no cambia de página: se libera sola
       return null;
     }
-    if (btn) btn.disabled = true;
+    if (btn) setBusy(btn, true);
     try {
       const res = await request(cfg.run, { method: 'POST', data: fields });
       if (res.redirect) window.location.href = res.redirect;
@@ -224,7 +243,7 @@
       Dialog.alert(err.message, { variant: 'danger' });
       return null;
     } finally {
-      if (btn) btn.disabled = false;
+      if (btn) setBusy(btn, false);
     }
   }
 
@@ -264,6 +283,519 @@
   $$('form[data-report-ask] textarea').forEach((ta) => ta.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ta.form.requestSubmit(); }
   }));
+
+  // Comentario de la IA sobre el resultado: se guarda con el informe y se recarga la página para verlo
+  $$('[data-report-comment]').forEach((btn) => btn.addEventListener('click', async () => {
+    const label = btn.innerHTML;
+    btn.disabled = true;
+    btn.closest('.qs-report-comment').classList.add('is-busy');
+    btn.textContent = btn.dataset.working;
+    try {
+      await request(btn.dataset.reportComment, { method: 'POST', data: { id: btn.dataset.id } });
+      window.location.reload();
+    } catch (err) {
+      Dialog.alert(err.message, { variant: 'danger' });
+      btn.innerHTML = label;
+      btn.disabled = false;
+      btn.closest('.qs-report-comment').classList.remove('is-busy');
+    }
+  }));
+
+  // Gráfico del informe (SVG propio): columnas, barras horizontales, líneas y circular. Las filas se piden una
+  // vez; tipo, categorías y valores se cambian en el navegador. Colores de --chart-1…8 (claro y oscuro).
+  class ReportChart {
+    constructor(root) {
+      this.root = root;
+      this.cfg = JSON.parse(root.dataset.chart);
+      this.i18n = this.cfg.i18n;
+      this.canvas = $('[data-role="canvas"]', root);
+      this.note = $('[data-role="note"]', root);
+      this.typeSel = $('[data-role="type"]', root);
+      this.xSel = $('[data-role="x"]', root);
+      this.checks = $$('[data-role="series"] input', root);
+      this.saveBtn = $('[data-role="save"]', root);
+      this.state = this.cfg.chart;
+      this.saved = JSON.stringify(this.cfg.chart);
+      this.rows = null;
+      this.svg = null;
+      this.tip = document.createElement('div');
+      this.tip.className = 'qs-chart-tip';
+      this.tip.hidden = true;
+
+      this.typeSel.addEventListener('change', () => this.changed());
+      this.xSel.addEventListener('change', () => this.changed());
+      this.checks.forEach((c) => c.addEventListener('change', () => {
+        // El circular tiene una sola serie: marcar una desmarca las demás
+        if (this.typeSel.value === 'pie' && c.checked) this.checks.forEach((o) => { if (o !== c) o.checked = false; });
+        this.changed();
+      }));
+      this.saveBtn?.addEventListener('click', () => this.save());
+      $('[data-role="download"]', root).addEventListener('click', () => this.download());
+      new ResizeObserver(() => { if (this.rows) this.render(); }).observe(this.canvas);
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (this.rows) this.render(); });
+    }
+
+    // Al abrir la pestaña: pide las filas la primera vez
+    async show() {
+      if (this.rows || this.loading) { this.render(); return; }
+      this.loading = true;
+      this.message(this.i18n.loading);
+      try {
+        const res = await request(this.cfg.dataUrl);
+        this.rows = res.rows;
+        this.note.textContent = res.truncated;
+        this.note.hidden = !res.truncated;
+        this.state ??= this.guess();
+        this.syncControls();
+        if (this.saveBtn) this.saveBtn.hidden = JSON.stringify(this.state) === this.saved;
+        this.render();
+      } catch (err) {
+        this.message(err.message || this.i18n.error);
+      } finally {
+        this.loading = false;
+      }
+    }
+
+    // Sin gráfico guardado: categorías = primera columna no numérica; valores = las numéricas (sin ids)
+    guess() {
+      const cols = this.cfg.columns;
+      const x = (cols.find((c) => !c.numeric) || cols[0]).name;
+      const numeric = cols.filter((c) => c.numeric && c.name !== x);
+      const named = numeric.filter((c) => !/(^|_)id$/i.test(c.name));
+      const series = (named.length ? named : numeric).slice(0, 8).map((c) => c.name);
+      const xCol = cols.find((c) => c.name === x);
+      const timeLike = ['date', 'datetime'].includes(xCol.type) || /^\d{4}-\d{2}/.test(this.rows[0]?.[cols.indexOf(xCol)]?.[0] || '');
+      const type = timeLike ? 'line' : (this.rows.length > 12 ? 'bar' : 'column');
+      return { type, x, series };
+    }
+
+    syncControls() {
+      this.typeSel.value = this.state.type;
+      this.xSel.value = this.state.x;
+      this.checks.forEach((c) => { c.checked = this.state.series.includes(c.value); });
+    }
+
+    changed() {
+      const series = this.checks.filter((c) => c.checked && c.value !== this.xSel.value).map((c) => c.value);
+      this.state = { type: this.typeSel.value, x: this.xSel.value, series: this.typeSel.value === 'pie' ? series.slice(0, 1) : series };
+      if (this.state.type === 'pie') this.syncControls();
+      if (this.saveBtn) this.saveBtn.hidden = JSON.stringify(this.state) === this.saved || !this.state.series.length;
+      this.render();
+    }
+
+    async save() {
+      try {
+        const res = await request(this.cfg.saveUrl, { method: 'POST', data: { id: this.cfg.id, chart: JSON.stringify(this.state) } });
+        this.saved = JSON.stringify(this.state);
+        this.saveBtn.hidden = true;
+        Toast.show(res.message);
+      } catch (err) {
+        Dialog.alert(err.message, { variant: 'danger' });
+      }
+    }
+
+    message(text) {
+      const p = document.createElement('p');
+      p.className = 'qs-chart-message';
+      p.textContent = text;
+      this.svg = null;
+      this.canvas.replaceChildren(p);
+    }
+
+    // ---- utilidades de dibujo
+
+    el(name, attrs = {}, parent = null) {
+      const node = document.createElementNS(SVG_NS, name);
+      for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+      parent?.append(node);
+      return node;
+    }
+
+    text(parent, x, y, content, attrs = {}) {
+      const node = this.el('text', { x, y, fill: this.colors.muted, 'font-size': 11, ...attrs }, parent);
+      node.textContent = content;
+      return node;
+    }
+
+    measure(text, size = 11) {
+      this.ctx ??= document.createElement('canvas').getContext('2d');
+      this.ctx.font = `${size}px ${this.font}`;
+      return this.ctx.measureText(text).width;
+    }
+
+    // Recorta con «…» para que quepa en max píxeles
+    fit(text, max, size = 11) {
+      if (this.measure(text, size) <= max) return text;
+      let s = text;
+      while (s.length > 1 && this.measure(`${s}…`, size) > max) s = s.slice(0, -1);
+      return `${s}…`;
+    }
+
+    // Marcas de eje "redondas" (0, 5, 10… o 0, 2K, 4K…) que cubren min…max
+    ticks(min, max, count = 5) {
+      if (min === max) { max = min === 0 ? 1 : max + Math.abs(max) * 0.1; min = Math.min(0, min); }
+      const raw = (max - min) / count;
+      const mag = 10 ** Math.floor(Math.log10(raw));
+      const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw);
+      const out = [];
+      for (let v = Math.floor(min / step) * step; v <= Math.ceil(max / step) * step + step / 2; v += step) out.push(+v.toFixed(10));
+      return out;
+    }
+
+    // Columna con el extremo de los datos redondeado (4px) y la base recta
+    barPath(x, y, w, h, horizontal) {
+      const neg = h < 0;
+      const len = Math.abs(h);
+      const r = Math.min(4, len, (horizontal ? w : w) / 2);
+      if (!horizontal) {
+        const top = neg ? y : y - len;
+        return neg
+          ? `M${x},${top}H${x + w}V${top + len - r}Q${x + w},${top + len} ${x + w - r},${top + len}H${x + r}Q${x},${top + len} ${x},${top + len - r}Z`
+          : `M${x},${y}V${top + r}Q${x},${top} ${x + r},${top}H${x + w - r}Q${x + w},${top} ${x + w},${top + r}V${y}Z`;
+      }
+      // horizontal: x = base, y = arriba de la barra, w = grosor, h = largo (negativo hacia la izquierda)
+      const left = neg ? x - len : x;
+      return neg
+        ? `M${x},${y}H${left + r}Q${left},${y} ${left},${y + r}V${y + w - r}Q${left},${y + w} ${left + r},${y + w}H${x}Z`
+        : `M${x},${y}H${x + len - r}Q${x + len},${y} ${x + len},${y + r}V${y + w - r}Q${x + len},${y + w} ${x + len - r},${y + w}H${x}Z`;
+    }
+
+    // Valor como en la tabla para un número calculado aquí (p. ej. "Otros" del circular)
+    formatNumber(col, n) {
+      const digits = col.type === 'integer' ? 0 : 2;
+      const s = new Intl.NumberFormat(docLang(), { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(n);
+      return col.type === 'percent' ? `${s} %` : s;
+    }
+
+    compact(n) {
+      return new Intl.NumberFormat(docLang(), { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+    }
+
+    // Leyenda arriba (dos o más series, o las porciones del circular); devuelve su alto
+    legend(svg, items, width) {
+      if (items.length < 2) return 0;
+      let x = 0;
+      let y = 6;
+      const g = this.el('g', {}, svg);
+      items.forEach((it) => {
+        const label = this.fit(it.label, 220);
+        const w = 14 + this.measure(label) + 16;
+        if (x > 0 && x + w > width) { x = 0; y += 18; }
+        this.el('rect', { x, y, width: 10, height: 10, rx: 2, fill: it.color }, g);
+        this.text(g, x + 14, y + 9, label, { fill: this.colors.text });
+        x += w;
+      });
+      return y + 22;
+    }
+
+    showTip(event, title, lines) {
+      this.tip.replaceChildren();
+      const head = document.createElement('strong');
+      head.textContent = title;
+      this.tip.append(head);
+      lines.forEach(({ color, label, value }) => {
+        const row = document.createElement('div');
+        const sw = document.createElement('i');
+        sw.style.background = color;
+        const name = document.createElement('span');
+        name.textContent = label;
+        const val = document.createElement('b');
+        val.textContent = value;
+        row.append(sw, name, val);
+        this.tip.append(row);
+      });
+      this.tip.hidden = false;
+      const box = this.canvas.getBoundingClientRect();
+      let left = event.clientX - box.left + 14;
+      const top = event.clientY - box.top + 14;
+      if (left + this.tip.offsetWidth > box.width) left = Math.max(0, event.clientX - box.left - this.tip.offsetWidth - 14);
+      this.tip.style.left = `${left}px`;
+      this.tip.style.top = `${top}px`;
+    }
+
+    hideTip() {
+      this.tip.hidden = true;
+    }
+
+    // ---- dibujo
+
+    render() {
+      if (!this.rows || !this.canvas.offsetWidth) return;
+      const style = getComputedStyle(this.root);
+      const v = (name) => style.getPropertyValue(name).trim();
+      this.font = getComputedStyle(document.body).fontFamily;
+      this.colors = {
+        series: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => v(`--chart-${i}`)),
+        surface: v('--surface'), text: v('--text'), muted: v('--text-muted'), grid: v('--border'), axis: v('--border-strong'),
+      };
+      const cols = this.cfg.columns;
+      const xi = cols.findIndex((c) => c.name === this.state.x);
+      const si = this.state.series.map((name) => cols.findIndex((c) => c.name === name)).filter((i) => i >= 0 && i !== xi);
+      if (xi < 0 || !si.length || !this.rows.length) { this.message(this.i18n.empty); return; }
+      const data = {
+        cols: si.map((i) => cols[i]),
+        points: this.rows.map((r) => ({ label: r[xi][0] || '—', values: si.map((i) => r[i][1]), texts: si.map((i) => r[i][0]) })),
+      };
+      const width = Math.floor(this.canvas.clientWidth);
+      const svg = this.el('svg', { xmlns: SVG_NS, width, 'font-family': this.font, role: 'img', class: 'qs-chart-svg' });
+      this.el('rect', { width: '100%', height: '100%', fill: this.colors.surface }, svg);
+      svg.addEventListener('mouseleave', () => this.hideTip());
+      const height = { column: this.drawColumns, bar: this.drawBars, line: this.drawLine, pie: this.drawPie }[this.state.type].call(this, svg, data, width);
+      svg.setAttribute('height', height);
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      svg.setAttribute('aria-label', `${this.typeSel.selectedOptions[0].text}: ${data.cols.map((c) => c.label).join(', ')} / ${cols[xi].label}`);
+      this.svg = svg;
+      this.canvas.replaceChildren(svg, this.tip);
+      this.hideTip();
+    }
+
+    seriesLegend(svg, data, width) {
+      return this.legend(svg, data.cols.map((c, s) => ({ label: c.label, color: this.colors.series[s] })), width);
+    }
+
+    tipLines(data, p) {
+      return data.cols.map((c, s) => ({ color: this.colors.series[s], label: c.label, value: p.texts[s] || '—' }));
+    }
+
+    // Escala de valores (vertical u horizontal) con el 0 siempre dentro
+    scale(data, from, to, count = 5) {
+      const all = data.points.flatMap((p) => p.values).filter((n) => n !== null);
+      const ticks = this.ticks(Math.min(0, ...all), Math.max(0, ...all), count);
+      const lo = ticks[0];
+      const hi = ticks[ticks.length - 1];
+      return { ticks, at: (n) => from + ((n - lo) / (hi - lo)) * (to - from) };
+    }
+
+    // Banda transparente por categoría: tooltip con todas las series
+    hoverBand(svg, attrs, data, p, onEnter = null) {
+      const band = this.el('rect', { ...attrs, fill: 'transparent' }, svg);
+      band.addEventListener('mousemove', (e) => this.showTip(e, p.label, this.tipLines(data, p)));
+      if (onEnter) {
+        band.addEventListener('mouseenter', () => onEnter(true));
+        band.addEventListener('mouseleave', () => onEnter(false));
+      }
+    }
+
+    drawColumns(svg, data, width) {
+      const top = this.seriesLegend(svg, data, width) + 8;
+      const plotH = 300;
+      const probe = this.scale(data, top + plotH, top);
+      const left = Math.max(...probe.ticks.map((t) => this.measure(this.compact(t)))) + 14;
+      const right = 8;
+      const plotW = width - left - right;
+      const y = probe.at;
+      probe.ticks.forEach((t) => {
+        this.el('line', { x1: left, x2: width - right, y1: y(t), y2: y(t), stroke: t === 0 ? this.colors.axis : this.colors.grid, 'stroke-width': 1 }, svg);
+        this.text(svg, left - 6, y(t) + 4, this.compact(t), { 'text-anchor': 'end' });
+      });
+      const n = data.points.length;
+      const m = data.cols.length;
+      const band = plotW / n;
+      const barW = Math.max(1, Math.min(24, (band * 0.8 - 2 * (m - 1)) / m));
+      const groupW = m * barW + (m - 1) * 2;
+      const every = Math.max(1, Math.ceil(70 / band)); // una etiqueta cada tantas columnas si no caben
+      data.points.forEach((p, i) => {
+        const bx = left + i * band;
+        const g = this.el('g', {}, svg);
+        p.values.forEach((val, s) => {
+          if (val === null || val === 0) return;
+          this.el('path', { d: this.barPath(bx + (band - groupW) / 2 + s * (barW + 2), y(0), barW, y(0) - y(val), false), fill: this.colors.series[s] }, g);
+        });
+        if (i % every === 0) this.text(svg, bx + band / 2, top + plotH + 16, this.fit(p.label, band * every - 6), { 'text-anchor': 'middle' });
+        this.hoverBand(svg, { x: bx, y: top, width: band, height: plotH }, data, p, (on) => g.setAttribute('opacity', on ? 0.75 : 1));
+      });
+      return top + plotH + 26;
+    }
+
+    drawBars(svg, data, width) {
+      const top = this.seriesLegend(svg, data, width) + 4;
+      const m = data.cols.length;
+      const thick = m === 1 ? 18 : Math.max(8, Math.min(14, 40 / m));
+      const band = m * thick + (m - 1) * 2 + 10;
+      const labelW = Math.min(width * 0.35, Math.max(...data.points.map((p) => this.measure(p.label)))) + 10;
+      const valueW = m === 1 ? Math.max(...data.points.map((p) => this.measure(p.texts[0] || ''))) + 10 : 12;
+      const left = labelW;
+      const right = width - valueW;
+      const plotH = data.points.length * band;
+      const sc = this.scale(data, left, right, Math.max(2, Math.min(5, Math.floor((right - left) / 70))));
+      const x = sc.at;
+      sc.ticks.forEach((t) => {
+        this.el('line', { x1: x(t), x2: x(t), y1: top, y2: top + plotH, stroke: t === 0 ? this.colors.axis : this.colors.grid, 'stroke-width': 1 }, svg);
+        this.text(svg, x(t), top + plotH + 14, this.compact(t), { 'text-anchor': 'middle' });
+      });
+      data.points.forEach((p, i) => {
+        const by = top + i * band;
+        const g = this.el('g', {}, svg);
+        this.text(svg, labelW - 8, by + band / 2 + 4, this.fit(p.label, labelW - 12), { 'text-anchor': 'end', fill: this.colors.text });
+        p.values.forEach((val, s) => {
+          if (val === null || val === 0) return;
+          this.el('path', { d: this.barPath(x(0), by + 5 + s * (thick + 2), thick, x(val) - x(0), true), fill: this.colors.series[s] }, g);
+        });
+        // Con una sola serie, el valor al final de la barra
+        if (m === 1 && p.values[0] !== null) {
+          const end = x(p.values[0]);
+          const neg = p.values[0] < 0;
+          this.text(svg, neg ? Math.min(end, x(0)) - 4 : Math.max(end, x(0)) + 4, by + band / 2 + 4, p.texts[0], { 'text-anchor': neg ? 'end' : 'start', fill: this.colors.text });
+        }
+        this.hoverBand(svg, { x: 0, y: by, width, height: band }, data, p, (on) => g.setAttribute('opacity', on ? 0.75 : 1));
+      });
+      return top + plotH + 22;
+    }
+
+    drawLine(svg, data, width) {
+      const top = this.seriesLegend(svg, data, width) + 8;
+      const plotH = 300;
+      const probe = this.scale(data, top + plotH, top);
+      const left = Math.max(...probe.ticks.map((t) => this.measure(this.compact(t)))) + 14;
+      const right = 16;
+      const plotW = width - left - right;
+      const y = probe.at;
+      const n = data.points.length;
+      const xAt = (i) => (n === 1 ? left + plotW / 2 : left + (i * plotW) / (n - 1));
+      probe.ticks.forEach((t) => {
+        this.el('line', { x1: left, x2: width - right, y1: y(t), y2: y(t), stroke: t === 0 ? this.colors.axis : this.colors.grid, 'stroke-width': 1 }, svg);
+        this.text(svg, left - 6, y(t) + 4, this.compact(t), { 'text-anchor': 'end' });
+      });
+      const step = n > 1 ? plotW / (n - 1) : plotW;
+      const every = Math.max(1, Math.ceil(80 / step));
+      data.points.forEach((p, i) => {
+        if (i % every === 0) this.text(svg, xAt(i), top + plotH + 16, this.fit(p.label, step * every - 6), { 'text-anchor': i === 0 && n > 1 ? 'start' : (i === n - 1 && n > 1 ? 'end' : 'middle') });
+      });
+      const markers = n <= 40;
+      data.cols.forEach((c, s) => {
+        // Tramos sin huecos (un valor vacío corta la línea)
+        let d = '';
+        let open = false;
+        data.points.forEach((p, i) => {
+          const val = p.values[s];
+          if (val === null) { open = false; return; }
+          d += `${open ? 'L' : 'M'}${xAt(i)},${y(val)}`;
+          open = true;
+        });
+        if (data.cols.length === 1 && n > 1 && !data.points.some((p) => p.values[0] === null)) {
+          this.el('path', { d: `${d}L${xAt(n - 1)},${y(0)}L${xAt(0)},${y(0)}Z`, fill: this.colors.series[s], 'fill-opacity': 0.1 }, svg);
+        }
+        this.el('path', { d, fill: 'none', stroke: this.colors.series[s], 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+        if (markers) {
+          data.points.forEach((p, i) => {
+            if (p.values[s] !== null) this.el('circle', { cx: xAt(i), cy: y(p.values[s]), r: 4, fill: this.colors.series[s], stroke: this.colors.surface, 'stroke-width': 2 }, svg);
+          });
+        }
+      });
+      // Línea vertical y tooltip en el punto más cercano
+      const cross = this.el('line', { y1: top, y2: top + plotH, stroke: this.colors.axis, 'stroke-width': 1, visibility: 'hidden' }, svg);
+      data.points.forEach((p, i) => {
+        this.hoverBand(svg, { x: xAt(i) - step / 2, y: top, width: step, height: plotH }, data, p, (on) => {
+          cross.setAttribute('x1', xAt(i));
+          cross.setAttribute('x2', xAt(i));
+          cross.setAttribute('visibility', on ? 'visible' : 'hidden');
+        });
+      });
+      return top + plotH + 26;
+    }
+
+    drawPie(svg, data, width) {
+      const col = data.cols[0];
+      // Solo valores positivos, de mayor a menor; a partir del 8.º, juntos en "Otros"
+      const slices = data.points.filter((p) => p.values[0] > 0).map((p) => ({ label: p.label, value: p.values[0], text: p.texts[0] }))
+        .sort((a, b) => b.value - a.value);
+      if (!slices.length) { this.text(svg, 0, 20, this.i18n.empty); return 40; }
+      if (slices.length > 8) {
+        const rest = slices.splice(7);
+        const sum = rest.reduce((t, s) => t + s.value, 0);
+        slices.push({ label: `${this.i18n.other} (${rest.length})`, value: sum, text: this.formatNumber(col, sum) });
+      }
+      const total = slices.reduce((t, s) => t + s.value, 0);
+      const pct = (n) => new Intl.NumberFormat(docLang(), { style: 'percent', maximumFractionDigits: 1 }).format(n / total);
+      const size = Math.min(280, width);
+      const side = width - size >= 220; // leyenda a la derecha si cabe; si no, debajo
+      const r = size / 2 - 4;
+      const cx = size / 2;
+      const cy = size / 2;
+      const inner = r * 0.58;
+      let angle = -Math.PI / 2;
+      slices.forEach((s, i) => {
+        const a = (s.value / total) * Math.PI * 2;
+        const end = angle + a;
+        const pt = (rad, rr) => `${cx + rr * Math.cos(rad)},${cy + rr * Math.sin(rad)}`;
+        const large = a > Math.PI ? 1 : 0;
+        const d = slices.length === 1
+          ? `M${cx},${cy - r}A${r},${r} 0 1 1 ${cx - 0.01},${cy - r}ZM${cx},${cy - inner}A${inner},${inner} 0 1 0 ${cx + 0.01},${cy - inner}Z`
+          : `M${pt(angle, r)}A${r},${r} 0 ${large} 1 ${pt(end, r)}L${pt(end, inner)}A${inner},${inner} 0 ${large} 0 ${pt(angle, inner)}Z`;
+        const path = this.el('path', { d, fill: this.colors.series[i], stroke: this.colors.surface, 'stroke-width': 2, 'fill-rule': 'evenodd' }, svg);
+        path.addEventListener('mousemove', (e) => this.showTip(e, s.label, [{ color: this.colors.series[i], label: col.label, value: `${s.text} · ${pct(s.value)}` }]));
+        path.addEventListener('mouseenter', () => path.setAttribute('opacity', 0.75));
+        path.addEventListener('mouseleave', () => path.setAttribute('opacity', 1));
+        angle = end;
+      });
+      this.text(svg, cx, cy - 2, this.i18n.total, { 'text-anchor': 'middle' });
+      this.text(svg, cx, cy + 16, this.formatNumber(col, total), { 'text-anchor': 'middle', fill: this.colors.text, 'font-size': 15, 'font-weight': 600 });
+      // Leyenda con valor y porcentaje
+      const lx = side ? size + 24 : 0;
+      let ly = side ? Math.max(8, cy - (slices.length * 22) / 2) : size + 16;
+      const labelW = Math.min(Math.max(...slices.map((s) => this.measure(s.label))), Math.max(60, (side ? width - lx : width) - 150));
+      slices.forEach((s, i) => {
+        this.el('rect', { x: lx, y: ly, width: 10, height: 10, rx: 2, fill: this.colors.series[i] }, svg);
+        this.text(svg, lx + 16, ly + 9, this.fit(s.label, labelW), { fill: this.colors.text });
+        this.text(svg, lx + 16 + labelW + 8, ly + 9, `${s.text} · ${pct(s.value)}`);
+        ly += 22;
+      });
+      return side ? size : ly + 4;
+    }
+
+    // PNG del gráfico tal como se ve (a doble resolución)
+    download() {
+      if (!this.svg) return;
+      const clone = this.svg.cloneNode(true);
+      const w = +clone.getAttribute('width');
+      const h = +clone.getAttribute('height');
+      const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml' }));
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = w * 2;
+        canvas.height = h * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((blob) => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `informe-${this.cfg.id}.png`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        });
+      };
+      img.src = url;
+    }
+  }
+
+  // Pestañas Tabla / Gráfico (la última elegida se recuerda en la pestaña del navegador)
+  $$('.qs-report').forEach((section) => {
+    const tabs = $$('[role="tab"]', section);
+    const chartRoot = $('.qs-report-chart[data-chart]', section);
+    const chart = chartRoot ? new ReportChart(chartRoot) : null;
+    const select = (name, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === name;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+      $$('[data-panel]', section).forEach((p) => { p.hidden = p.dataset.panel !== name; });
+      store.set('qs-report-tab', name);
+      if (name === 'chart') chart?.show();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t.dataset.tab));
+      t.addEventListener('keydown', (e) => {
+        const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+        if (step) select(tabs[(i + step + tabs.length) % tabs.length].dataset.tab, true);
+      });
+    });
+    if (store.get('qs-report-tab') === 'chart') select('chart');
+  });
 
   // ------------------------------------------------------------------ tabla de datos
 
@@ -426,7 +958,11 @@
         this.toggleBtn?.addEventListener('click', () => this.setFiltersOpen(this.form.hidden));
       }
 
-      $$('[data-export]', this.root).forEach((btn) => btn.addEventListener('click', () => this.exportTo(btn.dataset.export)));
+      $$('[data-export]', this.root).forEach((btn) => btn.addEventListener('click', () => {
+        if (btn.classList.contains('is-loading')) return;
+        busyFor(btn, 4000); // la descarga tarda en empezar: evita pedir dos veces el mismo fichero
+        this.exportTo(btn.dataset.export);
+      }));
 
       $$('[data-page]', this.root).forEach((btn) => btn.addEventListener('click', () => {
         const target = { first: 1, prev: this.state.page - 1, next: this.state.page + 1, last: this.pages };
@@ -1002,6 +1538,19 @@
       form.requestSubmit(btn);
     });
   }, true);
+
+  // Formularios lentos (p. ej. los que esperan a la IA): <form data-busy="Texto mientras se envía">
+  document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (e.defaultPrevented || !form.matches?.('form[data-busy]')) return;
+    form.classList.add('is-busy');
+    setTimeout(() => {
+      $$('button[type="submit"]', form).forEach((b) => {
+        b.disabled = true;
+        if (b === e.submitter || !e.submitter) b.textContent = form.dataset.busy;
+      });
+    });
+  });
 
   // ------------------------------------------------------------------ campos condicionales (showon)
 
@@ -2125,6 +2674,93 @@
     });
   }
 
+  // ------------------------------------------------------------------ ayuda a redactar (campos con "assist")
+
+  // Menú bajo el campo; la IA devuelve una propuesta que se ve antes de sustituir el texto
+  function initAssist(root) {
+    if (root.qsAssist) return;
+    root.qsAssist = true;
+    const cfg = JSON.parse(root.dataset.assist);
+    const t = cfg.i18n;
+    const ta = $('textarea', root);
+    const isRich = !!$('[data-richtext]', root);
+    const bar = document.createElement('div');
+    bar.className = 'qs-assist-bar';
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'qs-btn qs-btn-sm qs-assist-toggle';
+    toggle.setAttribute('aria-haspopup', 'menu');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.append(icon('sparkles'), document.createTextNode(` ${t.button}`));
+    const menu = document.createElement('div');
+    menu.className = 'qs-assist-menu';
+    menu.setAttribute('role', 'menu');
+    menu.hidden = true;
+    Object.entries(cfg.actions).forEach(([action, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'menuitem');
+      b.dataset.action = action;
+      b.textContent = label;
+      menu.append(b);
+    });
+    bar.append(toggle, menu);
+    root.append(bar);
+
+    const close = () => { menu.hidden = true; toggle.setAttribute('aria-expanded', 'false'); };
+    toggle.addEventListener('click', () => {
+      menu.hidden = !menu.hidden;
+      toggle.setAttribute('aria-expanded', String(!menu.hidden));
+      if (!menu.hidden) menu.querySelector('button')?.focus();
+    });
+    document.addEventListener('click', (e) => { if (!bar.contains(e.target)) close(); });
+    menu.addEventListener('keydown', (e) => {
+      const items = [...menu.querySelectorAll('button')];
+      const i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { close(); toggle.focus(); }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
+      }
+    });
+
+    menu.addEventListener('click', async (e) => {
+      const b = e.target.closest('button[data-action]');
+      if (!b) return;
+      close();
+      const text = ta.value;
+      const plain = isRich ? (new DOMParser().parseFromString(text, 'text/html').body.textContent || '') : text;
+      if (!plain.trim()) { Toast.show(t.empty, 'warning'); return; }
+      toggle.disabled = true;
+      root.classList.add('is-busy');
+      const label = toggle.lastChild.textContent;
+      toggle.lastChild.textContent = ` ${t.working}`;
+      try {
+        const res = await request(cfg.url, { method: 'POST', data: { action: b.dataset.action, text } });
+        const preview = document.createElement('div');
+        preview.className = `qs-assist-preview${isRich ? ' qs-richtext-view' : ''}`;
+        if (isRich) preview.innerHTML = res.text; // HTML ya limpio (HtmlSanitizer en el servidor)
+        else preview.textContent = res.text;
+        const ok = await Dialog.open({ title: t.title, content: preview, wide: true, okText: t.replace, variant: 'ai' });
+        if (!ok) return;
+        const ed = $('.qs-richtext-editor', root);
+        if (ed) {
+          ed.innerHTML = res.text;
+          ed.dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+          ta.value = res.text;
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } catch (err) {
+        Dialog.alert(err.message, { variant: 'danger' });
+      } finally {
+        toggle.disabled = false;
+        root.classList.remove('is-busy');
+        toggle.lastChild.textContent = label;
+      }
+    });
+  }
+
   // ------------------------------------------------------------------ avisos (campana)
 
   function initNotifications(root) {
@@ -2674,21 +3310,190 @@
     poll();
   }
 
+  // ------------------------------------------------------------------ ver la contraseña escrita
+
+  // Botón con un ojo dentro de los campos de contraseña (al enviar el formulario vuelve a ocultarse)
+  // y aviso de Bloq Mayús
+  function initPasswordToggle(input) {
+    if (input.qsPassword || input.readOnly || input.disabled) return;
+    input.qsPassword = true;
+    const wrap = document.createElement('span');
+    wrap.className = 'qs-password';
+    input.replaceWith(wrap);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'qs-password-toggle';
+    wrap.append(input, btn);
+    const show = (visible) => {
+      input.type = visible ? 'text' : 'password';
+      const label = visible ? T.hidePassword : T.showPassword;
+      btn.title = label;
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('aria-pressed', String(visible));
+      btn.replaceChildren(icon(visible ? 'eye-off' : 'eye'));
+    };
+    show(false);
+    btn.addEventListener('click', () => {
+      const end = input.value.length;
+      show(input.type === 'password');
+      input.focus();
+      input.setSelectionRange(end, end);
+    });
+    input.form?.addEventListener('submit', () => show(false));
+
+    // Aviso de Bloq Mayús activado (causa típica de «no me deja entrar»)
+    const caps = document.createElement('span');
+    caps.className = 'qs-capslock';
+    caps.setAttribute('role', 'status');
+    caps.hidden = true;
+    caps.append(icon('triangle-alert'), document.createTextNode(` ${T.capsLock}`));
+    wrap.after(caps);
+    const checkCaps = (e) => { if (e.getModifierState) caps.hidden = !e.getModifierState('CapsLock'); };
+    input.addEventListener('keydown', checkCaps);
+    input.addEventListener('keyup', checkCaps);
+    input.addEventListener('blur', () => { caps.hidden = true; });
+  }
+
   // Inicializa los componentes de un fragmento (también filas nuevas de un repeater)
   function initWidgets(scope) {
     const find = (sel) => [...(scope.matches?.(sel) ? [scope] : []), ...$$(sel, scope)];
+    find('input[type="password"]').forEach(initPasswordToggle);
     find('[data-repeater]').forEach(initRepeater);
     find('[data-media]').forEach(initMedia);
     find('select[data-combobox]').forEach(initCombobox);
     find('[data-tags]').forEach(initTags);
     find('[data-richtext]').forEach(initRichText);
+    find('[data-assist]').forEach(initAssist);
+  }
+
+  // ------------------------------------------------------------------ calendario: semana y día
+
+  // Arrastrar un evento cambia su hora (y su día si se suelta en otra columna); estirar el borde de abajo, su
+  // duración; pulsar una franja vacía abre el alta con esa hora. Todo se ajusta a las franjas ("slot").
+  // El servidor (CalendarPage::actionMove) vuelve a comprobar permisos, scope, validación y hooks.
+  function initCalendarGrid(grid) {
+    let cfg;
+    try { cfg = JSON.parse(grid.dataset.calGrid); } catch { return; }
+    const cols = $$('.qs-cal-col', grid);
+    const pad = (n) => String(n).padStart(2, '0');
+    const minutesOf = (value) => { // "2026-11-03 09:30" → minutos desde el inicio visible
+      const m = /(\d{2}):(\d{2})/.exec(value.slice(11));
+      return m ? (+m[1] - cfg.startHour) * 60 + +m[2] : 0;
+    };
+    const stamp = (date, minutes) => {
+      const total = cfg.startHour * 60 + minutes;
+      return `${date}T${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
+    };
+    const perMinute = () => cols[0].getBoundingClientRect().height / cfg.span;
+    const snap = (minutes) => Math.round(minutes / cfg.slot) * cfg.slot;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const colAt = (x) => cols.find((c) => { const r = c.getBoundingClientRect(); return x >= r.left && x < r.right; });
+
+    // Alta en una franja vacía
+    if (cfg.newUrl) {
+      cols.forEach((col) => col.addEventListener('click', (e) => {
+        if (e.target.closest('.qs-cal-tevent')) return;
+        const start = clamp(Math.floor((e.clientY - col.getBoundingClientRect().top) / perMinute() / cfg.slot) * cfg.slot, 0, cfg.span - cfg.slot);
+        const v = new URLSearchParams();
+        v.set(`v[${cfg.dateField}]`, stamp(col.dataset.date, start));
+        if (cfg.endField) v.set(`v[${cfg.endField}]`, stamp(col.dataset.date, Math.min(start + cfg.duration, cfg.span)));
+        window.location.href = `${cfg.newUrl}&${v.toString()}`;
+      }));
+    }
+    if (!cfg.moveUrl) return;
+
+    let drag = null;
+    let suppressClick = false;
+
+    $$('.qs-cal-tevent:not(.is-clipped)', grid).forEach((ev) => {
+      // Es un enlace: sin esto el navegador empieza su propio arrastre (y cancela los eventos de puntero)
+      ev.draggable = false;
+      ev.addEventListener('dragstart', (e) => e.preventDefault());
+      ev.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault(); // ni arrastre nativo ni selección de texto; el clic sigue llegando
+        const top = minutesOf(ev.dataset.start);
+        const end = ev.dataset.end && ev.dataset.end.slice(0, 10) === ev.dataset.start.slice(0, 10) ? minutesOf(ev.dataset.end) : top + cfg.duration;
+        drag = {
+          ev, mode: e.target.closest('.qs-cal-resize') ? 'resize' : 'move',
+          x: e.clientX, y: e.clientY, moved: false,
+          top, dur: Math.max(cfg.slot, end - top), col: ev.closest('.qs-cal-col'),
+          style: ev.getAttribute('style'),
+          timeText: $('.qs-cal-time', ev)?.textContent ?? '',
+        };
+        drag.newTop = drag.top;
+        drag.newDur = drag.dur;
+        drag.newCol = drag.col;
+        ev.setPointerCapture(e.pointerId);
+      });
+
+      ev.addEventListener('pointermove', (e) => {
+        if (!drag || drag.ev !== ev) return;
+        if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 5) return;
+        if (!drag.moved) {
+          drag.moved = true;
+          ev.classList.add('is-dragging');
+          ev.style.left = '0';
+          ev.style.width = '100%';
+        }
+        const delta = snap((e.clientY - drag.y) / perMinute());
+        if (drag.mode === 'move') {
+          drag.newTop = clamp(drag.top + delta, 0, cfg.span - drag.dur);
+          const col = colAt(e.clientX);
+          if (col && col !== drag.newCol) { col.append(ev); drag.newCol = col; }
+        } else {
+          drag.newDur = clamp(drag.dur + delta, cfg.slot, cfg.span - drag.top);
+        }
+        ev.style.top = `${(drag.newTop / cfg.span) * 100}%`;
+        ev.style.height = `${(drag.newDur / cfg.span) * 100}%`;
+        const time = $('.qs-cal-time', ev);
+        if (time) time.textContent = `${stamp('', drag.newTop).slice(1)}–${stamp('', drag.newTop + drag.newDur).slice(1)}`;
+      });
+
+      const finish = async () => {
+        if (!drag || drag.ev !== ev) return;
+        const d = drag;
+        drag = null;
+        if (!d.moved) return; // un clic: abre la ficha
+        suppressClick = true;
+        ev.classList.remove('is-dragging');
+        if (d.newTop === d.top && d.newDur === d.dur && d.newCol === d.col) {
+          ev.setAttribute('style', d.style);
+          return;
+        }
+        ev.classList.add('is-saving');
+        const date = d.newCol.dataset.date;
+        const data = { id: ev.dataset.id, start: stamp(date, d.newTop) };
+        if (cfg.endField) data.end = stamp(date, d.newTop + d.newDur);
+        try {
+          await request(cfg.moveUrl, { method: 'POST', data });
+          window.location.reload(); // la rejilla vuelve a calcular las columnas de los solapados
+        } catch (err) {
+          // Rechazado (permisos, validación, hooks…): vuelve a su sitio y se explica por qué
+          d.col.append(ev);
+          ev.setAttribute('style', d.style);
+          ev.classList.remove('is-saving');
+          const time = $('.qs-cal-time', ev);
+          if (time) time.textContent = d.timeText;
+          Toast.show(fmt(cfg.error, { error: err.message }), 'danger', 6000);
+        }
+      };
+      ev.addEventListener('pointerup', finish);
+      ev.addEventListener('pointercancel', () => {
+        if (drag?.ev === ev) { drag.col.append(ev); ev.setAttribute('style', drag.style); ev.classList.remove('is-dragging'); drag = null; }
+      });
+      ev.addEventListener('click', (e) => {
+        if (suppressClick) { e.preventDefault(); suppressClick = false; }
+      });
+    });
   }
 
   // ------------------------------------------------------------------ alta rápida en una ventana (quickCreate)
 
-  function openModal({ url, label }) {
+  // size "small": ventana baja para formularios cortos (filtros de un informe)
+  function openModal({ url, label, size = '' }) {
     const dlg = document.createElement('dialog');
-    dlg.className = 'qs-modal';
+    dlg.className = size === 'small' ? 'qs-modal qs-modal-sm' : 'qs-modal';
     dlg.setAttribute('aria-label', label);
     const head = document.createElement('div');
     head.className = 'qs-modal-head';
@@ -2734,9 +3539,79 @@
     const btn = e.target.closest('[data-quick-create]');
     if (btn) openModal(JSON.parse(btn.dataset.quickCreate));
   });
+  // ------------------------------------------------------------------ menús de botón (Informes del listado)
+
+  $$('[data-menu]').forEach((menu) => {
+    const toggle = $('[data-menu-toggle]', menu);
+    const list = $('[role="menu"]', menu);
+    const items = () => $$('[role="menuitem"]', list);
+    const open = (yes) => {
+      list.hidden = !yes;
+      toggle.setAttribute('aria-expanded', String(yes));
+      if (yes) items()[0]?.focus();
+    };
+    toggle.addEventListener('click', () => open(list.hidden));
+    document.addEventListener('click', (e) => { if (!menu.contains(e.target)) open(false); });
+    list.addEventListener('click', (e) => { if (e.target.closest('[role="menuitem"]')) open(false); });
+    list.addEventListener('keydown', (e) => {
+      const all = items();
+      const i = all.indexOf(document.activeElement);
+      if (e.key === 'Escape') { open(false); toggle.focus(); }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        all[(i + (e.key === 'ArrowDown' ? 1 : -1) + all.length) % all.length]?.focus();
+      }
+    });
+  });
+
+  // Filtros de un informe PDF dentro de la ventana del listado: el PDF se abre en otra pestaña y la ventana se cierra
+  $$('form[data-report-form].is-modal').forEach((form) => {
+    const close = () => window.parent.postMessage({ type: 'qs:modal-close' }, window.location.origin);
+    form.addEventListener('submit', () => setTimeout(close, 50));
+    form.addEventListener('click', (e) => { if (e.target.closest('[data-modal-close]')) close(); });
+    window.addEventListener('message', (e) => {
+      if (e.origin === window.location.origin && e.data?.type === 'qs:modal-escape') close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !e.defaultPrevented && !Dialog.isOpen() && !e.target.closest?.('select')) close();
+    });
+    $('.qs-input:not([type="hidden"])', form)?.focus();
+  });
+
   // Dentro de la ventana: el registro se ha guardado, se avisa a la página que la abrió
   $$('[data-modal-done]').forEach((el) => {
     window.parent.postMessage({ type: 'qs:modal-saved', ...JSON.parse(el.dataset.modalDone) }, window.location.origin);
+  });
+
+  /*
+   * Envíos repetidos: con el servidor lento, el usuario pulsa «Desa» varias veces y se guardaría (o crearía)
+   * dos veces. Un formulario que ya se está enviando ignora los siguientes envíos y su botón muestra que está
+   * trabajando. Va después de los demás manejadores de submit: solo cuenta lo que de verdad se envía (no lo
+   * que cancela la validación, una confirmación o un formulario que se gestiona por JS).
+   * Los que no cambian de página (target="_blank", descargas) se liberan solos; data-no-lock lo desactiva.
+   */
+  document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (e.defaultPrevented || !(form instanceof HTMLFormElement) || form.matches('[data-no-lock]')) return;
+    if (form.dataset.submitting) {
+      e.preventDefault();
+      return;
+    }
+    form.dataset.submitting = '1';
+    const btn = e.submitter instanceof HTMLButtonElement ? e.submitter : $('button[type="submit"], button:not([type])', form);
+    // Después de este evento: un botón desactivado ya no enviaría su name/value
+    setTimeout(() => btn && setBusy(btn, true));
+    const release = () => {
+      delete form.dataset.submitting;
+      if (btn) setBusy(btn, false);
+    };
+    setTimeout(release, form.target === '_blank' ? 1500 : 20000);
+  });
+  // Volver con «Atrás» a una página guardada en caché: los botones vuelven a estar disponibles
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    $$('form[data-submitting]').forEach((f) => delete f.dataset.submitting);
+    $$('.qs-btn.is-loading').forEach((b) => setBusy(b, false));
   });
 
   // ------------------------------------------------------------------ arranque
@@ -2748,6 +3623,7 @@
   $$('form.qs-permissions').forEach(initPermissions);
   $$('[data-notifications]').forEach(initNotifications);
   $$('[data-chat]').forEach(initChat);
+  $$('[data-cal-grid]').forEach(initCalendarGrid);
 
   // Verificación en dos pasos: cuenta atrás hasta poder reenviar el código
   $$('[data-countdown]').forEach((btn) => {
@@ -2776,6 +3652,17 @@
     $$('[data-sidebar-toggle]').forEach((btn) => btn.setAttribute('aria-expanded', String(!collapsed)));
   };
   $$('[data-sidebar-toggle]').forEach((btn) => btn.addEventListener('click', toggleSidebar));
+
+  // Grupos del menú plegables; los plegados van en la cookie qs_nav para pintarlos ya plegados
+  $$('[data-nav-group]').forEach((section) => {
+    const btn = $('.qs-nav-group', section);
+    btn.addEventListener('click', () => {
+      const closed = section.classList.toggle('is-closed');
+      btn.setAttribute('aria-expanded', String(!closed));
+      const names = $$('[data-nav-group].is-closed').map((s) => s.dataset.navGroup);
+      document.cookie = `qs_nav=${encodeURIComponent(names.join(','))}; path=/; max-age=31536000; SameSite=Lax`;
+    });
+  });
 
   document.addEventListener('keydown', (e) => {
     if (Dialog.isOpen()) return;

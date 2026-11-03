@@ -28,6 +28,9 @@ final class Migrator
         $this->ensureColumn('users', 'groups', 'JSON NULL AFTER is_admin');
         $this->ensureColumn('users', 'notify_email', "VARCHAR(10) NOT NULL DEFAULT 'instant' AFTER two_factor");
         $this->runSqlFile(QS_ROOT . '/database/schema.sql');
+        $this->ensureColumn('reports', 'chart', 'TEXT NULL AFTER row_limit');
+        $this->ensureColumn('reports', 'comment', 'TEXT NULL AFTER chart');
+        $this->ensureColumn('reports', 'comment_at', 'DATETIME NULL AFTER comment');
 
         // Tablas de ejemplo: se ponen al día si existen, y solo se crean si se piden
         $this->ensureColumn('clients', 'contacts', 'JSON NULL');

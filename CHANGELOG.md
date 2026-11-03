@@ -2,10 +2,111 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.16.0 — 2026-11-03
+
+`bin/install.php` (o `migrate`) crea la tabla `api_tokens`.
+
+- **API REST para apps y bots** (`/api/v1/…`, config `api`, desactivada por defecto): tokens personales (desde el
+  perfil, *Aplicacions i API*, o con `POST auth/token`; en BD solo el hash), listado con los filtros, buscador y orden
+  de la web, ficha, alta, modificación parcial (`PATCH`), borrado, esquema de cada módulo, opciones de selects,
+  archivos, conversación, acciones propias, avisos y datos de páginas (`Page::api()`). Cada petición actúa como su
+  usuario: mismos permisos, `scope`, `access` y hooks que la web. `public/.htaccess` reescribe `/api/` y pasa la
+  cabecera `Authorization`. Ver README, «API para apps y bots».
+- **Páginas públicas** (`"public": true`): se abren sin iniciar sesión en `index.php?r=public&m=…`, sin menú y sin
+  permisos (no salen en la matriz); la página valida el acceso, p. ej. con un token en la URL.
+- `FormHandler::process(…, $partial)`: guarda solo los campos recibidos. `DataQuery::page()`: filas sin formatear y
+  paginadas.
+- Seguridad: un select de solo lectura ya no incluye en la página todas sus opciones (solo la elegida), y
+  `r=options` solo responde para campos editables o filtros (antes, p. ej., la lista de todos los usuarios).
+
+## 0.15.0 — 2026-11-02
+
+- **Grupos del menú plegables**: el título de cada grupo del menú lateral pliega y despliega sus módulos; se recuerda
+  en la cookie `qs_nav` y el grupo del módulo abierto siempre se ve desplegado.
+- Las fichas del inicio (`qs-tile`) con un texto largo ya no estrechan el icono.
+
+## 0.14.0 — 2026-11-02
+
+- **Página de inicio configurable**: `'home' => 'módulo'` en la configuración lleva *Inicio* (y la entrada después del
+  login) a ese módulo para quien puede verlo; `index.php?r=home&menu=1` muestra el inicio de siempre.
+
+## 0.13.0 — 2026-11-02
+
+- **Calendario con vistas de semana y día** (`CalendarPage`): rejilla de horas para fechas `datetime`, con
+  `views`, `hours`, `slot`, `days`, `duration` y un campo de fin opcional (`end`) en `calendar`. Los eventos se
+  **arrastran** (otra hora u otro día) y **se estiran** (otra duración); mover pasa por el permiso Editar, `scope`,
+  `editAccess`, validación y hooks como guardar la ficha. Pulsar una franja vacía abre el alta con esa hora; los que
+  se solapan se reparten la columna. Sin `views`, el calendario sigue siendo solo mensual, como antes.
+- `branding.logo_plate = false`: el logo sin la placa blanca de la barra lateral y del login (logos transparentes).
+- Calendario: el color puede salir de un campo que guarda `#rrggbb` (además de un select); el número del día lleva a
+  la vista de día; textos genéricos en `cal.*` de `common.json`, que cada calendario puede redefinir.
+
+## 0.12.0 — 2026-10-29
+
+`bin/install.php` (o `migrate`) crea la tabla `password_resets`.
+
+- **Recuperar la contraseña** desde el login: enlace de un solo uso por correo (1 hora, máximo 3 por usuario y hora),
+  misma respuesta exista o no el usuario, y al cambiarla se desbloquea la cuenta, se revocan los dispositivos de
+  confianza y se avisa por correo. Configuración en `password_reset`. Ver README, «Recuperar la contraseña».
+- **Invitar usuarios**: al crear un usuario, *Envia una invitació* (por defecto) le envía un enlace para elegir su
+  contraseña; en la ficha, *Envia l'enllaç de contrasenya* le envía uno para cambiarla (o la invitación otra vez).
+  Caducan en `password_reset.invite_ttl` (7 días).
+- **Doble clic**: un formulario que ya se está enviando ignora los siguientes envíos y su botón muestra que está
+  trabajando; también los botones de acción y los de Excel/PDF. `data-no-lock` lo desactiva en un formulario.
+- **Login**: el mensaje de cuenta bloqueada dice cuántos minutos faltan y enlaza a recuperar la contraseña; aviso de
+  Bloq Mayús activado en los campos de contraseña.
+- Campos: opción `createOnly` (solo en el formulario de alta).
+- **Ver la contraseña**: botón con un ojo en todos los campos de contraseña (login, contraseña nueva, perfil y campos
+  `password` de los formularios); al enviar el formulario se vuelve a ocultar.
+- Los Informes IA nunca pueden consultar `password_resets`.
+
+## 0.11.0 — 2026-10-29
+
+- **Informes PDF** (módulos `"type": "report"`): cada instalación define en un JSON sus documentos PDF con filtros
+  propios (`params`, los mismos tipos de campo que un formulario), una consulta con parámetros `:nombre` (consulta
+  preparada; `:user_id` es el usuario conectado), consultas de un valor (`values`) y la maquetación: bloque de datos,
+  tabla con anchos relativos, formatos, agrupación con subtotales, totales (`sum`, `avg`, `min`, `max`, `count`) y
+  resumen final. Se ofrecen en un desplegable *Informes* de la barra de los listados (`"list": { "reports": [...] }`)
+  y en el menú; permiso *Ver* de cada informe en la matriz. Se ejecutan en solo lectura con los límites de `reports`.
+  Ejemplo en la demo: *Activitats per client*. Ver README, «Informes PDF».
+- Fechas: `"default"` admite `first_of_month`, `last_of_month`, `first_of_last_month`, `last_of_last_month`,
+  `first_of_year` y `last_of_year`.
+
+## 0.10.0 — 2026-10-28
+
+- **Instalación desde Cosmo** (0.3.0+): `bin/cosmo-setup.php` recibe del instalador de Cosmo la base de datos, la URL,
+  el token y la plantilla de configuración; escribe `config/config.local.php`, crea las tablas y el administrador y,
+  sin datos de ejemplo, quita los módulos de ejemplo.
+- `Quasar\Core\Installer`: la lógica de `bin/install.php` (base de datos, tablas, administrador). Si la base de
+  datos ya existe no intenta crearla (en hostings compartidos el usuario no tiene permiso para `CREATE DATABASE`).
+
+## 0.9.0 — 2026-10-28
+
+- **Constructor de módulos** (*Administración → Constructor*, solo administradores): a partir de una descripción, de un
+  Excel/CSV o de ambos, la IA propone la tabla, el listado y el formulario; el administrador la revisa, pide cambios o
+  edita el JSON y, al confirmar, Quasar genera el `CREATE TABLE`, `modules/{nombre}.json`, los textos en los tres
+  idiomas e importa las filas del fichero. Lector de `.xlsx` y CSV propio.
+- `ai.max_tokens` configurable (por defecto 4096).
+- PHP 8.5: fuera `curl_close()` y `$http_response_header`, que solo llenaban el log de avisos.
+- Avisos de tipo `warning` con estilo propio.
+
+## 0.8.0 — 2026-10-28
+
+IA en los informes y en los textos. `bin/install.php` (o `migrate`) crea las columnas `reports.comment` y
+`reports.comment_at`.
+
+- **Comentario de la IA en los informes**: resumen y observaciones del resultado (totales de las columnas numéricas y
+  primeras 200 filas), que se guarda con el informe y lo ven todos los que lo ven. `'comment' => false` en `reports`
+  para desactivarlo (envía datos a la IA).
+- **Ayuda a redactar** (`"assist": true` en textarea y richtext): mejorar, más formal, más breve, corregir y traducir,
+  con vista previa antes de sustituir el texto.
+- `Dialog.open()` admite `content` (un nodo bajo el mensaje) y `wide`.
+
 ## 0.7.0 — 2026-10-26
 
 Registros visibles por usuario, conversación en la ficha, avisos y Google Meet. `bin/install.php` (o `migrate`) crea
-las tablas `notifications`, `messages`, `message_reads` y `settings`, y la columna `users.notify_email`.
+las tablas `notifications`, `messages`, `message_reads` y `settings`, y las columnas `users.notify_email` y
+`reports.chart`.
 
 - **`scope`** en los módulos: qué registros ve cada grupo (`{user.columna}` como parámetro), con `set` para fijar
   columnas al guardar, y **`where`** fijo para todos. Se aplica en el servidor en listado, filtros (también los de IA),
@@ -31,14 +132,10 @@ las tablas `notifications`, `messages`, `message_reads` y `settings`, y la colum
 - **Alta rápida** (`quickCreate`): botón en la barra superior que abre el alta de un módulo en una ventana, rellenada
   con el registro que se está viendo (`context`); `?modal=1` en cualquier alta. Fechas con `"default": "today"`.
 - **`login_field`**: entrar con el nombre de usuario (por defecto), con el email o con cualquiera de los dos.
-- **API REST para apps y bots** (`/api/v1/…`, config `api`): tokens personales (desde el perfil o con
-  `POST auth/token`, tabla `api_tokens`), listado con los filtros de la web, ficha, alta, modificación parcial, borrado,
-  opciones de selects, archivos, conversación, acciones propias, avisos y datos de páginas (`Page::api()`). Mismos
-  permisos, `scope` y hooks que la web.
-- **Páginas públicas** (`"public": true`): se abren sin iniciar sesión en `index.php?r=public&m=…`, sin menú y sin
-  permisos; la página valida el acceso (p. ej. con un token en la URL).
-- Seguridad: un select de solo lectura ya no incluye en la página todas sus opciones (solo la elegida), y
-  `r=options` solo responde para campos editables o filtros.
+- **Informes: pestaña *Gráfico*** (columnas, barras, líneas o circular, en SVG propio). La IA propone el gráfico al
+  crear el informe; el usuario cambia tipo, categorías y valores, lo guarda con el informe y lo descarga en PNG.
+- `demo.sql`: más datos de ejemplo (5 países, 100 clientes y 600 actividades de los últimos 18 meses) para probar
+  listados, filtros e informes.
 - **`menu.access`**: un módulo en el menú solo para algunos grupos. **`requires`**: un módulo solo existe si existen otros
   (el calendario de ejemplo ya no da 404 sin `activities`).
 - **`lang/{idioma}/app.json`**: textos propios de la instalación compartidos por todos los módulos, que una

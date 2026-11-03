@@ -12,7 +12,8 @@
     "last_login": "Last login",
     "created_at": "Created",
     "two_factor": "Two-step verification",
-    "groups": "Groups"
+    "groups": "Groups",
+    "invite": "Send an invitation"
   },
   "sections": {
     "account": "Account",
@@ -22,7 +23,8 @@
   "help": {
     "is_admin": "Full access, including administration",
     "two_factor": "Only applies when two_factor.mode = optional in the configuration",
-    "groups": "Group permissions are added to the user's own"
+    "groups": "Group permissions are added to the user's own",
+    "invite": "They will get an email to choose their password (an email address is required). Untick it to set it yourself."
   },
   "validation": {
     "username": "Only letters, numbers, dot and underscore"
@@ -30,9 +32,18 @@
   "errors": {
     "self_admin": "You cannot remove your own administrator role",
     "self_active": "You cannot disable your own user",
-    "self_delete": "You cannot delete your own user"
+    "self_delete": "You cannot delete your own user",
+    "invite_email": "An email address is required to send an invitation",
+    "link_inactive": "The user is inactive or has no email address",
+    "reset_disabled": "Password recovery is disabled in this installation"
   },
   "placeholders": {
     "groups": "No groups"
+  },
+  "actions": {
+    "send_link": "Send password link"
+  },
+  "confirm": {
+    "send_link": "A link to choose a new password will be sent to the user's email (an invitation if they have never signed in). The current password will keep working until they choose a new one."
   }
 }

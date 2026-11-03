@@ -12,7 +12,8 @@
     "last_login": "Último acceso",
     "created_at": "Creado",
     "two_factor": "Verificación en dos pasos",
-    "groups": "Grupos"
+    "groups": "Grupos",
+    "invite": "Enviar una invitación"
   },
   "sections": {
     "account": "Cuenta",
@@ -22,7 +23,8 @@
   "help": {
     "is_admin": "Acceso total, incluida la administración",
     "two_factor": "Solo se aplica si two_factor.mode = optional en la configuración",
-    "groups": "Los permisos de los grupos se suman a los del usuario"
+    "groups": "Los permisos de los grupos se suman a los del usuario",
+    "invite": "Le llegará un correo para elegir su contraseña (necesita un correo electrónico). Desmárcalo para ponerla tú."
   },
   "validation": {
     "username": "Solo letras, números, punto y guion bajo"
@@ -30,9 +32,18 @@
   "errors": {
     "self_admin": "No puedes quitarte a ti mismo el rol de administrador",
     "self_active": "No puedes desactivar tu propio usuario",
-    "self_delete": "No puedes eliminar tu propio usuario"
+    "self_delete": "No puedes eliminar tu propio usuario",
+    "invite_email": "Para enviar una invitación hace falta el correo electrónico del usuario",
+    "link_inactive": "El usuario está desactivado o no tiene correo electrónico",
+    "reset_disabled": "La recuperación de contraseña está desactivada en esta instalación"
   },
   "placeholders": {
     "groups": "Sin grupos"
+  },
+  "actions": {
+    "send_link": "Enviar el enlace de contraseña"
+  },
+  "confirm": {
+    "send_link": "Se enviará al correo del usuario un enlace para elegir una contraseña nueva (si aún no ha entrado nunca, una invitación). La contraseña actual seguirá funcionando hasta que elija otra."
   }
 }

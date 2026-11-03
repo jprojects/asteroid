@@ -222,7 +222,7 @@ final class ApiController extends Controller
         $info = [
             'name' => $m->name,
             'title' => $m->title(),
-            'type' => $m->isPage() ? 'page' : 'table',
+            'type' => $m->isReport() ? 'report' : ($m->isPage() ? 'page' : 'table'),
             'group' => $m->menuGroup(),
             'icon' => $m->icon(),
             'in_menu' => $m->inMenu() && $m->menuAllows($user),

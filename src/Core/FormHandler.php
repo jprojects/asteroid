@@ -75,7 +75,8 @@ final class FormHandler
         $errors = [];
         $data = [];
 
-        $fields = $this->module->formFields();
+        // "createOnly": esos campos solo existen en el alta
+        $fields = array_values(array_filter($this->module->formFields(), static fn ($f) => $isNew || !$f->isCreateOnly()));
         foreach ($fields as $f) {
             if (!$f->isReadonly() && (!$partial || array_key_exists($f->name, $input))) {
                 $values[$f->name] = $f->fromRequest($input);

@@ -15,7 +15,7 @@
   <form method="post" action="<?= $this->url('verify') ?>" class="qs-login-card" data-verify>
     <div class="qs-login-brand">
       <?php if ($this->logoUrl()): ?>
-        <img class="qs-login-logo" src="<?= $this->logoUrl() ?>" alt="<?= $this->e($this->appName()) ?>">
+        <img class="<?= $this->logoClass('qs-login-logo') ?>" src="<?= $this->logoUrl() ?>" alt="<?= $this->e($this->appName()) ?>">
       <?php else: ?>
         <img class="qs-brand-mark" src="<?= $this->asset('logo.svg') ?>" alt="" width="28" height="28"><?= $this->e($this->appName()) ?>
       <?php endif ?>

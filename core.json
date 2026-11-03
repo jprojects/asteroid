@@ -20,10 +20,13 @@
         "src/Remote/**",
         "src/Ai/**",
         "src/Reports/**",
+        "src/Builder/**",
         "src/Google/**",
         "src/Pages/CalendarPage.php",
         "src/Pages/ReportsPage.php",
         "src/Pages/IntegrationsPage.php",
+        "src/Pages/BuilderPage.php",
+        "src/Pages/PdfReportPage.php",
         "src/Hooks/UsersHooks.php",
         "src/Hooks/GroupsHooks.php",
         "src/Hooks/AiUsageHooks.php",
@@ -34,6 +37,7 @@
         "modules/reports.json",
         "modules/calendar.json",
         "modules/integrations.json",
+        "modules/builder.json",
         "lang/*/common.json",
         "lang/*/admin.json",
         "lang/*/profile.json",
@@ -43,6 +47,7 @@
         "lang/*/reports.json",
         "lang/*/calendar.json",
         "lang/*/integrations.json",
+        "lang/*/builder.json",
         "storage/.htaccess"
     ]
 }

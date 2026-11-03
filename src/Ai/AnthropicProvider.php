@@ -15,7 +15,7 @@ final class AnthropicProvider implements LlmProvider
 {
     private const URL = 'https://api.anthropic.com';
     private const API_VERSION = '2026-10-21';
-    private const MAX_TOKENS = 4096; // incluye el razonamiento; la respuesta en sí son unos cientos de tokens
+    private const MAX_TOKENS = 4096; // por defecto; incluye el razonamiento (el constructor de módulos pide más)
 
     public function __construct(
         private readonly string $apiKey,
@@ -23,6 +23,7 @@ final class AnthropicProvider implements LlmProvider
         private readonly string $effort = 'low',
         private readonly int $timeout = 20,
         private readonly ?string $baseUrl = null,   // proxy o pasarela propia; por defecto la API de Anthropic
+        private readonly int $maxTokens = self::MAX_TOKENS,
     ) {
     }
 
@@ -40,7 +41,7 @@ final class AnthropicProvider implements LlmProvider
     {
         $body = [
             'model' => $this->model,
-            'max_tokens' => self::MAX_TOKENS,
+            'max_tokens' => $this->maxTokens,
             'system' => [['type' => 'text', 'text' => $system, 'cache_control' => ['type' => 'ephemeral']]],
             'messages' => [['role' => 'user', 'content' => $user]],
             'output_config' => [
@@ -67,7 +68,6 @@ final class AnthropicProvider implements LlmProvider
         $raw = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $error = $raw === false ? curl_error($ch) : null;
-        curl_close($ch);
 
         if ($error !== null) {
             throw new LlmException('No se puede conectar con Anthropic: ' . $error);

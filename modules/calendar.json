@@ -8,6 +8,8 @@
     "source": "activities",
     "date": "starts_at",
     "title": "title",
-    "color": "type"
+    "color": "type",
+    "views": ["month", "week", "day"],
+    "hours": [8, 20]
   }
 }

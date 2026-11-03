@@ -6,12 +6,16 @@ namespace Quasar\Reports;
 /**
  * Un informe (fila de la tabla reports): su consulta, columnas con título y tipo, orden y límite.
  * Sabe mostrar cada valor en pantalla y prepararlo para Excel según el tipo de su columna.
+ * Puede llevar un gráfico (tipo, columna de categorías y columnas numéricas) para la pestaña "Gráfico"
+ * y el último comentario de la IA sobre su resultado.
  */
 final class Report
 {
     /**
      * @param list<array{name:string,label:string,type:string}> $columns
      * @param list<array{column:string,dir:string}> $sort
+     * @param array{type:string,x:string,series:list<string>}|null $chart
+     * @param array{summary:string,points:list<string>,caveats:?string}|null $comment
      */
     private function __construct(
         public readonly int $id,
@@ -24,6 +28,9 @@ final class Report
         public readonly array $columns,
         public readonly array $sort,
         public readonly ?int $limit,
+        public readonly ?array $chart,
+        public readonly ?array $comment,
+        public readonly ?string $commentAt,
     ) {
     }
 
@@ -31,6 +38,7 @@ final class Report
     {
         $columns = json_decode((string) $r['columns'], true);
         $sort = json_decode((string) ($r['sort'] ?? '[]'), true);
+        $columns = is_array($columns) ? $columns : [];
         return new self(
             (int) $r['id'],
             $r['user_id'] !== null ? (int) $r['user_id'] : null,
@@ -39,10 +47,43 @@ final class Report
             (string) $r['title'],
             (string) ($r['explanation'] ?? ''),
             (string) $r['query'],
-            is_array($columns) ? $columns : [],
+            $columns,
             is_array($sort) ? $sort : [],
             $r['row_limit'] !== null ? (int) $r['row_limit'] : null,
+            self::cleanChart(json_decode((string) ($r['chart'] ?? 'null'), true), $columns),
+            ReportComment::clean(json_decode((string) ($r['comment'] ?? 'null'), true)),
+            isset($r['comment_at']) ? (string) $r['comment_at'] : null,
         );
+    }
+
+    /**
+     * Gráfico válido para estas columnas o null: tipo conocido, "x" que exista y de 1 a 8 series numéricas
+     * distintas de "x" (el circular, solo una).
+     * @param list<array{name:string,label:string,type:string}> $columns
+     * @return array{type:string,x:string,series:list<string>}|null
+     */
+    public static function cleanChart(mixed $chart, array $columns): ?array
+    {
+        if (!is_array($chart) || !in_array($chart['type'] ?? null, ReportAi::CHARTS, true)) {
+            return null;
+        }
+        $names = array_column($columns, 'name');
+        $x = $chart['x'] ?? null;
+        if (!is_string($x) || !in_array($x, $names, true)) {
+            return null;
+        }
+        $numeric = array_column(array_filter($columns, static fn ($c) => self::isNumericType($c['type'])), 'name');
+        $series = array_values(array_unique(array_filter(
+            (array) ($chart['series'] ?? []),
+            static fn ($s) => is_string($s) && $s !== $x && in_array($s, $numeric, true)
+        )));
+        $series = array_slice($series, 0, $chart['type'] === 'pie' ? 1 : 8);
+        return $series === [] ? null : ['type' => $chart['type'], 'x' => $x, 'series' => $series];
+    }
+
+    public static function isNumericType(string $type): bool
+    {
+        return in_array($type, ['integer', 'decimal', 'money', 'percent'], true);
     }
 
     /**

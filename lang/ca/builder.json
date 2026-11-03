@@ -1,0 +1,105 @@
+{
+  "title": "Constructor",
+  "description": "Crea taules noves amb el seu llistat i formulari a partir d'una descripció o d'un Excel o CSV",
+  "intro": "Descriu què vols gestionar o puja un Excel o CSV (o totes dues coses). La IA proposa la taula, el llistat i el formulari; els revises, demanes canvis o edites la proposta, i només en confirmar es crea la taula a la base de dades, els fitxers del mòdul i, si has pujat un fitxer, se n'importen les files.",
+  "ask": {
+    "label": "Què vols gestionar?",
+    "placeholder": "P. ex. «projectes amb client, responsable, data d'inici i de lliurament, pressupost i estat (pendent, en curs, lliurat)»",
+    "file": "Excel o CSV (opcional)",
+    "file_help": "Primer full del .xlsx o .csv amb capçaleres; fins a 20 MB i 50.000 files. Se'n fan servir les columnes per proposar els camps i s'importen en crear el mòdul.",
+    "submit": "Proposa el mòdul",
+    "working": "La IA està dissenyant el mòdul…",
+    "empty": "Escriu una descripció o puja un fitxer."
+  },
+  "file": {
+    "format": "El fitxer ha de ser .xlsx o .csv.",
+    "empty": "El fitxer no té dades.",
+    "too_big": "El fitxer supera els 20 MB.",
+    "upload": "No s'ha pogut pujar el fitxer."
+  },
+  "from_file": "{name} · {rows} files",
+  "file_truncated": "només s'importaran les primeres 50.000",
+  "errors": {
+    "title": "Cal corregir això abans de crear el mòdul",
+    "name": "El nom «{name}» no és vàlid: minúscules sense accents, números i _, començant per una lletra, i que no sigui una paraula reservada de MySQL.",
+    "module_exists": "Ja existeix un mòdul «{name}».",
+    "table_exists": "Ja existeix una taula «{name}» a la base de dades.",
+    "fields_count": "El mòdul necessita entre 1 i {max} camps.",
+    "field_duplicate": "El camp «{field}» està repetit.",
+    "field_name": "El nom de camp «{field}» no és vàlid (minúscules, números i _; ni «id» ni «created_at», que s'afegeixen sols; ni paraules reservades com order o group).",
+    "field_type": "El camp «{field}» té un tipus desconegut: «{type}».",
+    "option": "L'opció «{value}» del camp «{field}» no és vàlida o està repetida.",
+    "options_count": "La llista «{field}» necessita entre 1 i 100 opcions o una relació amb una altra taula.",
+    "source_table": "El camp «{field}» es relaciona amb «{table}», que no existeix.",
+    "source_pk": "La taula «{table}» del camp «{field}» no té una clau primària d'una sola columna.",
+    "source_label": "No hi ha cap columna de text per mostrar de la taula «{table}» al camp «{field}».",
+    "lang_exists": "Ja existeix el fitxer {file}."
+  },
+  "col": {
+    "field": "Camp",
+    "label": "Etiqueta",
+    "type": "Tipus",
+    "details": "Detalls",
+    "required": "Obligatori",
+    "list": "Llistat",
+    "filter": "Filtre",
+    "search": "Cerca",
+    "from": "Columna del fitxer"
+  },
+  "types": {
+    "text": "Text",
+    "textarea": "Text llarg",
+    "richtext": "Text amb format",
+    "number": "Número",
+    "email": "Correu",
+    "date": "Data",
+    "datetime": "Data i hora",
+    "checkbox": "Sí/no",
+    "select": "Llista",
+    "tags": "Etiquetes"
+  },
+  "details": {
+    "source": "Relació amb {table} (mostra {label})",
+    "multiple": "diverses",
+    "maxlength": "fins a {n} caràcters",
+    "decimals": "{n} decimals"
+  },
+  "sections": "Seccions del formulari",
+  "refine": {
+    "label": "Demana canvis a la IA",
+    "placeholder": "Demana canvis, p. ex. «afegeix un camp telèfon» o «l'estat amb les opcions obert, en espera i tancat»",
+    "submit": "Aplica",
+    "working": "Aplicant…",
+    "empty": "Escriu què vols canviar."
+  },
+  "sql": "SQL que s'executarà",
+  "json": "Edita la proposta (JSON)",
+  "save_json": "Aplica els canvis",
+  "json_invalid": "El JSON no és vàlid: {error}",
+  "discard": "Descarta",
+  "confirm_discard": "Vols descartar aquesta proposta?",
+  "create": "Crea el mòdul",
+  "create_import": "Crea el mòdul i importa",
+  "confirm_create": "Es crearà la taula «{name}» a la base de dades i els fitxers del mòdul. Vols continuar?",
+  "confirm_create_import": "Es crearà la taula «{name}», els fitxers del mòdul i s'importaran {rows} files. Vols continuar?",
+  "create_working": "Creant el mòdul…",
+  "not_writable": "No es pot escriure a {dirs}: dona permís d'escriptura al servidor web per poder crear mòduls.",
+  "no_draft": "No hi ha cap proposta en curs.",
+  "ai_failed": "La IA no ha retornat una proposta vàlida. Prova-ho amb una altra descripció.",
+  "flash": {
+    "edited": "Proposta actualitzada",
+    "discarded": "Proposta descartada",
+    "has_errors": "Corregeix els errors abans de crear el mòdul.",
+    "invalid_module": "El mòdul generat no és vàlid: {error}",
+    "sql_error": "No s'ha pogut crear la taula: {error}",
+    "created": "Mòdul «{module}» creat.",
+    "imported": "{n} files importades.",
+    "unrecognized": "{n} valors no reconeguts a «{field}» (s'han deixat buits).",
+    "truncated": "{n} textos retallats per ser massa llargs.",
+    "import_error": "No s'han pogut importar les files: {error}"
+  },
+  "auto": {
+    "id": "ID",
+    "created_at": "Creat"
+  }
+}

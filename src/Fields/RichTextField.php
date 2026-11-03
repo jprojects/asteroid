@@ -11,7 +11,7 @@ use Quasar\Core\HtmlSanitizer;
  *
  * Opciones: rows (alto aproximado del editor, por defecto 8), listLength (recorte en la tabla),
  * "images": true (pegar, arrastrar o elegir imágenes; se suben como archivos de Quasar),
- * maxSize (de cada imagen, por defecto "5M").
+ * maxSize (de cada imagen, por defecto "5M"), "assist": true (ayuda a redactar con la IA, como en textarea).
  * En la tabla, la búsqueda y las exportaciones se usa el texto sin formato.
  */
 final class RichTextField extends TextareaField
@@ -42,10 +42,10 @@ final class RichTextField extends TextareaField
                 'uploading' => $this->ctx->t('media.uploading'),
             ],
         ];
-        return '<div class="qs-richtext" data-richtext="' . self::e(json_encode($config, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) . '"'
+        return $this->withAssist('<div class="qs-richtext" data-richtext="' . self::e(json_encode($config, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)) . '"'
             . ' style="--rows:' . max(3, (int) ($this->def['rows'] ?? 8)) . '">'
             . '<textarea' . $this->attrs(['hidden' => true, 'class' => null, 'required' => null] + $this->baseAttrs($opts)) . '>' . self::e($html) . '</textarea>'
-            . '</div>';
+            . '</div>', $opts);
     }
 
     public function fromRequest(array $input): mixed

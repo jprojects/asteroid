@@ -26,6 +26,38 @@
   "failed": "No s'ha pogut generar una consulta vàlida per a aquesta petició. Prova-ho amb altres paraules o més concreció.",
   "run_error": "Aquest informe no s'ha pogut executar.",
   "not_allowed": "Aquest informe utilitza dades que ja no estan permeses als informes.",
+  "tabs": {
+    "table": "Taula",
+    "chart": "Gràfic"
+  },
+  "chart": {
+    "type": "Tipus",
+    "types": {
+      "column": "Columnes",
+      "bar": "Barres",
+      "line": "Línies",
+      "pie": "Circular"
+    },
+    "x": "Categories",
+    "series": "Valors",
+    "save": "Desa el gràfic",
+    "saved": "Gràfic desat",
+    "download": "Descarrega la imatge",
+    "empty": "No hi ha dades per dibuixar. Tria almenys un valor.",
+    "no_numeric": "Aquest informe no té columnes numèriques per dibuixar un gràfic. Demana, per exemple, «nombre de clients per país» o «activitats per mes aquest any».",
+    "other": "Altres",
+    "total": "Total",
+    "truncated": "El gràfic mostra les primeres {n} files de {total}."
+  },
+  "comment": {
+    "title": "Comentari de la IA",
+    "button": "Comenta l'informe",
+    "again": "Torna a comentar",
+    "intro": "La IA pot llegir el resultat i destacar-ne el més important: tendències, màxims, concentracions o valors estranys.",
+    "generated": "Generat el {date} amb les dades d'aquell moment",
+    "working": "La IA està analitzant les dades…",
+    "failed": "No s'ha pogut comentar l'informe. Torna-ho a provar."
+  },
   "flash": {
     "saved": "Informe desat",
     "deleted": "Informe eliminat"

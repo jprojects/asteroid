@@ -13,6 +13,7 @@ use Quasar\Fields\TagsField;
  *   r=options&m={módulo}&field={campo}&q=texto     select con "search": "remote" → resultados
  *   r=options&m={módulo}&field={campo}&value=12     select remoto → etiqueta de un valor
  *   r=options&m={módulo}&field={campo}&q=texto     tags con "suggestions": "existing" → etiquetas ya usadas
+ * También para los filtros ("params") de los informes PDF.
  */
 final class OptionsController extends Controller
 {
@@ -21,7 +22,7 @@ final class OptionsController extends Controller
 
     public function index(): void
     {
-        $m = $this->module('view');
+        $m = $this->module('view', true);
         $path = $_GET['field'] ?? '';
         $field = is_string($path) ? $m->fieldByPath($path) : null;
         $q = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '';
@@ -50,7 +51,7 @@ final class OptionsController extends Controller
         }
 
         // Sugerencias de etiquetas ya usadas (solo campos tags de primer nivel)
-        if ($field instanceof TagsField && $field->suggestsExisting() && $field->sqlExpr() !== null && !str_contains((string) $path, '.')) {
+        if ($field instanceof TagsField && !$m->isPage() && $field->suggestsExisting() && $field->sqlExpr() !== null && !str_contains((string) $path, '.')) {
             $col = $field->sqlExpr();
             $scope = $m->rowCondition(); // solo etiquetas de registros que ve el usuario
             $rows = $this->app->db->fetchAll(sprintf(
