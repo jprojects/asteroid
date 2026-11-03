@@ -11,8 +11,8 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
-| `src/Pages/`, `templates/default/pages/` | `PissarraPage` y `SurveyPage` con sus plantillas `pissarra.php` y `survey.php` (con sus estilos) |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage` y `PendingBillingPage` con sus plantillas `pissarra.php`, `survey.php` y `pending_billing.php` (con sus estilos) |
 | `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
@@ -39,6 +39,21 @@ Los usuarios de los clientes se gestionan en *Clients → Usuaris de clients* (e
 vencido) y las cuatro más urgentes. Primero los proyectos con pánico, después urgentes y por fecha límite. Por defecto
 muestra las del técnico que entra; arriba se cambia a otro técnico, «Sense assignar» o «Tot l'equip». La tarjeta abre el
 listado de incidencias con esos filtros. No salen las incidencias sin proyecto.
+
+## Pendent de facturar
+
+*Equip → Pendent de facturar*: las horas pendientes (`hours.billing = 0`) por cliente y proyecto, con el importe de los
+proyectos que tienen **preu/hora** (`projects.hourly_rate`; los que no, salen marcados «Sense preu» con enlace al
+proyecto) y aparte las de proyectos con **pressupost tancat**. «Totes», «Fins al …» (final del mes pasado) o hasta
+una fecha.
+
+- **Ordre**: orden de facturación en borrador con las horas de ese proyecto, una línea por incidencia (y «Altres
+  tasques» para las horas sin incidencia) al preu/hora del proyecto; las horas quedan facturadas y enlazadas a la
+  orden. **Ordre de tot el client**: lo mismo con todos sus proyectos (el proyecto delante de cada línea).
+- **No facturables** (icono): marca las horas pendientes de ese proyecto como no facturables (p. ej. presupuesto
+  cerrado).
+- Hace falta el permiso *Facturar* de Hores y *Crear* de Facturació. El importe de la página es el mismo que dará la
+  orden (horas redondeadas a 2 decimales por línea).
 
 ## Archivos de los clientes
 

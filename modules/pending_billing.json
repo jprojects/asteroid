@@ -1,0 +1,6 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\PendingBillingPage",
+  "requires": ["hours", "billing"],
+  "menu": { "group": "team", "order": 35, "icon": "hand-coins", "access": ["equip"] }
+}
