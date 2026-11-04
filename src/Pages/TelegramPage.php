@@ -7,6 +7,7 @@ use Quasar\Controllers\Page;
 use Quasar\Core\HttpException;
 use Quasar\Core\Log;
 use Quasar\Hooks\Asteroid;
+use Quasar\Telegram\Poller;
 use Quasar\Telegram\Telegram;
 
 /**
@@ -25,13 +26,16 @@ final class TelegramPage extends Page
             throw new HttpException(403);
         }
         $enabled = Telegram::enabled();
+        $c = Telegram::config();
+        if ($enabled && ($c['mode'] ?? 'webhook') === 'poll') {
+            Poller::run($this->app); // recoge al momento lo que haya pendiente (p. ej. el /vincular), sin esperar al cron
+        }
         $bot = $enabled ? Telegram::bot()->call('getMe') : null;
         $link = $this->app->db->fetch('SELECT telegram_name, linked_at FROM telegram_users WHERE user_id = ?', [$user->id()]);
         $code = $this->app->settings()->get('telegram.pending.' . $user->id());
         $code = is_array($code) && (int) ($code['expires'] ?? 0) > time() ? (string) $code['code'] : null;
 
         $admin = $user->isAdmin();
-        $c = Telegram::config();
         $this->view([
             'enabled' => $enabled,
             'botName' => $bot['username'] ?? null,
