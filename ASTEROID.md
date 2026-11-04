@@ -142,6 +142,7 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
        'token' => '123456:ABC…',
        'chat_id' => -1001234567890,
        'thread_id' => 42,
+       'panic_thread_id' => 51,                         // opcional: tema para las de pánico (alta, mensajes, estado)
        'secret' => '…',                                 // 16-256 letras, números, _ o -; aleatorio
        'events' => ['issue.new', 'issue.message'],      // + 'issue.status' | 'issue.panic'
        'locale' => 'ca',                                // idioma de los mensajes del bot

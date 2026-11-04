@@ -17,6 +17,7 @@ use Quasar\Hooks\Asteroid;
  *       'token'     => '123456:ABC…',          // de @BotFather
  *       'chat_id'   => -1001234567890,          // grupo del equipo
  *       'thread_id' => 42,                       // tema del grupo (opcional)
+ *       'panic_thread_id' => 51,                 // tema para las incidencias de pánico (opcional; si no, thread_id)
  *       'secret'    => '…',                      // lo comprueba el webhook (cabecera de Telegram)
  *       'events'    => ['issue.new', 'issue.message'],   // también: issue.status, issue.panic
  *       'locale'    => 'ca',
@@ -85,12 +86,18 @@ final class Telegram
         return $base !== '' ? $base . '/' . ltrim($relative, '/') : $relative;
     }
 
-    /** Envía al grupo (y tema) del equipo; recuerda de qué incidencia es para poder responderle. */
-    public static function toGroup(Database $db, string $html, ?string $issueId = null): void
+    /**
+     * Envía al grupo (y tema) del equipo; recuerda de qué incidencia es para poder responderle. Lo de las incidencias de
+     * pánico va a su tema (panic_thread_id), si lo hay.
+     */
+    public static function toGroup(Database $db, string $html, ?string $issueId = null, ?array $issue = null): void
     {
         $c = self::config();
+        $thread = $issue !== null && (int) ($issue['priority'] ?? 0) === 2 && !empty($c['panic_thread_id'])
+            ? (int) $c['panic_thread_id']
+            : (isset($c['thread_id']) ? (int) $c['thread_id'] : null);
         try {
-            $msgId = self::bot()->send($c['chat_id'], $html, isset($c['thread_id']) ? (int) $c['thread_id'] : null, null,
+            $msgId = self::bot()->send($c['chat_id'], $html, $thread, null,
                 $issueId !== null ? self::issueButtons($issueId) : null);
             if ($msgId !== null && $issueId !== null) {
                 self::remember($db, (string) $c['chat_id'], $msgId, $issueId);
@@ -155,7 +162,7 @@ final class Telegram
         }
         $lines[] = '';
         $lines[] = self::e(self::t('notify.by', ['user' => $user->name()])) . ' · ' . self::link($id);
-        self::toGroup($db, implode("\n", $lines), $id);
+        self::toGroup($db, implode("\n", $lines), $id, $issue);
     }
 
     /** Mensaje en la conversación de una incidencia (IssuesHooks::chatRecipients, justo después de guardarlo). */
@@ -184,7 +191,7 @@ final class Telegram
         $html = '<b>' . self::e($author->name()) . '</b> · ' . self::e(self::t('notify.message', ['id' => $id])) . "\n"
             . '<i>' . self::e((string) $issue['title']) . '</i> · ' . self::e(self::issueContext($db, $issue)) . "\n\n"
             . self::e(mb_substr($body, 0, 1500)) . "\n\n" . self::link($id) . ' · ' . self::e(self::t('notify.reply_hint'));
-        self::toGroup($db, $html, $id);
+        self::toGroup($db, $html, $id, $issue);
     }
 
     /** Cambio de estado (Asteroid::statusChanged). */
@@ -196,7 +203,7 @@ final class Telegram
         $id = (string) $issue['id'];
         self::toGroup($db, '<b>' . self::e(self::t('notify.status', [
             'id' => $id, 'status' => self::statusText($to), 'user' => $user->name(),
-        ])) . "</b>\n" . self::e((string) $issue['title']) . ' · ' . self::e(self::issueContext($db, $issue)) . "\n" . self::link($id), $id);
+        ])) . "</b>\n" . self::e((string) $issue['title']) . ' · ' . self::e(self::issueContext($db, $issue)) . "\n" . self::link($id), $id, $issue);
     }
 
     /** Texto de otro fichero de idioma (p. ej. "issues:status.pending"), en el idioma del bot. */
