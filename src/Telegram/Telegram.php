@@ -22,9 +22,9 @@ use Quasar\Hooks\Asteroid;
  *       'locale'    => 'ca',
  *   ],
  *
- * Avisos al grupo (IssuesHooks): incidencias nuevas y mensajes de las conversaciones. Responder a un aviso en
- * Telegram publica la respuesta en la conversación de la incidencia (TelegramHookPage), como el usuario de Asteroid
- * vinculado a esa cuenta de Telegram.
+ * Avisos al grupo (IssuesHooks): incidencias nuevas y mensajes de las conversaciones, con botones (imputar horas,
+ * asignársela, resolverla). Responder a un aviso en Telegram publica la respuesta en la conversación de la incidencia
+ * (TelegramHookPage), como el usuario de Asteroid vinculado a esa cuenta de Telegram.
  */
 final class Telegram
 {
@@ -90,7 +90,8 @@ final class Telegram
     {
         $c = self::config();
         try {
-            $msgId = self::bot()->send($c['chat_id'], $html, isset($c['thread_id']) ? (int) $c['thread_id'] : null);
+            $msgId = self::bot()->send($c['chat_id'], $html, isset($c['thread_id']) ? (int) $c['thread_id'] : null, null,
+                $issueId !== null ? self::issueButtons($issueId) : null);
             if ($msgId !== null && $issueId !== null) {
                 self::remember($db, (string) $c['chat_id'], $msgId, $issueId);
             }
@@ -99,12 +100,33 @@ final class Telegram
         }
     }
 
-    public static function remember(Database $db, string $chatId, int $messageId, string $issueId): void
+    /**
+     * Botones de un aviso de incidencia. callback_data (máx. 64 bytes): "h:ID" imputar horas, "t:ID" asignársela,
+     * "r:ID" resolverla; los atiende TelegramHookPage::callback().
+     * @return list<list<array{text:string,callback_data:string}>>
+     */
+    public static function issueButtons(string $issueId): array
+    {
+        return [[
+            ['text' => self::t('btn.hours'), 'callback_data' => 'h:' . $issueId],
+            ['text' => self::t('btn.take'), 'callback_data' => 't:' . $issueId],
+            ['text' => self::t('btn.resolve'), 'callback_data' => 'r:' . $issueId],
+        ]];
+    }
+
+    /** 90 → "1:30" */
+    public static function duration(int $minutes): string
+    {
+        return sprintf('%d:%02d', intdiv($minutes, 60), $minutes % 60);
+    }
+
+    /** De qué es un mensaje del bot: incidencia ('issues') o horas imputadas desde Telegram ('hours'). */
+    public static function remember(Database $db, string $chatId, int $messageId, string $recordId, string $module = 'issues'): void
     {
         try {
             $db->query(
                 'INSERT IGNORE INTO telegram_messages (chat_id, message_id, module, record_id) VALUES (?, ?, ?, ?)',
-                [$chatId, $messageId, 'issues', $issueId]
+                [$chatId, $messageId, $module, $recordId]
             );
         } catch (\Throwable $e) {
             Log::warning('Telegram: no se ha podido guardar el mensaje', ['exception' => $e]);

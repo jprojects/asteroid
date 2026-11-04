@@ -44,7 +44,7 @@ final class Poller
                 $updates = $bot->call('getUpdates', [
                     'offset' => (int) $settings->get('telegram.offset', 0),
                     'timeout' => $wait,
-                    'allowed_updates' => ['message'],
+                    'allowed_updates' => ['message', 'callback_query'],
                 ], $wait + 10);
                 $settings->set('telegram.polled_at', time());
                 if ($updates === null) {

@@ -21,13 +21,19 @@ use Quasar\Telegram\Telegram;
  * Quien escribe tiene que tener su cuenta de Telegram vinculada a un usuario del equipo (Equip → Telegram):
  * todo se hace como ese usuario, con sus permisos, y deja los mismos avisos que en la web.
  *   - Respuesta a un aviso del bot → mensaje en la conversación de esa incidencia.
+ *   - Botones de los avisos (callback()): imputar horas a la incidencia (15 min … 4 h; luego, respondiendo a la
+ *     confirmación, la descripción o otro tiempo), asignársela y resolverla.
  *   - /pissarra [nom|totes|sense] · /meves · /noves · /incidencia N · /agafa N · /resol N · /vincular CODI · /ajuda
  */
 final class TelegramHookPage extends Page
 {
     private const LIST_LIMIT = 10;
+    /** Tiempos de los botones de «Imputa hores», en minutos (dos filas). */
+    private const DURATIONS = [[15, 30, 45, 60], [90, 120, 180, 240]];
 
     private array $msg = [];
+    /** Mientras se atiende un botón: su id (los avisos van en la respuesta al botón, no al grupo). */
+    private ?string $callbackId = null;
 
     public function index(): void
     {
@@ -49,6 +55,10 @@ final class TelegramHookPage extends Page
     /** Atiende una actualización de Telegram (del webhook o de tools/telegram-poll.php en el modo consulta). */
     public function process(array $update): void
     {
+        if (is_array($update['callback_query'] ?? null)) {
+            $this->callback($update['callback_query']);
+            return;
+        }
         $msg = is_array($update['message'] ?? null) ? $update['message'] : null;
         if ($msg === null || !isset($msg['chat']['id'], $msg['from']['id'])) {
             return;
@@ -92,27 +102,185 @@ final class TelegramHookPage extends Page
                 'incidencia', 'i' => $this->issue($user, $args),
                 'agafa' => $this->update($user, $args, ['worker_id' => (string) $user->id()], 'bot.taken'),
                 'resol' => $this->update($user, $args, ['status' => (string) Asteroid::STATUS_RESOLVED], 'bot.resolved'),
+                'hores' => $this->hoursCommand($user, $args),
                 default => $this->reply(Telegram::e(Telegram::t('bot.unknown'))),
             };
             return;
         }
 
-        // Respuesta a un aviso del bot → a la conversación de su incidencia
+        // Respuesta a un aviso del bot → a la conversación de su incidencia (o a las horas imputadas desde aquí)
         $replyTo = $this->msg['reply_to_message']['message_id'] ?? null;
         if ($replyTo === null || $text === '') {
             return;
         }
-        $issueId = $this->app->db->fetchValue(
-            "SELECT record_id FROM telegram_messages WHERE chat_id = ? AND message_id = ? AND module = 'issues'",
+        $ref = $this->app->db->fetch(
+            'SELECT module, record_id FROM telegram_messages WHERE chat_id = ? AND message_id = ?',
             [(string) $this->msg['chat']['id'], (int) $replyTo]
         );
-        if ($issueId === null) {
+        if ($ref === null || !in_array($ref['module'], ['issues', 'hours'], true)) {
             return;
         }
         $user = $this->linkedUser();
         if ($user !== null) {
-            $this->comment($user, (string) $issueId, $text);
+            $ref['module'] === 'hours' ? $this->editHours($user, (string) $ref['record_id'], $text) : $this->comment($user, (string) $ref['record_id'], $text);
         }
+    }
+
+    // ---------------------------------------------------------------- botones
+
+    /**
+     * Botón de un mensaje del bot. callback_data: "h:ID" (pregunta cuánto tiempo), "h:ID:MIN:TG" (imputa MIN minutos;
+     * solo quien lo pidió, TG), "x:TG" (cancela la pregunta), "t:ID" (asignársela), "r:ID" (resolverla).
+     */
+    private function callback(array $cq): void
+    {
+        if (!isset($cq['id'], $cq['from']['id'], $cq['message']['chat']['id'], $cq['message']['message_id'])) {
+            return;
+        }
+        $this->callbackId = (string) $cq['id'];
+        // Las respuestas van al mensaje del botón; quien actúa es quien lo ha pulsado
+        $this->msg = ['from' => $cq['from']] + $cq['message'];
+        try {
+            $parts = explode(':', (string) ($cq['data'] ?? ''));
+            $owner = isset($parts[3]) ? (int) $parts[3] : (($parts[0] ?? '') === 'x' ? (int) ($parts[1] ?? 0) : null);
+            if ($owner !== null && $owner !== (int) $cq['from']['id']) {
+                $name = (string) $this->app->db->fetchValue('SELECT telegram_name FROM telegram_users WHERE telegram_id = ?', [$owner]);
+                $this->notice(Telegram::t('bot.not_yours', ['user' => $name !== '' ? $name : '?']));
+                return;
+            }
+            if ($parts[0] === 'x') {
+                Telegram::bot()->call('deleteMessage', ['chat_id' => $this->msg['chat']['id'], 'message_id' => (int) $this->msg['message_id']]);
+                return;
+            }
+            $user = $this->linkedUser();
+            if ($user === null) {
+                return;
+            }
+            $id = $parts[1] ?? '';
+            match ($parts[0]) {
+                'h' => isset($parts[2]) ? $this->logHours($user, $id, Telegram::duration(max(0, (int) $parts[2])), true) : $this->askHours($user, $id),
+                't' => $this->update($user, $id, ['worker_id' => (string) $user->id()], 'bot.taken_by'),
+                'r' => $this->update($user, $id, ['status' => (string) Asteroid::STATUS_RESOLVED], 'bot.resolved_by'),
+                default => null,
+            };
+        } catch (\Throwable $e) {
+            Log::error('Telegram: error al atender un botón', ['exception' => $e]);
+            $this->notice(Telegram::t('bot.error'));
+        } finally {
+            if ($this->callbackId !== null) {
+                Telegram::bot()->answer($this->callbackId); // si no se ha contestado ya, quita el «cargando»
+            }
+            $this->callbackId = null;
+        }
+    }
+
+    /** «Imputa hores» (o /hores N): pregunta cuánto tiempo, con botones que solo puede usar quien lo ha pedido. */
+    private function askHours(User $user, string $issueId): void
+    {
+        [, $row] = $this->loadIssue($user, $issueId) ?? [null, null];
+        $hours = $this->app->modules()->get('hours');
+        if ($row === null) {
+            return;
+        }
+        if ($hours === null || !ModuleRegistry::canAccess($user, $hours, 'create')) {
+            $this->notice(Telegram::t('bot.forbidden'));
+            return;
+        }
+        $tg = (int) $this->msg['from']['id'];
+        $buttons = array_map(static fn (array $line) => array_map(static fn (int $min) => [
+            'text' => Telegram::duration($min), 'callback_data' => 'h:' . (int) $row['id'] . ':' . $min . ':' . $tg,
+        ], $line), self::DURATIONS);
+        $buttons[] = [['text' => Telegram::t('btn.cancel'), 'callback_data' => 'x:' . $tg]];
+        $this->reply(Telegram::e(Telegram::t('bot.hours_ask', ['id' => $row['id'], 'title' => $row['title'], 'user' => $user->name()])), $buttons);
+    }
+
+    /** /hores N [temps] [descripció]: con tiempo, lo imputa directamente; sin él, pregunta con botones. */
+    private function hoursCommand(User $user, string $args): void
+    {
+        [$id, $time, $comment] = array_pad(preg_split('/\s+/', trim($args), 3) ?: [], 3, '');
+        if ($time === '') {
+            $this->askHours($user, $id);
+            return;
+        }
+        $this->logHours($user, $id, $time, false, $comment);
+    }
+
+    /**
+     * Apunta las horas (hoy, del usuario, de esa incidencia y su proyecto). Desde un botón ($button) lo dice en el mensaje
+     * de la pregunta; desde /hores, en una respuesta. A ese mensaje se le puede responder para cambiarlas.
+     * @param string $time como en el formulario: 1:30, 45m, 2h
+     */
+    private function logHours(User $user, string $issueId, string $time, bool $button, string $comment = ''): void
+    {
+        $chat = (string) $this->msg['chat']['id'];
+        $msgId = (int) $this->msg['message_id'];
+        // Dos pulsaciones seguidas (o el mismo botón en otro dispositivo): una sola imputación
+        if ($this->app->db->fetchValue('SELECT 1 FROM telegram_messages WHERE chat_id = ? AND message_id = ?', [$chat, $msgId]) !== null) {
+            $this->notice(Telegram::t('bot.already'));
+            return;
+        }
+        [, $row] = $this->loadIssue($user, $issueId) ?? [null, null];
+        $hours = $this->app->modules()->get('hours');
+        if ($row === null) {
+            return;
+        }
+        if ($hours === null || !ModuleRegistry::canAccess($user, $hours, 'create')) {
+            $this->notice(Telegram::t('bot.forbidden'));
+            return;
+        }
+        $result = (new FormHandler($hours, $this->app->db))->process([
+            'worked_on' => date('Y-m-d'),
+            'user_id' => (string) $user->id(),
+            'minutes' => $time,
+            'billing' => '0',
+            'issue_id' => (string) $row['id'],
+        ] + ($comment !== '' ? ['comment' => mb_substr($comment, 0, 2000)] : []), null, $user, true);
+        if (!$result['ok']) {
+            $this->notice(Telegram::t('bot.not_saved', ['error' => implode(' · ', $result['errors'])]));
+            return;
+        }
+        $minutes = (int) $this->app->db->fetchValue('SELECT minutes FROM hours WHERE id = ?', [(int) $result['id']]);
+        Log::info('Telegram: {user} imputa {min} min a la incidencia {id}', ['user' => $user->id(), 'min' => $minutes, 'id' => $row['id']]);
+        $vars = ['id' => $row['id'], 'title' => $row['title'], 'user' => $user->name(), 'time' => Telegram::duration($minutes)];
+        $html = '<b>' . Telegram::e(Telegram::t('bot.hours_done', $vars)) . "</b>\n" . Telegram::e(Telegram::t('bot.hours_hint'));
+        if ($button) {
+            Telegram::remember($this->app->db, $chat, $msgId, (string) $result['id'], 'hours');
+            Telegram::bot()->edit($chat, $msgId, $html);
+            $this->notice(Telegram::t('bot.hours_done', $vars), false);
+        } elseif (($reply = $this->reply($html)) !== null) {
+            Telegram::remember($this->app->db, $chat, $reply, (string) $result['id'], 'hours');
+        }
+    }
+
+    /** Respuesta a la confirmación de unas horas: un tiempo (1:15, 45m, 2h) cambia la duración; otro texto es la descripción. */
+    private function editHours(User $user, string $hoursId, string $text): void
+    {
+        $m = $this->app->modules()->get('hours');
+        $row = $m !== null ? $this->app->db->fetch('SELECT id, user_id, issue_id, minutes FROM hours WHERE id = ?', [(int) $hoursId]) : null;
+        if ($row === null || (int) $row['user_id'] !== $user->id() || !ModuleRegistry::canAccess($user, $m, 'edit')) {
+            $this->reply(Telegram::e(Telegram::t('bot.forbidden')));
+            return;
+        }
+        $isTime = (bool) preg_match('/^\s*(\d{1,2}:[0-5]\d|\d{1,2}([.,]\d+)?\s*h(\s*\d{1,2}\s*m?)?|\d{1,4}\s*m(in)?)\s*$/i', $text);
+        $values = $isTime ? ['minutes' => trim($text)] : ['comment' => mb_substr($text, 0, 2000)];
+        $result = (new FormHandler($m, $this->app->db))->process($values, (string) $row['id'], $user, true);
+        if (!$result['ok']) {
+            $this->reply(Telegram::e(Telegram::t('bot.not_saved', ['error' => implode(' · ', $result['errors'])])));
+            return;
+        }
+        $minutes = (int) $this->app->db->fetchValue('SELECT minutes FROM hours WHERE id = ?', [(int) $row['id']]);
+        $this->reply(Telegram::e(Telegram::t($isTime ? 'bot.hours_time' : 'bot.hours_comment', ['id' => $row['issue_id'], 'time' => Telegram::duration($minutes)])));
+    }
+
+    /** Aviso a quien ha escrito o pulsado: en un botón, como respuesta al botón (ventana si $alert); si no, en el chat. */
+    private function notice(string $text, bool $alert = true): void
+    {
+        if ($this->callbackId !== null) {
+            Telegram::bot()->answer($this->callbackId, $text, $alert);
+            $this->callbackId = null;
+            return;
+        }
+        $this->reply(Telegram::e($text));
     }
 
     // ---------------------------------------------------------------- vincular cuentas
@@ -152,13 +320,13 @@ final class TelegramHookPage extends Page
             [(int) $this->msg['from']['id']]
         );
         if ($row === null) {
-            $this->reply(Telegram::e(Telegram::t('bot.not_linked')));
+            $this->notice(Telegram::t('bot.not_linked'));
             return null;
         }
         $this->app->auth->actAs($row, 0);
         $user = $this->app->auth->user();
         if ($user === null || Asteroid::isClient($user)) {
-            $this->reply(Telegram::e(Telegram::t('bot.team_only')));
+            $this->notice(Telegram::t('bot.team_only'));
             return null;
         }
         $this->app->lang->setLocale((string) (Telegram::config()['locale'] ?? 'ca'));
@@ -275,7 +443,7 @@ final class TelegramHookPage extends Page
         }
         $lines[] = '';
         $lines[] = Telegram::link((string) $row['id']) . ' · ' . Telegram::e(Telegram::t('notify.reply_hint'));
-        $msgId = $this->reply(implode("\n", $lines));
+        $msgId = $this->reply(implode("\n", $lines), Telegram::issueButtons((string) $row['id']));
         if ($msgId !== null) {
             Telegram::remember($this->app->db, (string) $this->msg['chat']['id'], $msgId, (string) $row['id']);
         }
@@ -289,16 +457,23 @@ final class TelegramHookPage extends Page
             return;
         }
         if (!ModuleRegistry::canAccess($user, $m, 'edit')) {
-            $this->reply(Telegram::e(Telegram::t('bot.forbidden')));
+            $this->notice(Telegram::t('bot.forbidden'));
             return;
         }
         $result = (new FormHandler($m, $this->app->db))->process($values, (string) $row['id'], $user, true);
         if (!$result['ok']) {
-            $this->reply(Telegram::e(Telegram::t('bot.not_saved', ['error' => implode(' · ', $result['errors'])])));
+            $this->notice(Telegram::t('bot.not_saved', ['error' => implode(' · ', $result['errors'])]));
             return;
         }
         Log::info('Telegram: incidencia {id} modificada por {user}', ['id' => $row['id'], 'user' => $user->id(), 'values' => $values]);
-        $this->reply(Telegram::e(Telegram::t($done, ['id' => $row['id'], 'title' => $row['title']])));
+        $vars = ['id' => $row['id'], 'title' => $row['title'], 'user' => $user->name()];
+        if ($this->callbackId !== null) {
+            $this->notice(Telegram::t($done, $vars), false);
+            if (isset($values['status']) && Telegram::wants('issue.status')) {
+                return; // el grupo ya recibe el aviso del cambio de estado
+            }
+        }
+        $this->reply(Telegram::e(Telegram::t($done, $vars))); // en el grupo, para que el resto lo vea
     }
 
     private function comment(User $user, string $issueId, string $text): void
@@ -325,25 +500,26 @@ final class TelegramHookPage extends Page
         $id = (int) preg_replace('/\D/', '', $args);
         $m = $this->app->modules()->get('issues');
         if ($id <= 0 || $m === null) {
-            $this->reply(Telegram::e(Telegram::t('bot.need_id')));
+            $this->notice(Telegram::t('bot.need_id'));
             return null;
         }
         $row = ModuleRegistry::canAccess($user, $m) ? (new FormHandler($m, $this->app->db))->load((string) $id) : null;
         if ($row === null) {
-            $this->reply(Telegram::e(Telegram::t('bot.not_found', ['id' => $id])));
+            $this->notice(Telegram::t('bot.not_found', ['id' => $id]));
             return null;
         }
         return [$m, $row + ['id' => $id]];
     }
 
-    /** Responde en el mismo chat (y tema) al mensaje recibido. */
-    private function reply(string $html): ?int
+    /** Responde en el mismo chat (y tema) al mensaje recibido (o al del botón pulsado). */
+    private function reply(string $html, ?array $buttons = null): ?int
     {
         return Telegram::bot()->send(
             $this->msg['chat']['id'],
             $html,
             isset($this->msg['message_thread_id']) ? (int) $this->msg['message_thread_id'] : null,
-            (int) $this->msg['message_id']
+            (int) $this->msg['message_id'],
+            $buttons
         );
     }
 }

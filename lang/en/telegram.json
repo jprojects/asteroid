@@ -11,14 +11,14 @@
   "open_bot": "Open {bot}",
   "code_help": "You can also send /vincular {code} to the bot. The code expires in 10 minutes.",
   "linked_as": "Linked to {name} since {date}",
-  "commands": "Reply to a notice in the group to write in the issue conversation. Commands: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /ajuda.",
+  "commands": "Reply to a group notification to write in the issue conversation, or use the buttons (log time, take it, resolve it). Commands: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /ajuda.",
   "unlink": "Unlink",
   "unlink_confirm": "The bot will stop recognising your Telegram account. Continue?",
   "unlinked": "Telegram account unlinked",
   "bot_title": "Bot and webhook",
   "bot": {
     "help_title": "Asteroid bot",
-    "help": "Reply to a notice to write in the issue conversation.\n/pissarra [name|totes|sense] · where to start\n/meves · my open issues\n/noves · open and unassigned\n/incidencia N · summary of issue N\n/agafa N · assign it to me\n/resol N · mark it as resolved\n/desvincular · unlink this account",
+    "help": "Reply to a notice to write in the issue conversation.\nOn notifications: buttons to log time, take it or resolve it.\n/pissarra [name|totes|sense] · where to start\n/meves · my open issues\n/noves · open and unassigned\n/incidencia N · summary of issue N\n/agafa N · assign it to me\n/resol N · mark it as resolved\n/hores N [time] · log time on issue N (without a time, it asks)\n/desvincular · unlink this account",
     "error": "That didn't work. Try again or do it on the web.",
     "unknown": "Unknown command. Type /ajuda.",
     "link_invalid": "This code is not valid or has expired. Create one in Asteroid: Equip → Telegram.",
@@ -41,7 +41,16 @@
     "taken": "You took #{id} · {title}",
     "resolved": "#{id} marked as resolved · {title}",
     "not_saved": "Could not save: {error}",
-    "commented": "Added to the conversation of #{id}."
+    "commented": "Added to the conversation of #{id}.",
+    "hours_ask": "How much time are you logging on #{id}? · {title} ({user})",
+    "hours_done": "{user}: {time} logged on #{id} · {title}",
+    "hours_hint": "Reply to this message to add a description or change the time (e.g. 1:15).",
+    "hours_time": "Time changed: {time} on #{id}.",
+    "hours_comment": "Description added to the time on #{id}.",
+    "not_yours": "These buttons belong to {user}.",
+    "already": "Already logged.",
+    "taken_by": "{user} took #{id} · {title}",
+    "resolved_by": "{user} resolved #{id} · {title}"
   },
   "bot_bad": "The token is not valid",
   "group": "Group notices",
@@ -83,5 +92,11 @@
   "mode_poll": "Polling mode",
   "polled_at": "Last check: {date}",
   "never_polled": "The cron has not checked Telegram yet",
-  "poll_help": "The server asks Telegram for new messages every minute (no webhook needed). Cron:"
+  "poll_help": "The server asks Telegram for new messages every minute (no webhook needed). Cron:",
+  "btn": {
+    "hours": "Log time",
+    "take": "Take it",
+    "resolve": "Resolve",
+    "cancel": "Cancel"
+  }
 }

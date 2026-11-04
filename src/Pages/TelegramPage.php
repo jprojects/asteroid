@@ -102,7 +102,7 @@ final class TelegramPage extends Page
         $ok = Telegram::bot()->call('setWebhook', [
             'url' => $this->hookUrl(),
             'secret_token' => $secret,
-            'allowed_updates' => ['message'],
+            'allowed_updates' => ['message', 'callback_query'],
             'drop_pending_updates' => true,
         ]) !== null;
         Log::info('Telegram: webhook {result} en {url}', ['result' => $ok ? 'configurado' : 'NO configurado', 'url' => $this->hookUrl()]);

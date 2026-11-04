@@ -64,9 +64,12 @@ final class Bot
      * Mensaje con formato HTML (el texto ya escapado con Telegram::e()).
      * @return ?int message_id
      */
-    public function send(int|string $chatId, string $html, ?int $threadId = null, ?int $replyTo = null): ?int
+    public function send(int|string $chatId, string $html, ?int $threadId = null, ?int $replyTo = null, ?array $buttons = null): ?int
     {
         $params = ['chat_id' => $chatId, 'text' => $html, 'parse_mode' => 'HTML', 'link_preview_options' => ['is_disabled' => true]];
+        if ($buttons) {
+            $params['reply_markup'] = ['inline_keyboard' => $buttons];
+        }
         if ($threadId) {
             $params['message_thread_id'] = $threadId;
         }
@@ -75,5 +78,21 @@ final class Bot
         }
         $r = $this->call('sendMessage', $params);
         return isset($r['message_id']) ? (int) $r['message_id'] : null;
+    }
+
+    /** Cambia el texto de un mensaje del bot (y quita sus botones si no se pasan otros). */
+    public function edit(int|string $chatId, int $messageId, string $html, ?array $buttons = null): bool
+    {
+        $params = ['chat_id' => $chatId, 'message_id' => $messageId, 'text' => $html, 'parse_mode' => 'HTML', 'link_preview_options' => ['is_disabled' => true]];
+        if ($buttons) {
+            $params['reply_markup'] = ['inline_keyboard' => $buttons];
+        }
+        return $this->call('editMessageText', $params) !== null;
+    }
+
+    /** Respuesta a un botón (Telegram deja de mostrar «cargando»); con $alert, en una ventana en vez de un aviso breve. */
+    public function answer(string $callbackId, string $text = '', bool $alert = false): void
+    {
+        $this->call('answerCallbackQuery', ['callback_query_id' => $callbackId, 'text' => mb_substr($text, 0, 190), 'show_alert' => $alert]);
     }
 }

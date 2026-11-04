@@ -11,14 +11,14 @@
   "open_bot": "Obre {bot}",
   "code_help": "També pots escriure /vincular {code} al bot. El codi caduca d'aquí a 10 minuts.",
   "linked_as": "Vinculat amb {name} des del {date}",
-  "commands": "Respon un avís del grup per escriure a la conversa de la incidència. Ordres: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /ajuda.",
+  "commands": "Respon un avís del grup per escriure a la conversa de la incidència, o fes servir els botons (imputar hores, agafar-la, resoldre-la). Ordres: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /ajuda.",
   "unlink": "Desvincula",
   "unlink_confirm": "El bot deixarà de reconèixer el teu compte de Telegram. Vols continuar?",
   "unlinked": "Compte de Telegram desvinculat",
   "bot_title": "Bot i webhook",
   "bot": {
     "help_title": "Bot d'Asteroid",
-    "help": "Respon un avís per escriure a la conversa de la incidència.\n/pissarra [nom|totes|sense] · per on començar\n/meves · les meves incidències obertes\n/noves · obertes sense assignar\n/incidencia N · resum de la incidència N\n/agafa N · assigna-me-la\n/resol N · marca-la com a resolta\n/desvincular · desvincula aquest compte",
+    "help": "Respon un avís per escriure a la conversa de la incidència.\nAls avisos: botons per imputar hores, agafar-la o resoldre-la.\n/pissarra [nom|totes|sense] · per on començar\n/meves · les meves incidències obertes\n/noves · obertes sense assignar\n/incidencia N · resum de la incidència N\n/agafa N · assigna-me-la\n/resol N · marca-la com a resolta\n/hores N [temps] · imputa hores a la incidència N (sense temps, et pregunta)\n/desvincular · desvincula aquest compte",
     "error": "No s'ha pogut fer. Torna-ho a provar o fes-ho des de la web.",
     "unknown": "No conec aquesta ordre. Escriu /ajuda.",
     "link_invalid": "Aquest codi no és vàlid o ha caducat. Genera'n un a Asteroid: Equip → Telegram.",
@@ -41,7 +41,16 @@
     "taken": "T'has assignat la #{id} · {title}",
     "resolved": "#{id} marcada com a resolta · {title}",
     "not_saved": "No s'ha pogut desar: {error}",
-    "commented": "Afegit a la conversa de la #{id}."
+    "commented": "Afegit a la conversa de la #{id}.",
+    "hours_ask": "Quant temps imputes a la #{id}? · {title} ({user})",
+    "hours_done": "{user}: {time} imputades a la #{id} · {title}",
+    "hours_hint": "Respon aquest missatge per afegir-hi una descripció o canviar el temps (p. ex. 1:15).",
+    "hours_time": "Temps canviat: {time} a la #{id}.",
+    "hours_comment": "Descripció afegida a les hores de la #{id}.",
+    "not_yours": "Aquests botons són de {user}.",
+    "already": "Ja està imputat.",
+    "taken_by": "{user} s'ha assignat la #{id} · {title}",
+    "resolved_by": "{user} ha resolt la #{id} · {title}"
   },
   "bot_bad": "El token no és vàlid",
   "group": "Avisos al grup",
@@ -83,5 +92,11 @@
   "mode_poll": "Mode consulta",
   "polled_at": "Última consulta: {date}",
   "never_polled": "El cron encara no ha consultat Telegram",
-  "poll_help": "El servidor pregunta a Telegram pels missatges cada minut (no cal webhook). Cron:"
+  "poll_help": "El servidor pregunta a Telegram pels missatges cada minut (no cal webhook). Cron:",
+  "btn": {
+    "hours": "Imputa hores",
+    "take": "Agafa-la",
+    "resolve": "Resol",
+    "cancel": "Cancel·la"
+  }
 }

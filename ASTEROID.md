@@ -120,8 +120,15 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
 
 - **Responder a un aviso** del bot escribe la respuesta en la conversación de esa incidencia (no vuelve a rebotar al
   grupo; el cliente recibe el aviso si la incidencia es visible para él).
+- **Botones** en cada aviso (y en `/incidencia N`): *Imputa hores* (el bot pregunta el tiempo con botones de 0:15 a
+  4:00 que solo puede usar quien lo ha pedido; las horas son de hoy, de ese usuario, de la incidencia y su proyecto),
+  *Agafa-la* y *Resol*. Responder a la confirmación de unas horas les pone la descripción, o cambia el tiempo si la
+  respuesta es un tiempo (`1:15`, `45m`, `2h`).
 - `/pissarra [nom|totes|sense]`, `/meves`, `/noves` (abiertas sin asignar), `/incidencia N` (resumen y últimos
-  mensajes; también se puede responder), `/agafa N`, `/resol N`, `/ajuda`, `/desvincular`.
+  mensajes; también se puede responder), `/agafa N`, `/resol N`, `/hores N [temps] [descripció]` (sin tiempo, pregunta
+  con botones), `/ajuda`, `/desvincular`.
+- Con webhook, después de actualizar hay que volver a pulsar **Activa el webhook** para que Telegram envíe también los
+  botones (`callback_query`); en modo consulta no hace falta.
 
 **Puesta en marcha:**
 
