@@ -95,7 +95,8 @@ final class WebAudit
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE),
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . (string) $c['token']],
+            // Las dos cabeceras: algunos Apache (Webempresa) no pasan Authorization a PHP
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . (string) $c['token'], 'X-Pulsar-Token: ' . (string) $c['token']],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => self::TIMEOUT,
             CURLOPT_CONNECTTIMEOUT => 8,
