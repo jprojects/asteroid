@@ -120,6 +120,12 @@ final class Message
 
     // ---------------------------------------------------------------- lectura
 
+    /** @return list<string> direcciones de ese tipo (to, cc, bcc), con su nombre si lo tienen */
+    public function recipientsOf(string $type): array
+    {
+        return array_map([self::class, 'formatAddress'], $this->recipients[$type] ?? []);
+    }
+
     public function getFrom(): ?array
     {
         return $this->from;

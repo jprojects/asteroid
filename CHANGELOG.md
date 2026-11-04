@@ -2,6 +2,13 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.19.0 — 2026-11-04
+
+- **Correo sin SMTP**: transporte `mail` (la función `mail()` de PHP, el sendmail del servidor) y `auto`, el nuevo
+  valor por defecto de `mail.transport`: SMTP si hay `host` y, si no, `mail()`. Una instalación sin datos SMTP ya envía
+  los avisos, las invitaciones y los códigos con solo `mail.from`. `bin/mail-test.php` y el estado para Cosmo muestran
+  el transporte que se usa.
+
 ## 0.18.0 — 2026-11-03
 
 - **Alta rápida con varios campos del registro abierto**: `quickCreate.context` admite, por módulo, un objeto

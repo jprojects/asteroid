@@ -1141,20 +1141,27 @@ Log::channel('facturacion')->notice('Factura {num} emitida', ['num' => $num]); /
   exportaciones, cambios de permisos y envíos de correo.
 - Consultarlo: `tail -f storage/logs/app-$(date +%F).log`
 
-## Correo (SMTP)
+## Correo
 
 Configuración en `mail` (credenciales en `config.local.php`):
 
 ```php
 'mail' => [
-    'transport' => 'smtp',            // 'log' en desarrollo: no envía, guarda el .eml en storage/logs/mail/
+    'transport' => 'auto',            // auto (por defecto) · smtp · mail · log
     'host' => 'smtp.office365.com', 'port' => 587, 'encryption' => 'tls',   // tls=STARTTLS · ssl=465 · none
     'username' => 'avisos@cliente.com', 'password' => '…',
     'from' => ['address' => 'avisos@cliente.com', 'name' => 'ACME Gestión'],
 ],
 ```
 
-Comprobar la configuración (muestra la conversación SMTP si falla): `php bin/mail-test.php tu@correo.com`
+- `auto`: por **SMTP** si hay `host`; si no, con **`mail()` de PHP**, por el sendmail del propio servidor (lo habitual
+  en un hosting compartido: funciona sin datos SMTP). Con solo `from` ya se envía.
+- `smtp` / `mail`: siempre ese. `log`: no envía; lo deja en el log y guarda el `.eml` en `storage/logs/mail/`
+  (desarrollo).
+- Con `mail()`, el remitente del sobre es el de `from`: tiene que ser de un dominio que permita enviar desde ese
+  servidor (SPF), o los correos acabarán en spam. SMTP con un buzón real es más fiable.
+
+Comprobar la configuración (muestra el transporte y, si falla, la conversación SMTP): `php bin/mail-test.php tu@correo.com`
 
 Uso en el código:
 

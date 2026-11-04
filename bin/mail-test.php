@@ -31,11 +31,16 @@ Log::configure($config['log']);
 
 $app = new App($config);
 $mail = $config['mail'] ?? [];
-$settings = [
-    'Transporte' => (string) ($mail['transport'] ?? 'smtp'),
+$transport = Mail::mailer()->transportName();
+$settings = $transport === 'smtp' ? [
+    'Transporte' => 'smtp',
     'Servidor' => ($mail['host'] ?? '?') . ':' . ($mail['port'] ?? '?'),
     'Cifrado' => (string) ($mail['encryption'] ?? 'tls'),
     'Usuario' => (string) (($mail['username'] ?? '') ?: '(sin autenticación)'),
+] : [
+    'Transporte' => $transport === 'mail' ? 'mail (sendmail del servidor, sin SMTP)' : $transport,
+];
+$settings += [
     'Remitente' => (string) ($mail['from']['address'] ?? '?'),
     'Fecha' => date('d/m/Y H:i:s'),
 ];

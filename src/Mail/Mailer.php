@@ -105,12 +105,24 @@ final class Mailer
         return $this->transport() instanceof LogTransport;
     }
 
+    /** smtp | mail | log | auto (por defecto): SMTP si hay servidor configurado y, si no, mail() de PHP. */
+    public function transportName(): string
+    {
+        $name = (string) ($this->config['transport'] ?? 'auto');
+        if ($name !== 'auto') {
+            return $name;
+        }
+        $host = trim((string) ($this->config['host'] ?? ''));
+        return $host !== '' && $host !== 'smtp.example.com' ? 'smtp' : 'mail';
+    }
+
     private function transport(): Transport
     {
-        return $this->transport ??= match ($this->config['transport'] ?? 'smtp') {
+        return $this->transport ??= match ($this->transportName()) {
             'smtp' => new SmtpTransport($this->config, $this->log),
+            'mail' => new PhpMailTransport(),
             'log' => new LogTransport($this->log, $this->logDir . '/mail'),
-            default => throw new MailException('mail.transport debe ser "smtp" o "log"'),
+            default => throw new MailException('mail.transport debe ser "auto", "smtp", "mail" o "log"'),
         };
     }
 }

@@ -85,8 +85,10 @@ return [
 
     // Correo saliente
     'mail' => [
-        'transport' => 'smtp',          // smtp | log (no envía: lo escribe en el log y guarda el .eml; útil en desarrollo)
-        'host' => 'smtp.example.com',
+        // auto: SMTP si hay 'host' y, si no, mail() de PHP (el sendmail del servidor) · smtp · mail ·
+        // log (no envía: lo escribe en el log y guarda el .eml; útil en desarrollo)
+        'transport' => 'auto',
+        'host' => '',
         'port' => 587,
         'encryption' => 'tls',          // tls (STARTTLS, 587) | ssl (465) | none
         'username' => '',

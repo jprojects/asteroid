@@ -182,7 +182,7 @@ final class RemoteController extends Controller
                 'locale' => $config['locale'] ?? null,
                 'template' => $config['template'] ?? 'default',
                 'two_factor' => $config['two_factor']['mode'] ?? 'off',
-                'mail_transport' => $config['mail']['transport'] ?? null,
+                'mail_transport' => $this->app->mailer()->transportName(),   // el que se usa (auto → smtp o mail)
                 'https' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
                 'allow_ips' => !empty($config['remote']['allow_ips']),
                 'backups_keep' => max(1, (int) ($config['remote']['backups_keep'] ?? 5)),
