@@ -20,9 +20,13 @@ final class Bot
     {
     }
 
-    /** @return array<string,mixed>|null el "result" de Telegram, o null si ha fallado */
-    public function call(string $method, array $params = []): ?array
+    /**
+     * @param ?int $timeout segundos (por defecto TIMEOUT; más en las consultas largas de getUpdates)
+     * @return array<string,mixed>|null el "result" de Telegram, o null si ha fallado
+     */
+    public function call(string $method, array $params = [], ?int $timeout = null): ?array
     {
+        $timeout ??= self::TIMEOUT;
         $body = json_encode($params, JSON_UNESCAPED_UNICODE);
         $url = ($this->api ?? self::API) . $this->token . '/' . $method;
         if (function_exists('curl_init')) {
@@ -32,7 +36,7 @@ final class Bot
                 CURLOPT_POSTFIELDS => $body,
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => self::TIMEOUT,
+                CURLOPT_TIMEOUT => $timeout,
                 CURLOPT_CONNECTTIMEOUT => 4,
             ]);
             $raw = curl_exec($ch);
@@ -41,7 +45,7 @@ final class Bot
         } else {
             $raw = @file_get_contents($url, false, stream_context_create(['http' => [
                 'method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => $body,
-                'timeout' => self::TIMEOUT, 'ignore_errors' => true,
+                'timeout' => $timeout, 'ignore_errors' => true,
             ]]));
             $error = $raw === false ? 'sin respuesta' : null;
         }

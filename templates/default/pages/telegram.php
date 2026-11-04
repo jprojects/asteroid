@@ -14,6 +14,9 @@
  * @var list<string> $events
  * @var list<array> $linked
  * @var array<string,string> $urls
+ * @var string $mode       webhook | poll
+ * @var int $polledAt      última consulta del cron (modo poll)
+ * @var string $pollCmd    línea del cron
  */
 $dtFmt = $this->t('format.datetime');
 $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) : '—';
@@ -80,6 +83,16 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
           <dd><?= $botName ? $this->icon('circle-check', 'ast-tg-ok') . ' @' . $this->e($botName) : $this->icon('circle-x', 'ast-tg-bad') . ' ' . $this->e($this->t('bot_bad')) ?></dd>
           <dt><?= $this->e($this->t('group')) ?></dt>
           <dd><?= $groupOk ? $this->e(implode(', ', array_map(fn ($e) => $this->t('events.' . $e), $events))) : $this->e($this->t('group_missing')) ?></dd>
+          <?php if ($mode === 'poll'): ?>
+          <dt><?= $this->e($this->t('mode_poll')) ?></dt>
+          <dd>
+            <?php $fresh = $polledAt > time() - 180; ?>
+            <?= $fresh ? $this->icon('circle-check', 'ast-tg-ok') : $this->icon('circle-x', 'ast-tg-bad') ?>
+            <?= $this->e($polledAt ? $this->t('polled_at', ['date' => date($dtFmt, $polledAt)]) : $this->t('never_polled')) ?>
+            <br><span class="qs-muted"><?= $this->e($this->t('poll_help')) ?></span>
+            <pre><?= $this->e($pollCmd) ?></pre>
+          </dd>
+          <?php else: ?>
           <dt><?= $this->e($this->t('webhook')) ?></dt>
           <dd>
             <?php $active = ($webhook['url'] ?? '') === $hookUrl; ?>
@@ -93,11 +106,14 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
               <br><span class="qs-muted"><?= $this->e($this->t('webhook_pending', ['n' => (int) $webhook['pending_update_count']])) ?></span>
             <?php endif ?>
           </dd>
+          <?php endif ?>
         </dl>
         <div class="ast-tg-actions ast-tg-gap">
-          <form method="post" action="<?= $this->e($urls['webhook']) ?>"><?= $this->csrfField() ?>
-            <button type="submit" class="qs-btn qs-btn-sm"><?= $this->icon('refresh-cw') ?> <?= $this->e($this->t($active ? 'webhook_redo' : 'webhook_set')) ?></button>
-          </form>
+          <?php if ($mode === 'webhook'): ?>
+            <form method="post" action="<?= $this->e($urls['webhook']) ?>"><?= $this->csrfField() ?>
+              <button type="submit" class="qs-btn qs-btn-sm"><?= $this->icon('refresh-cw') ?> <?= $this->e($this->t($active ? 'webhook_redo' : 'webhook_set')) ?></button>
+            </form>
+          <?php endif ?>
           <?php if ($groupOk): ?>
             <form method="post" action="<?= $this->e($urls['test']) ?>"><?= $this->csrfField() ?>
               <button type="submit" class="qs-btn qs-btn-sm"><?= $this->icon('send') ?> <?= $this->e($this->t('test_send')) ?></button>

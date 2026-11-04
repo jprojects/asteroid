@@ -79,5 +79,9 @@
     "issue.message": "messages",
     "issue.status": "status changes",
     "issue.panic": "panic only"
-  }
+  },
+  "mode_poll": "Polling mode",
+  "polled_at": "Last check: {date}",
+  "never_polled": "The cron has not checked Telegram yet",
+  "poll_help": "The server asks Telegram for new messages every minute (no webhook needed). Cron:"
 }

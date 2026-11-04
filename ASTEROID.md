@@ -116,15 +116,24 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
        'secret' => '…',                                 // 16-256 letras, números, _ o -; aleatorio
        'events' => ['issue.new', 'issue.message'],      // + 'issue.status' | 'issue.panic'
        'locale' => 'ca',                                // idioma de los mensajes del bot
+       'mode' => 'webhook',                             // o 'poll' (cron, ver abajo)
    ],
    ```
 4. *Equip → Telegram* (administrador): **Activa el webhook** y **Envia una prova al grupo**.
 5. Cada miembro del equipo: *Equip → Telegram → Vincula el meu compte* y abre el enlace al bot (o le envía
    `/vincular CODI`).
 
-Tablas `telegram_users` (cuentas vinculadas) y `telegram_messages` (qué aviso es de qué incidencia). Si el hosting
-filtra peticiones con URLs (el cortafuegos de Webempresa), un mensaje con un enlace podría no llegar al webhook:
-*Equip → Telegram* muestra el último error que ha visto Telegram.
+Tablas `telegram_users` (cuentas vinculadas) y `telegram_messages` (qué aviso es de qué incidencia).
+
+**Modo consulta** (`'mode' => 'poll'`): si el hosting no deja entrar a Telegram (en Webempresa, el webhook recibe
+**502** aunque desde fuera responda bien), el cron consulta los mensajes con `getUpdates` cada minuto, esperando hasta
+~55 s, así que las respuestas llegan casi al momento. No necesita webhook (el script lo quita). Cron:
+
+```
+* * * * * php /home/…/sat.aficat.com/tools/telegram-poll.php > /dev/null 2>&1
+```
+
+*Equip → Telegram* muestra la hora de la última consulta. Los avisos al grupo no cambian (salen del servidor).
 
 ## API (apps y bots)
 

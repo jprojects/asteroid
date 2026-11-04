@@ -79,5 +79,9 @@
     "issue.message": "missatges",
     "issue.status": "canvis d'estat",
     "issue.panic": "només pànic"
-  }
+  },
+  "mode_poll": "Mode consulta",
+  "polled_at": "Última consulta: {date}",
+  "never_polled": "El cron encara no ha consultat Telegram",
+  "poll_help": "El servidor pregunta a Telegram pels missatges cada minut (no cal webhook). Cron:"
 }

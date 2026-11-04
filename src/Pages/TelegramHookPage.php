@@ -15,7 +15,8 @@ use Quasar\Telegram\Telegram;
 /**
  * Asteroid · webhook del bot de Telegram (modules/telegram_hook.json, página pública):
  * index.php?r=public&m=telegram_hook. Telegram envía cada mensaje con la cabecera X-Telegram-Bot-Api-Secret-Token
- * (el 'secret' de la configuración); sin ella no se hace nada.
+ * (el 'secret' de la configuración); sin ella no se hace nada. Si el hosting no deja entrar a Telegram, el modo
+ * consulta ('mode' => 'poll') hace lo mismo desde el cron con tools/telegram-poll.php (process()).
  *
  * Quien escribe tiene que tener su cuenta de Telegram vinculada a un usuario del equipo (Equip → Telegram):
  * todo se hace como ese usuario, con sus permisos, y deja los mismos avisos que en la web.
@@ -40,6 +41,14 @@ final class TelegramHookPage extends Page
             return;
         }
         $update = json_decode((string) file_get_contents('php://input'), true);
+        if (is_array($update)) {
+            $this->process($update);
+        }
+    }
+
+    /** Atiende una actualización de Telegram (del webhook o de tools/telegram-poll.php en el modo consulta). */
+    public function process(array $update): void
+    {
         $msg = is_array($update['message'] ?? null) ? $update['message'] : null;
         if ($msg === null || !isset($msg['chat']['id'], $msg['from']['id'])) {
             return;
