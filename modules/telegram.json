@@ -1,0 +1,6 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\TelegramPage",
+  "requires": ["issues"],
+  "menu": { "group": "team", "order": 39, "icon": "send", "access": ["equip"] }
+}

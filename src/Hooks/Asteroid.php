@@ -7,6 +7,7 @@ use Quasar\Core\Chat;
 use Quasar\Core\Database;
 use Quasar\Core\Notify;
 use Quasar\Core\User;
+use Quasar\Telegram\Telegram;
 
 /**
  * Asteroid · utilidades compartidas por los hooks: quién es del equipo o de un cliente, y lo que pasa
@@ -108,6 +109,7 @@ final class Asteroid
             'actor' => $user->id(),
             'urgent' => $to === self::STATUS_RESOLVED,
         ]);
+        Telegram::statusChanged($db, $issue, $to, $user);
     }
 
     /** Apunte y aviso al técnico al que se le asigna una incidencia. */

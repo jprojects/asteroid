@@ -26,6 +26,7 @@ const GROUP_PERMISSIONS = [
         'pissarra' => ['view'],
         'surveys' => ['view', 'delete', 'export'],
         'pending_billing' => ['view'],
+        'telegram' => ['view'],
         'clients' => ['view', 'create', 'edit', 'delete', 'export'],
         'projects' => ['view', 'create', 'edit', 'delete', 'export'],
         'client_users' => ['view', 'create', 'edit', 'delete', 'export'],

@@ -11,8 +11,9 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
-| `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage` y `ClientHomePage` con sus plantillas `pissarra.php`, `survey.php`, `pending_billing.php` y `client_home.php` (con sus estilos) |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
+| `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
 | `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
@@ -84,6 +85,46 @@ En la ficha de una incidencia, al ponerla en **Resolta** aparece la casilla **En
   incidencia muestra la valoración media («Valoració del client»).
 - El correo sale como los avisos: hace falta `mail` configurado (no `'transport' => 'log'`) y los usuarios con los
   avisos por correo desactivados en su perfil solo la ven en la campana.
+
+## Bot de Telegram
+
+Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la página *Equip → Telegram* y el webhook
+`index.php?r=public&m=telegram_hook` (página pública protegida con el `secret`).
+
+**Avisos al grupo** (y tema): incidencias nuevas y mensajes de las conversaciones; opcionalmente cambios de estado
+(`issue.status`) o solo las de pánico (`issue.panic`). Llevan el cliente, el proyecto, el técnico y el enlace.
+
+**Desde Telegram** (con la cuenta vinculada a un usuario del equipo; todo con sus permisos y los avisos de siempre):
+
+- **Responder a un aviso** del bot escribe la respuesta en la conversación de esa incidencia (no vuelve a rebotar al
+  grupo; el cliente recibe el aviso si la incidencia es visible para él).
+- `/pissarra [nom|totes|sense]`, `/meves`, `/noves` (abiertas sin asignar), `/incidencia N` (resumen y últimos
+  mensajes; también se puede responder), `/agafa N`, `/resol N`, `/ajuda`, `/desvincular`.
+
+**Puesta en marcha:**
+
+1. @BotFather → `/newbot` → el token. Añade el bot al grupo del equipo (si el grupo tiene temas, el bot tiene que
+   poder escribir en el tema).
+2. `chat_id` del grupo (empieza por `-100`) y `thread_id` del tema: en Telegram Web, la URL del tema es
+   `…/#-100XXXXXXXXXX_42` → `chat_id` = `-100XXXXXXXXXX`, `thread_id` = `42`.
+3. En `config.local.php`:
+   ```php
+   'telegram' => [
+       'token' => '123456:ABC…',
+       'chat_id' => -1001234567890,
+       'thread_id' => 42,
+       'secret' => '…',                                 // 16-256 letras, números, _ o -; aleatorio
+       'events' => ['issue.new', 'issue.message'],      // + 'issue.status' | 'issue.panic'
+       'locale' => 'ca',                                // idioma de los mensajes del bot
+   ],
+   ```
+4. *Equip → Telegram* (administrador): **Activa el webhook** y **Envia una prova al grupo**.
+5. Cada miembro del equipo: *Equip → Telegram → Vincula el meu compte* y abre el enlace al bot (o le envía
+   `/vincular CODI`).
+
+Tablas `telegram_users` (cuentas vinculadas) y `telegram_messages` (qué aviso es de qué incidencia). Si el hosting
+filtra peticiones con URLs (el cortafuegos de Webempresa), un mensaje con un enlace podría no llegar al webhook:
+*Equip → Telegram* muestra el último error que ha visto Telegram.
 
 ## API (apps y bots)
 

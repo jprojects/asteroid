@@ -8,6 +8,7 @@ use Quasar\Core\HtmlSanitizer;
 use Quasar\Core\ModuleHooks;
 use Quasar\Core\Notify;
 use Quasar\Core\User;
+use Quasar\Telegram\Telegram;
 
 /**
  * Incidencias: el cliente sale del proyecto, se anota quién la crea y cuándo se resuelve, y cada
@@ -53,6 +54,7 @@ final class IssuesHooks extends ModuleHooks
 
         if ($isNew) {
             Chat::system('issues', $id, ['issues:log.created', ['user' => $user->name()]], $user->id());
+            Telegram::issueCreated($this->db, $issue, $user);
             $excerpt = mb_substr(HtmlSanitizer::toText((string) $issue['description']), 0, 300);
             if ((int) $issue['created_by_client'] === 1) {
                 // Del cliente: al técnico asignado o, si no hay, a todo el equipo
@@ -105,6 +107,8 @@ final class IssuesHooks extends ModuleHooks
         if ($issue === null) {
             return [];
         }
+        // Se llama justo después de guardar el mensaje: también va al grupo de Telegram
+        Telegram::messagePosted($this->db, $issue, $author);
         $ids = Asteroid::clientRecipients($this->db, $issue);
         // Sin técnico asignado, un mensaje del cliente llega a todo el equipo
         if (!$issue['worker_id'] && Asteroid::isClient($author)) {

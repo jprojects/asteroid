@@ -166,3 +166,24 @@ CREATE TABLE IF NOT EXISTS surveys (
   CONSTRAINT fk_surveys_issue FOREIGN KEY (issue_id) REFERENCES issues (id) ON DELETE CASCADE,
   CONSTRAINT fk_surveys_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bot de Telegram: cuentas vinculadas (Equip → Telegram) y avisos enviados al grupo (para responderles)
+CREATE TABLE IF NOT EXISTS telegram_users (
+  user_id        INT UNSIGNED    NOT NULL,
+  telegram_id    BIGINT          NOT NULL,
+  telegram_name  VARCHAR(100)    NOT NULL DEFAULT '',
+  linked_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id),
+  UNIQUE KEY uq_telegram_users_tg (telegram_id),
+  CONSTRAINT fk_telegram_users_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS telegram_messages (
+  chat_id     VARCHAR(32)   NOT NULL,
+  message_id  INT UNSIGNED  NOT NULL,
+  module      VARCHAR(64)   NOT NULL,
+  record_id   VARCHAR(64)   NOT NULL,
+  created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (chat_id, message_id),
+  KEY ix_telegram_messages_record (module, record_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
