@@ -175,6 +175,29 @@ cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
 
+## API antigua (enlace con Factusol)
+
+El programa del enlace con Factusol usaba la API del Asteroid antiguo (`admin/index.php?view=api&task=…`): lee las
+horas con el código Factusol del cliente y las marca como facturadas. `LegacyApiPage` (módulo `api_legacy`, página
+pública) la reproduce con las mismas tareas, parámetros y JSON; solo cambia la dirección:
+
+```
+https://sat.aficat.com/index.php?r=public&m=api_legacy&task=getHours&token=…&billed=2   (0 todas · 1 facturadas · 2 pendientes)
+https://sat.aficat.com/index.php?r=public&m=api_legacy&task=setBilled&token=…&id=N&billed=1   (0 · 1 facturadas · 2 no facturables)
+https://sat.aficat.com/index.php?r=public&m=api_legacy&task=getIssues&token=…
+```
+
+`getHours` acepta además `budget` (1 con presupuesto, 2 sin), `projectId` y `limit`; `task=api.getHours` también vale.
+El `token` es un token personal (Perfil → API, `qs_…`) o el antiguo del programa, declarado en `config.local.php`:
+
+```php
+'legacy_api' => ['tokens' => ['EL_TOKEN_ANTIGUO' => 98]],   // token => id del usuario (del equipo) como el que actúa
+```
+
+Ese usuario necesita permiso en las horas (ver; editar para `setBilled`) y en las incidencias. Las tareas con
+`apikey` de proyecto del Asteroid antiguo (`setIssue`, `getIssuesById`…) no están: para crear incidencias desde fuera
+está la API del núcleo.
+
 ## API (apps y bots)
 
 La del núcleo (README de Quasar, «API para apps y bots»): `https://asteroid.afi.cat/api/v1/…` con un token personal.
