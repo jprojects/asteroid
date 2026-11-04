@@ -1,0 +1,29 @@
+{
+  "title": "El meu xat web",
+  "description": "Personalitza el xat de la teva web i copia'n el codi",
+  "disabled": "El xat web no està activat per a {client}. Si t'interessa, demana-ho a AFI.",
+  "saved": "Configuració desada",
+  "inbox": "Converses",
+  "preview": "Prova el xat",
+  "section_look": "Xat",
+  "active": "Xat actiu",
+  "active_help": "Desactivat, el botó no apareix a la web.",
+  "name": "Nom",
+  "name_help": "El que veuen els visitants a la capçalera del xat.",
+  "color": "Color",
+  "position": "Posició del botó",
+  "position_right": "A la dreta",
+  "position_left": "A l'esquerra",
+  "greeting": "Missatge de benvinguda",
+  "greeting_help": "El primer missatge que veu el visitant (opcional).",
+  "domains": "Webs on es pot fer servir",
+  "domains_help": "Un domini per línia (p. ex. www.example.com o *.example.com). Buit: a qualsevol web.",
+  "section_code": "Codi per a la teva web",
+  "code_help": "Enganxa aquesta línia a la teva web, abans de </body> (o al camp de codi personalitzat del teu gestor: WordPress, Shopify, Wix…).",
+  "inactive_note": "El xat està desactivat: activa'l perquè aparegui a la web.",
+  "errors": {
+    "color": "Tria un color vàlid",
+    "name": "Posa un nom (fins a 80 caràcters)",
+    "greeting": "Com a màxim 500 caràcters"
+  }
+}

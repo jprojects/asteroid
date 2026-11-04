@@ -1,0 +1,17 @@
+{
+  "title": "Xat",
+  "widget": {
+    "open": "Obre el xat",
+    "placeholder": "Escriu un missatge…",
+    "send": "Envia",
+    "name": "Nom",
+    "email": "Correu (opcional)",
+    "intro": "Deixa'ns el teu nom i, si vols, el correu per si no hi som.",
+    "error": "No s'ha pogut enviar. Torna-ho a provar.",
+    "closed": "Aquesta conversa està tancada. Si escrius, es tornarà a obrir.",
+    "close": "Tanca",
+    "you": "Tu",
+    "too_many": "Has enviat massa missatges seguits. Espera una mica.",
+    "visitor": "Visitant"
+  }
+}

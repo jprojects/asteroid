@@ -1,0 +1,27 @@
+{
+  "title": "Chat web",
+  "description": "Conversaciones de los visitantes de tu web",
+  "fields": {
+    "id": "Núm.",
+    "visitor_name": "Visitante",
+    "visitor_email": "Correo electrónico",
+    "status": "Estado",
+    "client_id": "Cliente",
+    "page_url": "Página",
+    "user_agent": "Navegador",
+    "last_message_at": "Último mensaje",
+    "created_at": "Inicio"
+  },
+  "status": {
+    "open": "Abierta",
+    "closed": "Cerrada"
+  },
+  "sections": {
+    "visitor": "Visitante",
+    "info": "Información"
+  },
+  "log": {
+    "closed": "Conversación cerrada por {user}",
+    "reopened": "Conversación reabierta por {user}"
+  }
+}

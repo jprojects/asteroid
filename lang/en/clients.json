@@ -13,7 +13,8 @@
     "projects": "Projects",
     "open_issues": "Open issues",
     "users": "Users",
-    "created_at": "Created"
+    "created_at": "Created",
+    "webchat": "Web chat"
   },
   "sections": {
     "general": "Client",
@@ -23,5 +24,8 @@
     "issues": "Client issues",
     "projects": "Client projects",
     "users": "Client users"
+  },
+  "help": {
+    "webchat": "AFI enables the chat for their website: the client sets it up in “My web chat”."
   }
 }

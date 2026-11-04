@@ -1,0 +1,17 @@
+{
+  "title": "Chat",
+  "widget": {
+    "open": "Open chat",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "name": "Name",
+    "email": "Email (optional)",
+    "intro": "Leave your name and, if you like, your email in case we're away.",
+    "error": "Couldn't send it. Please try again.",
+    "closed": "This conversation is closed. Writing will reopen it.",
+    "close": "Close",
+    "you": "You",
+    "too_many": "You've sent too many messages in a row. Please wait a moment.",
+    "visitor": "Visitor"
+  }
+}

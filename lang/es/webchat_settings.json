@@ -1,0 +1,29 @@
+{
+  "title": "Mi chat web",
+  "description": "Personaliza el chat de tu web y copia su código",
+  "disabled": "El chat web no está activado para {client}. Si te interesa, pídelo a AFI.",
+  "saved": "Configuración guardada",
+  "inbox": "Conversaciones",
+  "preview": "Probar el chat",
+  "section_look": "Chat",
+  "active": "Chat activo",
+  "active_help": "Desactivado, el botón no aparece en la web.",
+  "name": "Nombre",
+  "name_help": "Lo que ven los visitantes en la cabecera del chat.",
+  "color": "Color",
+  "position": "Posición del botón",
+  "position_right": "A la derecha",
+  "position_left": "A la izquierda",
+  "greeting": "Mensaje de bienvenida",
+  "greeting_help": "El primer mensaje que ve el visitante (opcional).",
+  "domains": "Webs donde se puede usar",
+  "domains_help": "Un dominio por línea (p. ej. www.example.com o *.example.com). Vacío: en cualquier web.",
+  "section_code": "Código para tu web",
+  "code_help": "Pega esta línea en tu web, antes de </body> (o en el campo de código personalizado de tu gestor: WordPress, Shopify, Wix…).",
+  "inactive_note": "El chat está desactivado: actívalo para que aparezca en la web.",
+  "errors": {
+    "color": "Elige un color válido",
+    "name": "Pon un nombre (hasta 80 caracteres)",
+    "greeting": "Como máximo 500 caracteres"
+  }
+}

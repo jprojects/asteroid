@@ -96,6 +96,31 @@ final class ChatService
     }
 
     /**
+     * Mensaje de alguien que no es usuario de la aplicación (p. ej. el visitante de un chat web): se guarda sin
+     * usuario y con su nombre en "meta.author", el panel lo muestra con ese nombre y se avisa como de cualquier
+     * mensaje (campos de "chat.notify", quienes ya han escrito y el hook externalRecipients()). Solo texto.
+     * @param array<string,scalar> $meta datos propios del mensaje (se guardan junto al nombre)
+     * @return array<string,mixed> el mensaje
+     * @throws \InvalidArgumentException con clave de idioma si el mensaje no es válido
+     */
+    public function postExternal(Module $m, string $id, array $row, string $author, string $body, array $meta = []): array
+    {
+        $body = trim(str_replace(["\r\n", "\r"], "\n", $body));
+        $author = trim(mb_substr((string) preg_replace('/\s+/', ' ', $author), 0, 80));
+        $author = $author !== '' ? $author : '?';
+        if ($body === '') {
+            throw new \InvalidArgumentException('chat.empty_message');
+        }
+        if (mb_strlen($body) > self::MAX_BODY) {
+            throw new \InvalidArgumentException('chat.too_long');
+        }
+        $msgId = $this->insert($m->name, $id, null, 'text', $body, [], ['author' => $author] + $meta);
+        $this->notify($m, $id, $row, $author, $body, [], 'message');
+        $row = $this->app->db->fetch('SELECT m.*, NULL AS user_name, NULL AS user_username FROM messages m WHERE m.id = ?', [$msgId]);
+        return $this->present($row, null, []);
+    }
+
+    /**
      * Mensaje de videollamada (Google Meet) y aviso urgente a los participantes.
      * @param array{uri:string,code:?string} $meeting
      */
@@ -311,8 +336,11 @@ final class ChatService
      * los mencionados. Se omite a quien la tiene silenciada (salvo mención) o abierta en ese momento.
      * @param list<int> $mentions
      */
-    private function notify(Module $m, string $id, array $row, User $author, string $excerpt, array $mentions, string $kind): void
+    /** @param User|string $author usuario, o el nombre de alguien de fuera (postExternal) */
+    private function notify(Module $m, string $id, array $row, User|string $author, string $excerpt, array $mentions, string $kind): void
     {
+        $authorId = $author instanceof User ? $author->id() : null;
+        $authorName = $author instanceof User ? $author->name() : $author;
         $cfg = $m->chatConfig() ?? [];
         $candidates = [];
         foreach ($cfg['notify'] ?? [] as $field) {
@@ -328,7 +356,10 @@ final class ChatService
         ) as $r) {
             $candidates[] = (int) $r['user_id'];
         }
-        array_push($candidates, ...array_map('intval', $m->hooks($this->app->db)?->chatRecipients($id, $row, $author) ?? []));
+        $hooks = $m->hooks($this->app->db);
+        array_push($candidates, ...array_map('intval', ($author instanceof User
+            ? $hooks?->chatRecipients($id, $row, $author)
+            : $hooks?->externalRecipients($id, $row)) ?? []));
         array_push($candidates, ...$mentions);
 
         $state = [];
@@ -338,7 +369,7 @@ final class ChatService
         $live = date('Y-m-d H:i:s', time() - self::LIVE_SECONDS);
         $byType = ['message' => [], 'mention' => [], 'meet' => []];
         foreach (array_unique($candidates) as $uid) {
-            $u = $uid !== $author->id() ? $this->user($uid) : null;
+            $u = $uid !== $authorId ? $this->user($uid) : null;
             if ($u === null || !$this->canSee($m, $id, $u)) {
                 continue;
             }
@@ -361,12 +392,12 @@ final class ChatService
             }
             $this->app->notifier()->send($ids, [
                 'type' => 'chat.' . $type,
-                'title' => ['notifications.chat_' . $type, ['user' => $author->name(), 'record' => $record, 'module' => $m->title()]],
+                'title' => ['notifications.chat_' . $type, ['user' => $authorName, 'record' => $record, 'module' => $m->title()]],
                 'body' => mb_substr($excerpt, 0, 300),
                 'url' => $url,
                 'module' => $m->name,
                 'record' => $id,
-                'actor' => $author->id(),
+                'actor' => $authorId,
                 'urgent' => $type !== 'message',
             ]);
         }
@@ -387,10 +418,13 @@ final class ChatService
     }
 
     /** @param array<int,array> $media info de los archivos por id */
-    private function present(array $r, User $me, array $media): array
+    private function present(array $r, ?User $me, array $media): array
     {
         $deleted = $r['deleted_at'] !== null;
         $name = (string) ($r['user_name'] ?: $r['user_username'] ?: '');
+        // De alguien de fuera (postExternal): su nombre está en meta.author
+        $external = $r['user_id'] === null && $r['kind'] !== 'system' && $r['meta'] !== null
+            ? (string) (((array) json_decode((string) $r['meta'], true))['author'] ?? '') : '';
         if ($r['kind'] === 'system' && $r['body'] === null && $r['meta'] !== null) {
             $meta = (array) json_decode((string) $r['meta'], true);
             $r['body'] = $this->app->lang->get((string) ($meta['t'] ?? ''), $this->app->lang->vars((array) ($meta['v'] ?? [])));
@@ -403,14 +437,19 @@ final class ChatService
                 'id' => (int) $r['user_id'],
                 'name' => $name,
                 'initial' => mb_strtoupper(mb_substr($name, 0, 1)),
-            ] : null,
-            'mine' => $r['user_id'] !== null && (int) $r['user_id'] === $me->id(),
+            ] : ($external !== '' ? [
+                'id' => null,
+                'name' => $external,
+                'initial' => mb_strtoupper(mb_substr($external, 0, 1)),
+                'external' => true,
+            ] : null),
+            'mine' => $r['user_id'] !== null && $me !== null && (int) $r['user_id'] === $me->id(),
             'body' => $deleted ? null : $r['body'],
             'media' => $deleted ? [] : array_values(array_filter(array_map(static fn ($i) => $media[$i] ?? null, self::ids($r['media'])))),
             'meta' => $deleted || $r['meta'] === null ? null : json_decode((string) $r['meta'], true),
             'at' => date('c', strtotime((string) $r['created_at'])),
             'deleted' => $deleted,
-            'canDelete' => !$deleted && $r['kind'] !== 'system' && ((int) $r['user_id'] === $me->id() || $me->isAdmin()),
+            'canDelete' => $me !== null && !$deleted && $r['kind'] !== 'system' && ($r['user_id'] !== null && (int) $r['user_id'] === $me->id() || $me->isAdmin()),
         ];
     }
 

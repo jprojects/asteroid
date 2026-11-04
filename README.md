@@ -1000,6 +1000,10 @@ Cada registro guardado tiene, junto a la ficha (debajo en pantallas estrechas), 
 - Se actualiza sola cada `chat.poll_seconds` (5 s; menos a menudo si la pestaña no está a la vista), sin websockets:
   funciona en cualquier hosting.
 - **Apuntes del sistema** desde los hooks: `Chat::system('issues', $id, ['issues:log.status', ['to' => ['issues:status.resolved']]], $user->id())`
+- **Mensajes de alguien de fuera** (p. ej. el visitante de un chat web, que no es usuario):
+  `$app->chat()->postExternal($module, $id, $row, 'Maria Puig', $texto)`. Se guarda sin usuario y con el nombre en
+  `meta.author`; el panel lo muestra con ese nombre, cuenta como no leído y avisa como cualquier mensaje (campos de
+  `chat.notify`, quienes ya han escrito y el hook `externalRecipients($id, $row)`). Solo texto.
   (texto o clave de idioma con variables; se traduce al idioma de quien lo lee).
 - Silenciar: el botón de la campana de la conversación deja de avisar de ella (salvo menciones).
 - Acceso: quien ve el módulo y el registro (`scope`), y, si se indica, `chat.access`. Los adjuntos solo se sirven a

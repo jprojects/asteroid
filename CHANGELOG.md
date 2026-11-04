@@ -2,6 +2,12 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.20.0 — 2026-11-04
+
+- **Mensajes de alguien de fuera en la conversación**: `ChatService::postExternal()` publica un mensaje sin usuario,
+  con el nombre de quien lo escribe (`meta.author`); el panel lo muestra con ese nombre y se avisa como de cualquier
+  mensaje. Hook nuevo `externalRecipients()` para elegir a quién. Es la base de un chat web para visitantes.
+
 ## 0.19.0 — 2026-11-04
 
 - **Correo sin SMTP**: transporte `mail` (la función `mail()` de PHP, el sendmail del servidor) y `auto`, el nuevo

@@ -1,0 +1,29 @@
+{
+  "title": "My web chat",
+  "description": "Customise your website chat and copy its code",
+  "disabled": "Web chat is not enabled for {client}. If you're interested, ask AFI.",
+  "saved": "Settings saved",
+  "inbox": "Conversations",
+  "preview": "Try the chat",
+  "section_look": "Chat",
+  "active": "Chat enabled",
+  "active_help": "When disabled, the button doesn't appear on the website.",
+  "name": "Name",
+  "name_help": "What visitors see in the chat header.",
+  "color": "Colour",
+  "position": "Button position",
+  "position_right": "Right",
+  "position_left": "Left",
+  "greeting": "Welcome message",
+  "greeting_help": "The first message visitors see (optional).",
+  "domains": "Websites where it can be used",
+  "domains_help": "One domain per line (e.g. www.example.com or *.example.com). Empty: any website.",
+  "section_code": "Code for your website",
+  "code_help": "Paste this line into your website, before </body> (or in your site builder's custom code field: WordPress, Shopify, Wix…).",
+  "inactive_note": "The chat is disabled: enable it so it shows on the website.",
+  "errors": {
+    "color": "Choose a valid colour",
+    "name": "Enter a name (up to 80 characters)",
+    "greeting": "500 characters at most"
+  }
+}

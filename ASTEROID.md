@@ -11,8 +11,9 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
+| `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
 | `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
 | `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
@@ -85,6 +86,27 @@ En la ficha de una incidencia, al ponerla en **Resolta** aparece la casilla **En
   incidencia muestra la valoración media («Valoració del client»).
 - El correo sale como los avisos: hace falta `mail` configurado (no `'transport' => 'log'`) y los usuarios con los
   avisos por correo desactivados en su perfil solo la ven en la campana.
+
+## Chat web para los clientes
+
+Cada cliente puede poner un chat en **su** web y responder desde Asteroid.
+
+- **AFI lo activa por cliente**: *Clients → ficha → Xat web* (solo el equipo).
+- **El cliente lo configura** en *Suport → El meu xat web*: activo, nombre, color, posición del botón, mensaje de
+  bienvenida y webs donde se puede usar (un dominio por línea; vacío = cualquiera). Ahí copia el código:
+  `<script src="https://sat.aficat.com/index.php?r=public&m=webchat_widget&a=loader&k=CLAVE" async></script>`
+- **En su web** sale un botón flotante con su color; el chat se abre en un iframe de Asteroid (solo se puede incrustar
+  en sus dominios: `frame-ancestors`). El visitante deja su nombre y, si quiere, el correo; se identifica con un token
+  aleatorio de su navegador (no hay cookies). Las respuestas le llegan en unos segundos.
+- **Los usuarios del cliente responden** en *Suport → Xat web*: una conversación por visitante, con la conversación de
+  siempre (avisos en la campana y por correo a todos los usuarios del cliente, no leídos en el listado, cerrar/reabrir).
+  Cada cliente ve solo las suyas; el equipo de AFI no (los administradores sí).
+- Contra abusos: 30 mensajes por visitante cada 10 minutos, 6 conversaciones nuevas por IP y hora, trampa para bots y
+  2.000 caracteres por mensaje.
+
+Código: `src/Webchat/`, `WebchatWidgetPage` (pública: `loader`, el iframe, `poll` y `send`), `WebchatSettingsPage`,
+`WebchatHooks` y el núcleo `ChatService::postExternal()` (Quasar 0.20.0). Tablas `webchat_sites` y
+`webchat_conversations`, columna `clients.webchat`; los mensajes van en `messages` (módulo `webchat`).
 
 ## Bot de Telegram
 

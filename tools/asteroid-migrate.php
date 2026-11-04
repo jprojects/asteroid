@@ -39,6 +39,8 @@ const GROUP_PERMISSIONS = [
     ],
     'client' => [
         'client_home' => ['view'],
+        'webchat' => ['view', 'edit', 'delete', 'export'],
+        'webchat_settings' => ['view'],
         'issues' => ['view', 'create', 'edit'],
         'folders' => ['view'],
         'files' => ['view'],
@@ -71,6 +73,16 @@ try {
     if (!$hasColumn) {
         $db->pdo()->exec('ALTER TABLE users ADD COLUMN client_id INT UNSIGNED NULL AFTER email, ADD KEY ix_users_client (client_id)');
         echo "  ✓ columna users.client_id\n";
+    }
+
+    // Chat web: AFI lo activa por cliente (Clients → ficha)
+    $hasWebchat = (int) $db->fetchValue(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'clients' AND COLUMN_NAME = 'webchat'",
+        [$schema]
+    );
+    if (!$hasWebchat) {
+        $db->pdo()->exec("ALTER TABLE clients ADD COLUMN webchat TINYINT(1) NOT NULL DEFAULT 0 AFTER active");
+        echo "  ✓ columna clients.webchat\n";
     }
 
     $groups = [

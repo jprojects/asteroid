@@ -13,6 +13,7 @@
     "email":         { "type": "email", "maxlength": 150, "width": "third" },
     "phone":         { "type": "text", "maxlength": 50, "width": "third" },
     "active":        { "type": "checkbox", "default": 1, "width": "third", "colors": { "1": "green", "0": "gray" } },
+    "webchat":       { "type": "checkbox", "default": 0, "width": "third", "access": ["equip"], "help": "help.webchat", "colors": { "1": "teal" } },
     "notes":         { "type": "textarea", "rows": 3 },
     "projects":      { "type": "number", "sql": "SELECT COUNT(*) FROM projects p WHERE p.client_id = clients.id" },
     "open_issues":   { "type": "number", "sql": "SELECT COUNT(*) FROM issues i WHERE i.client_id = clients.id AND i.status IN (1, 2)" },
@@ -44,7 +45,7 @@
 
   "form": {
     "sections": [
-      { "title": "sections.general", "fields": ["name", "nif", "factusol_code", "email", "phone", "active", "notes"] },
+      { "title": "sections.general", "fields": ["name", "nif", "factusol_code", "email", "phone", "active", "webchat", "notes"] },
       { "title": "sections.summary", "fields": ["projects", "open_issues", "users", "created_at"] }
     ]
   }

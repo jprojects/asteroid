@@ -13,7 +13,8 @@
     "projects": "Projectes",
     "open_issues": "Incid. obertes",
     "users": "Usuaris",
-    "created_at": "Data d'alta"
+    "created_at": "Data d'alta",
+    "webchat": "Xat web"
   },
   "sections": {
     "general": "Client",
@@ -23,5 +24,8 @@
     "issues": "Incidències del client",
     "projects": "Projectes del client",
     "users": "Usuaris del client"
+  },
+  "help": {
+    "webchat": "AFI li activa el xat per a la seva web: el client el configura a «El meu xat web»."
   }
 }

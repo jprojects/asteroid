@@ -1,0 +1,27 @@
+{
+  "title": "Web chat",
+  "description": "Conversations with your website visitors",
+  "fields": {
+    "id": "No.",
+    "visitor_name": "Visitor",
+    "visitor_email": "Email",
+    "status": "Status",
+    "client_id": "Client",
+    "page_url": "Page",
+    "user_agent": "Browser",
+    "last_message_at": "Last message",
+    "created_at": "Started"
+  },
+  "status": {
+    "open": "Open",
+    "closed": "Closed"
+  },
+  "sections": {
+    "visitor": "Visitor",
+    "info": "Information"
+  },
+  "log": {
+    "closed": "Conversation closed by {user}",
+    "reopened": "Conversation reopened by {user}"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Xat web",
+  "description": "Converses dels visitants de la teva web",
+  "fields": {
+    "id": "Núm.",
+    "visitor_name": "Visitant",
+    "visitor_email": "Correu electrònic",
+    "status": "Estat",
+    "client_id": "Client",
+    "page_url": "Pàgina",
+    "user_agent": "Navegador",
+    "last_message_at": "Últim missatge",
+    "created_at": "Inici"
+  },
+  "status": {
+    "open": "Oberta",
+    "closed": "Tancada"
+  },
+  "sections": {
+    "visitor": "Visitant",
+    "info": "Informació"
+  },
+  "log": {
+    "closed": "Conversa tancada per {user}",
+    "reopened": "Conversa reoberta per {user}"
+  }
+}

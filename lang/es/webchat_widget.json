@@ -1,0 +1,17 @@
+{
+  "title": "Chat",
+  "widget": {
+    "open": "Abrir el chat",
+    "placeholder": "Escribe un mensaje…",
+    "send": "Enviar",
+    "name": "Nombre",
+    "email": "Correo (opcional)",
+    "intro": "Déjanos tu nombre y, si quieres, el correo por si no estamos.",
+    "error": "No se ha podido enviar. Vuelve a intentarlo.",
+    "closed": "Esta conversación está cerrada. Si escribes, se volverá a abrir.",
+    "close": "Cerrar",
+    "you": "Tú",
+    "too_many": "Has enviado demasiados mensajes seguidos. Espera un poco.",
+    "visitor": "Visitante"
+  }
+}

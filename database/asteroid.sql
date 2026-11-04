@@ -187,3 +187,42 @@ CREATE TABLE IF NOT EXISTS telegram_messages (
   PRIMARY KEY (chat_id, message_id),
   KEY ix_telegram_messages_record (module, record_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Chat web para las webs de los clientes: la configuración de cada cliente (una por cliente) y sus conversaciones.
+-- Los mensajes van en la tabla "messages" del núcleo (módulo "webchat"); los de los visitantes, sin usuario.
+CREATE TABLE IF NOT EXISTS webchat_sites (
+  id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  client_id   INT UNSIGNED  NOT NULL,
+  public_key  CHAR(24)      NOT NULL,
+  active      TINYINT(1)    NOT NULL DEFAULT 0,
+  name        VARCHAR(80)   NOT NULL DEFAULT '',
+  color       CHAR(7)       NOT NULL DEFAULT '#2563eb',
+  greeting    VARCHAR(500)  NOT NULL DEFAULT '',
+  domains     TEXT          NULL COMMENT 'Un dominio por línea; vacío = cualquiera',
+  position    VARCHAR(5)    NOT NULL DEFAULT 'right',
+  updated_at  DATETIME      NULL ON UPDATE CURRENT_TIMESTAMP,
+  created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_webchat_sites_client (client_id),
+  UNIQUE KEY uq_webchat_sites_key (public_key),
+  CONSTRAINT fk_webchat_sites_client FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS webchat_conversations (
+  id               INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  client_id        INT UNSIGNED  NOT NULL,
+  visitor_hash     CHAR(64)      NOT NULL COMMENT 'SHA-256 del identificador del navegador del visitante',
+  visitor_name     VARCHAR(80)   NOT NULL DEFAULT '',
+  visitor_email    VARCHAR(150)  NULL,
+  status           TINYINT       NOT NULL DEFAULT 1 COMMENT '1 abierta, 2 cerrada',
+  page_url         VARCHAR(500)  NULL,
+  ip_hash          CHAR(64)      NULL,
+  user_agent       VARCHAR(255)  NULL,
+  last_message_at  DATETIME      NULL,
+  created_at       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_webchat_conv_client (client_id, status, last_message_at),
+  KEY ix_webchat_conv_visitor (visitor_hash),
+  KEY ix_webchat_conv_ip (ip_hash, created_at),
+  CONSTRAINT fk_webchat_conv_client FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -54,4 +54,14 @@ abstract class ModuleHooks
     {
         return [];
     }
+
+    /**
+     * Lo mismo para un mensaje de alguien de fuera de la aplicación (ChatService::postExternal(), p. ej. el visitante
+     * de un chat web): usuarios a los que avisar, además de los de "chat.notify" y los que ya han escrito.
+     * @return list<int> ids de usuario
+     */
+    public function externalRecipients(string $id, array $row): array
+    {
+        return [];
+    }
 }

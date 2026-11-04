@@ -13,7 +13,8 @@
     "projects": "Proyectos",
     "open_issues": "Incid. abiertas",
     "users": "Usuarios",
-    "created_at": "Fecha de alta"
+    "created_at": "Fecha de alta",
+    "webchat": "Chat web"
   },
   "sections": {
     "general": "Cliente",
@@ -23,5 +24,8 @@
     "issues": "Incidencias del cliente",
     "projects": "Proyectos del cliente",
     "users": "Usuarios del cliente"
+  },
+  "help": {
+    "webchat": "AFI le activa el chat para su web: el cliente lo configura en «Mi chat web»."
   }
 }
