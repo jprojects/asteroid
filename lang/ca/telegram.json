@@ -98,5 +98,18 @@
     "take": "Agafa-la",
     "resolve": "Resol",
     "cancel": "Cancel·la"
+  },
+  "cron_at": "Últim cron: {date}",
+  "cron_never": "El cron no ha arrencat mai (o no amb aquesta versió)",
+  "cron_busy": "El cron troba una altra consulta en marxa ({date}): n'hi ha una de penjada",
+  "last_update": "Últim rebut: {date} · {type} · {via}",
+  "update_types": {
+    "button": "botó",
+    "message": "missatge",
+    "other": "altre"
+  },
+  "update_via": {
+    "cron": "pel cron",
+    "web": "en obrir aquesta pàgina"
   }
 }

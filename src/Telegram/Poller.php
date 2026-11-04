@@ -19,7 +19,13 @@ final class Poller
     {
         $lock = fopen(sys_get_temp_dir() . '/asteroid-telegram-' . md5(QS_ROOT) . '.lock', 'c');
         if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
+            if ($seconds > 0) {
+                $app->settings()->set('telegram.cron_busy_at', time()); // se ve en Equip → Telegram
+            }
             return null;
+        }
+        if ($seconds > 0) {
+            $app->settings()->set('telegram.cron_at', time());
         }
         // Cada mensaje se atiende como su usuario de Asteroid (Auth::actAs): en una App aparte, para no cambiar el
         // usuario de la página desde la que se consulta
@@ -59,6 +65,9 @@ final class Poller
                     $_GET = [];
                     (new TelegramHookPage($worker, $module))->process($update);
                     $handled++;
+                    // Lo último recibido, para Equip → Telegram (qué ha llegado y por dónde)
+                    $type = (string) (array_keys(array_diff_key($update, ['update_id' => 0]))[0] ?? '?');
+                    $settings->set('telegram.last_update', ['at' => time(), 'type' => $type, 'via' => $seconds > 0 ? 'cron' : 'web']);
                 }
             } while ($seconds > 0 && time() < $until - 3);
 

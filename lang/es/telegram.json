@@ -98,5 +98,18 @@
     "take": "Cogerla",
     "resolve": "Resolver",
     "cancel": "Cancelar"
+  },
+  "cron_at": "Último cron: {date}",
+  "cron_never": "El cron no ha arrancado nunca (o no con esta versión)",
+  "cron_busy": "El cron encuentra otra consulta en marcha ({date}): hay una colgada",
+  "last_update": "Último recibido: {date} · {type} · {via}",
+  "update_types": {
+    "button": "botón",
+    "message": "mensaje",
+    "other": "otro"
+  },
+  "update_via": {
+    "cron": "por el cron",
+    "web": "al abrir esta página"
   }
 }

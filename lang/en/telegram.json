@@ -98,5 +98,18 @@
     "take": "Take it",
     "resolve": "Resolve",
     "cancel": "Cancel"
+  },
+  "cron_at": "Last cron run: {date}",
+  "cron_never": "The cron has never started (or not with this version)",
+  "cron_busy": "The cron finds another poll running ({date}): one is stuck",
+  "last_update": "Last received: {date} · {type} · {via}",
+  "update_types": {
+    "button": "button",
+    "message": "message",
+    "other": "other"
+  },
+  "update_via": {
+    "cron": "by the cron",
+    "web": "when opening this page"
   }
 }

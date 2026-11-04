@@ -89,6 +89,19 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
             <?php $fresh = $polledAt > time() - 180; ?>
             <?= $fresh ? $this->icon('circle-check', 'ast-tg-ok') : $this->icon('circle-x', 'ast-tg-bad') ?>
             <?= $this->e($polledAt ? $this->t('polled_at', ['date' => date($dtFmt, $polledAt)]) : $this->t('never_polled')) ?>
+            <br><?php $cronOk = $cronAt > time() - 180; ?>
+            <?= $cronOk ? $this->icon('circle-check', 'ast-tg-ok') : $this->icon('circle-x', 'ast-tg-bad') ?>
+            <?= $this->e($cronAt ? $this->t('cron_at', ['date' => date($dtFmt, $cronAt)]) : $this->t('cron_never')) ?>
+            <?php if ($cronBusyAt > $cronAt && $cronBusyAt > time() - 180): ?>
+              <br><?= $this->icon('triangle-alert', 'ast-tg-bad') ?> <?= $this->e($this->t('cron_busy', ['date' => date($dtFmt, $cronBusyAt)])) ?>
+            <?php endif ?>
+            <?php if (is_array($lastUpdate ?? null)): ?>
+              <br><span class="qs-muted"><?= $this->e($this->t('last_update', [
+                  'date' => date($dtFmt, (int) $lastUpdate['at']),
+                  'type' => $this->t('update_types.' . ($lastUpdate['type'] === 'callback_query' ? 'button' : ($lastUpdate['type'] === 'message' ? 'message' : 'other'))),
+                  'via' => $this->t('update_via.' . ($lastUpdate['via'] === 'cron' ? 'cron' : 'web')),
+              ])) ?></span>
+            <?php endif ?>
             <br><span class="qs-muted"><?= $this->e($this->t('poll_help')) ?></span>
             <pre><?= $this->e($pollCmd) ?></pre>
           </dd>
