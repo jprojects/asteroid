@@ -1,7 +1,7 @@
 {
   "title": "El meu xat web",
   "description": "Personalitza el xat de la teva web i copia'n el codi",
-  "disabled": "El xat web no està activat per a {client}. Si t'interessa, demana-ho a AFI.",
+  "disabled": "El xat web no està activat per a {client}. Permet que els visitants de la teva web us escriguin i respondre'ls des d'aquí.",
   "saved": "Configuració desada",
   "inbox": "Converses",
   "preview": "Prova el xat",
@@ -25,5 +25,18 @@
     "color": "Tria un color vàlid",
     "name": "Posa un nom (fins a 80 caràcters)",
     "greeting": "Com a màxim 500 caràcters"
-  }
+  },
+  "request": "Demana-ho a AFI",
+  "requested": "Sol·licitud enviada a AFI (incidència #{id}). T'avisarem quan estigui activat.",
+  "requested_already": "Ja ho has demanat: incidència #{id}.",
+  "see_request": "Veure-la",
+  "request_title": "Sol·licitud: activar el xat web",
+  "request_body": "{user} demana activar el xat web per a la seva web (Asteroid → El meu xat web).",
+  "request_no_project": "No s'ha pogut enviar: no tens cap projecte actiu. Escriu a AFI.",
+  "request_failed": "No s'ha pogut enviar la sol·licitud. Torna-ho a provar o escriu a AFI.",
+  "pick_client": "Client",
+  "pick": "Configura",
+  "pick_help": "Com a administrador, tria de quin client vols veure o configurar el xat. Primer surten els que el tenen activat.",
+  "state_active": "xat actiu",
+  "state_enabled": "activat, sense configurar"
 }

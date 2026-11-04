@@ -11,8 +11,13 @@
  * @var string $previewUrl
  * @var string $inboxUrl
  * @var string $action
+ * @var ?list<array> $picker     administradores: clientes entre los que elegir
+ * @var ?array $request          incidencia abierta con la que el cliente ya lo pidió
+ * @var bool $canRequest
+ * @var string $requestUrl
  */
 $errors ??= [];
+$enabled ??= false;
 $field = function (string $name, string $label, string $control, ?string $help = null) use ($errors): string {
     $error = $errors[$name] ?? null;
     return '<div class="qs-field qs-w-full' . ($error ? ' has-error' : '') . '"><label for="wc-' . $name . '">' . $this->e($label) . '</label>' . $control
@@ -32,8 +37,33 @@ $field = function (string $name, string $label, string $control, ?string $help =
 </style>
 
 <div class="ast-wcs">
-  <?php if (!$enabled): ?>
-    <div class="qs-flash qs-flash-info"><?= $this->e($this->t('disabled', ['client' => (string) $client['name']])) ?></div>
+  <?php if (isset($picker)): ?>
+    <fieldset class="qs-section qs-form">
+      <legend><?= $this->e($this->t('pick_client')) ?></legend>
+      <form method="get" action="index.php" class="ast-wcs-actions">
+        <input type="hidden" name="r" value="page"><input type="hidden" name="m" value="webchat_settings">
+        <select class="qs-input" name="client" aria-label="<?= $this->e($this->t('pick_client')) ?>">
+          <?php foreach ($picker as $c): ?>
+            <option value="<?= (int) $c['id'] ?>"><?= $this->e((string) $c['name']) ?><?= (int) $c['webchat'] ? ' · ' . $this->e($this->t((int) $c['active'] ? 'state_active' : 'state_enabled')) : '' ?></option>
+          <?php endforeach ?>
+        </select>
+        <button type="submit" class="qs-btn qs-btn-primary"><?= $this->e($this->t('pick')) ?></button>
+      </form>
+      <p class="qs-help"><?= $this->e($this->t('pick_help')) ?></p>
+    </fieldset>
+  <?php elseif (!$enabled): ?>
+    <fieldset class="qs-section qs-form">
+      <legend><?= $this->e($this->t('title')) ?></legend>
+      <p><?= $this->e($this->t('disabled', ['client' => (string) $client['name']])) ?></p>
+      <?php if ($request): ?>
+        <p class="qs-help"><?= $this->icon('clock') ?> <?= $this->e($this->t('requested_already', ['id' => $request['id']])) ?>
+          <a href="<?= $this->url('edit', ['m' => 'issues', 'id' => $request['id']]) ?>"><?= $this->e($this->t('see_request')) ?></a></p>
+      <?php elseif ($canRequest): ?>
+        <form method="post" action="<?= $this->e($requestUrl) ?>"><?= $this->csrfField() ?>
+          <button type="submit" class="qs-btn qs-btn-primary"><?= $this->icon('send') ?> <?= $this->e($this->t('request')) ?></button>
+        </form>
+      <?php endif ?>
+    </fieldset>
   <?php else: ?>
     <form method="post" action="<?= $this->e($action) ?>" class="qs-form" data-dirty-check>
       <?= $this->csrfField() ?>

@@ -1,7 +1,7 @@
 {
   "title": "Mi chat web",
   "description": "Personaliza el chat de tu web y copia su código",
-  "disabled": "El chat web no está activado para {client}. Si te interesa, pídelo a AFI.",
+  "disabled": "El chat web no está activado para {client}. Permite que los visitantes de tu web os escriban y responderles desde aquí.",
   "saved": "Configuración guardada",
   "inbox": "Conversaciones",
   "preview": "Probar el chat",
@@ -25,5 +25,18 @@
     "color": "Elige un color válido",
     "name": "Pon un nombre (hasta 80 caracteres)",
     "greeting": "Como máximo 500 caracteres"
-  }
+  },
+  "request": "Pedirlo a AFI",
+  "requested": "Solicitud enviada a AFI (incidencia #{id}). Te avisaremos cuando esté activado.",
+  "requested_already": "Ya lo has pedido: incidencia #{id}.",
+  "see_request": "Verla",
+  "request_title": "Solicitud: activar el chat web",
+  "request_body": "{user} pide activar el chat web para su web (Asteroid → Mi chat web).",
+  "request_no_project": "No se ha podido enviar: no tienes ningún proyecto activo. Escribe a AFI.",
+  "request_failed": "No se ha podido enviar la solicitud. Vuelve a intentarlo o escribe a AFI.",
+  "pick_client": "Cliente",
+  "pick": "Configurar",
+  "pick_help": "Como administrador, elige de qué cliente quieres ver o configurar el chat. Primero salen los que lo tienen activado.",
+  "state_active": "chat activo",
+  "state_enabled": "activado, sin configurar"
 }

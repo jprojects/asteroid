@@ -1,7 +1,7 @@
 {
   "title": "My web chat",
   "description": "Customise your website chat and copy its code",
-  "disabled": "Web chat is not enabled for {client}. If you're interested, ask AFI.",
+  "disabled": "Web chat is not enabled for {client}. It lets your website visitors write to you and you reply from here.",
   "saved": "Settings saved",
   "inbox": "Conversations",
   "preview": "Try the chat",
@@ -25,5 +25,18 @@
     "color": "Choose a valid colour",
     "name": "Enter a name (up to 80 characters)",
     "greeting": "500 characters at most"
-  }
+  },
+  "request": "Ask AFI for it",
+  "requested": "Request sent to AFI (issue #{id}). We'll let you know when it's enabled.",
+  "requested_already": "You've already asked: issue #{id}.",
+  "see_request": "View it",
+  "request_title": "Request: enable web chat",
+  "request_body": "{user} asks to enable web chat for their website (Asteroid → My web chat).",
+  "request_no_project": "Couldn't send it: you have no active project. Please write to AFI.",
+  "request_failed": "Couldn't send the request. Try again or write to AFI.",
+  "pick_client": "Client",
+  "pick": "Set up",
+  "pick_help": "As an administrator, choose which client's chat to view or set up. Clients with it enabled come first.",
+  "state_active": "chat active",
+  "state_enabled": "enabled, not set up"
 }
