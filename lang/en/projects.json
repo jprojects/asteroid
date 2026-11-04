@@ -14,7 +14,9 @@
     "notes": "Notes",
     "open_issues": "Open issues",
     "worked": "Hours",
-    "unbilled": "Unbilled"
+    "unbilled": "Unbilled",
+    "website": "Website",
+    "web_audit": "SEO/GEO report"
   },
   "modality": {
     "hours": "By the hour",
@@ -23,12 +25,15 @@
   "help": {
     "budget": "Empty or 0: the project is billed by the hour.",
     "hourly_rate": "Price of the billing orders created from the hours.",
-    "api_key": "To create and read issues from another application."
+    "api_key": "To create and read issues from another application.",
+    "website": "Domain of the project website, without https:// (e.g. www.client.com). Pulsar analyses it.",
+    "web_audit": "Analyses the website every week and shows the client an SEO and AI visibility summary."
   },
   "sections": {
     "general": "Project",
     "api": "API",
-    "summary": "Summary"
+    "summary": "Summary",
+    "web": "Website"
   },
   "actions": {
     "issues": "Project issues",

@@ -226,3 +226,23 @@ CREATE TABLE IF NOT EXISTS webchat_conversations (
   KEY ix_webchat_conv_ip (ip_hash, created_at),
   CONSTRAINT fk_webchat_conv_client FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Informes SEO/GEO de las webs de los proyectos (Pulsar, tools/web-audit.php): uno por análisis, para ver la evolución.
+-- categories e issues son el JSON que devuelve la API de Pulsar.
+CREATE TABLE IF NOT EXISTS web_audits (
+  id          INT UNSIGNED      NOT NULL AUTO_INCREMENT,
+  project_id  INT UNSIGNED      NOT NULL,
+  kind        VARCHAR(8)        NOT NULL COMMENT 'seo | geo',
+  url         VARCHAR(255)      NOT NULL,
+  score       TINYINT UNSIGNED  NULL COMMENT '0-100; NULL si el análisis ha fallado',
+  categories  TEXT              NULL,
+  issues      MEDIUMTEXT        NULL,
+  passed      SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  total       SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  report_id   VARCHAR(32)       NULL COMMENT 'Informe en Pulsar',
+  error       VARCHAR(255)      NULL,
+  created_at  DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_web_audits_project (project_id, kind, created_at),
+  CONSTRAINT fk_web_audits_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

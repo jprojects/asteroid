@@ -11,7 +11,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
 | `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
 | `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
@@ -174,6 +174,33 @@ y respuestas que lleguen entre una ejecución y otra no se atienden hasta la sig
 cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que la web** (en Webempresa,
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
+
+## Salut de la web (informes SEO/GEO con Pulsar)
+
+Las webs de los proyectos con **Informe SEO/GEO** marcado (Projectes → ficha → *Web*: el dominio y la casilla, que
+solo ve el equipo) se analizan cada semana con la API de Pulsar (`~/Projects/pulsar`, `api.php`): SEO (cómo la ve
+Google) y GEO (si las IA la pueden leer y citar). Cada análisis queda en `web_audits` (historial y tendencia).
+
+- **Cliente**: tarjeta con las dos notas en *El meu espai* y la página *Salut de la web* (puntuación, categorías y los
+  problemas explicados, sin las soluciones). Marca los que quiere y **«Vull que ho resolgueu»** crea una incidencia
+  en ese proyecto con la lista (una a la vez mientras siga abierta). Si no tiene ninguna web con informe, la página le
+  ofrece pedirlo (también crea una incidencia).
+- **Equipo**: todos los proyectos con informe, las soluciones de cada punto, el informe completo en Pulsar (y PDF) y
+  **Analitza ara**.
+
+Configuración en `config.local.php` (y en el de Pulsar, el mismo token en `'api_tokens'`):
+
+```php
+'pulsar' => [
+    'url' => 'https://pulsar.aficat.com/',   // donde está Pulsar
+    'token' => '…',                          // mínimo 24 caracteres; aleatorio
+    'days' => 7,                             // cada cuántos días se vuelve a analizar
+],
+```
+
+Cron diario (de noche; analiza los que tocan): `30 3 * * * /opt/alt/php82/usr/bin/php …/tools/web-audit.php > /dev/null 2>&1`.
+A mano: `php tools/web-audit.php --all` o `--project=N`. La web se envía a Pulsar sin `https://` (el tallafoc de
+Webempresa bloquea URL en los parámetros). Los textos de los problemas vienen de Pulsar, en catalán.
 
 ## API antigua (enlace con Factusol)
 

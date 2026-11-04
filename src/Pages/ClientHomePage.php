@@ -6,6 +6,7 @@ namespace Quasar\Pages;
 use Quasar\Controllers\Page;
 use Quasar\Core\HtmlSanitizer;
 use Quasar\Hooks\Asteroid;
+use Quasar\WebAudit\WebAudit;
 
 /**
  * Asteroid · página de inicio de los usuarios de los clientes (modules/client_home.json; con 'home' => 'client_home' en
@@ -31,6 +32,7 @@ final class ClientHomePage extends Page
             'newIssueUrl' => $this->allowed('create', $this->otherModule('issues')) ? $this->app->url('edit', ['m' => 'issues']) : null,
             'issuesUrl' => $this->otherModule('issues')->url(),
             'filesUrl' => $this->allowed('view', $this->otherModule('files')) ? $this->otherModule('files')->url() : null,
+            'web' => $this->webHealth(),
         ]);
     }
 
@@ -134,6 +136,31 @@ final class ClientHomePage extends Page
         }
 
         return ['open' => $open, 'openTotal' => $openTotal, 'unread' => $unread, 'resolved' => $resolved, 'files' => $files];
+    }
+
+    /** Las webs del cliente con informe SEO/GEO (Salut de la web), con la última nota de cada tipo. @return list<array> */
+    private function webHealth(): array
+    {
+        $m = $this->app->modules()->get('web_audit');
+        if ($m === null || !$this->allowed('view', $m)) {
+            return [];
+        }
+        $out = [];
+        foreach ($this->app->db->fetchAll(
+            "SELECT id, title, website FROM projects WHERE client_id = ? AND active = 1 AND web_audit = 1 AND COALESCE(website, '') <> '' ORDER BY title",
+            [(int) $this->user()->get('client_id')]
+        ) as $p) {
+            $audits = WebAudit::latest($this->app->db, (int) $p['id']);
+            $out[] = [
+                'title' => (string) $p['title'],
+                'site' => WebAudit::label((string) $p['website']),
+                'seo' => isset($audits['seo']['current']) ? (int) $audits['seo']['current']['score'] : null,
+                'geo' => isset($audits['geo']['current']) ? (int) $audits['geo']['current']['score'] : null,
+                'issues' => count($audits['seo']['current']['issues'] ?? []) + count($audits['geo']['current']['issues'] ?? []),
+                'url' => $m->url(['project' => $p['id']]),
+            ];
+        }
+        return $out;
     }
 
     private function issueRow(array $r): array

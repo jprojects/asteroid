@@ -1,0 +1,6 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\WebAuditPage",
+  "requires": ["projects", "issues"],
+  "menu": { "group": "main", "order": 5, "icon": "gauge" }
+}

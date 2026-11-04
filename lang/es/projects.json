@@ -14,7 +14,9 @@
     "notes": "Observaciones",
     "open_issues": "Incid. abiertas",
     "worked": "Horas",
-    "unbilled": "Por facturar"
+    "unbilled": "Por facturar",
+    "website": "Web",
+    "web_audit": "Informe SEO/GEO"
   },
   "modality": {
     "hours": "Por horas",
@@ -23,12 +25,15 @@
   "help": {
     "budget": "Vacío o 0: el proyecto se factura por horas.",
     "hourly_rate": "Precio de las órdenes de facturación que se crean desde las horas.",
-    "api_key": "Para crear y consultar incidencias desde otra aplicación."
+    "api_key": "Para crear y consultar incidencias desde otra aplicación.",
+    "website": "Dominio de la web del proyecto, sin https:// (p. ej. www.cliente.com). Lo analiza Pulsar.",
+    "web_audit": "Analiza la web cada semana y muestra al cliente un resumen SEO y de visibilidad en las IA."
   },
   "sections": {
     "general": "Proyecto",
     "api": "API",
-    "summary": "Resumen"
+    "summary": "Resumen",
+    "web": "Web"
   },
   "actions": {
     "issues": "Incidencias del proyecto",

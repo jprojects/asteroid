@@ -27,6 +27,7 @@ const GROUP_PERMISSIONS = [
         'surveys' => ['view', 'delete', 'export'],
         'pending_billing' => ['view'],
         'telegram' => ['view'],
+        'web_audit' => ['view'],
         'clients' => ['view', 'create', 'edit', 'delete', 'export'],
         'projects' => ['view', 'create', 'edit', 'delete', 'export'],
         'client_users' => ['view', 'create', 'edit', 'delete', 'export'],
@@ -41,6 +42,7 @@ const GROUP_PERMISSIONS = [
         'client_home' => ['view'],
         'webchat' => ['view', 'edit', 'delete', 'export'],
         'webchat_settings' => ['view'],
+        'web_audit' => ['view'],
         'issues' => ['view', 'create', 'edit'],
         'folders' => ['view'],
         'files' => ['view'],
@@ -83,6 +85,21 @@ try {
     if (!$hasWebchat) {
         $db->pdo()->exec("ALTER TABLE clients ADD COLUMN webchat TINYINT(1) NOT NULL DEFAULT 0 AFTER active");
         echo "  ✓ columna clients.webchat\n";
+    }
+
+    // Informes SEO/GEO (Pulsar): la web del proyecto y si se analiza
+    foreach ([
+        'website' => "ALTER TABLE projects ADD COLUMN website VARCHAR(255) NULL AFTER api_key",
+        'web_audit' => "ALTER TABLE projects ADD COLUMN web_audit TINYINT(1) NOT NULL DEFAULT 0 AFTER website",
+    ] as $column => $ddl) {
+        $exists = (int) $db->fetchValue(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'projects' AND COLUMN_NAME = ?",
+            [$schema, $column]
+        );
+        if (!$exists) {
+            $db->pdo()->exec($ddl);
+            echo "  ✓ columna projects.$column\n";
+        }
     }
 
     $groups = [

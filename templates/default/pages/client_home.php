@@ -12,6 +12,7 @@
  * @var ?string $newIssueUrl
  * @var string $issuesUrl
  * @var ?string $filesUrl
+ * @var list<array> $web    webs con informe SEO/GEO (Salut de la web)
  */
 $dateFmt = $this->t('format.date');
 $date = static fn (string $d): string => $d !== '' ? date($dateFmt, (int) strtotime($d)) : '';
@@ -39,6 +40,14 @@ $statusKey = [1 => 'pending', 2 => 'in_progress', 3 => 'resolved', 4 => 'discard
 .ast-ch-foot { margin-top: auto; padding: 10px 14px; border-top: 1px solid var(--border); }
 .ast-ch-file { flex-shrink: 0; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 6px; background: var(--surface-alt); border: 1px solid var(--border); font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
 .ast-ch-resolved { margin-top: 14px; flex-shrink: 0; }
+.ast-ch-web { margin-bottom: 14px; flex-shrink: 0; }
+.ast-ch-web .ast-ch-item { align-items: center; }
+.ast-ch-scores { display: flex; gap: 12px; flex-shrink: 0; }
+.ast-ch-score { display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.ast-ch-ring { --p: 0; --c: var(--tone-gray); position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--surface-alt) 0); }
+.ast-ch-ring::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--surface); }
+.ast-ch-ring b { position: relative; font-size: 13px; color: var(--text); }
 </style>
 
 <div class="qs-toolbar">
@@ -46,6 +55,27 @@ $statusKey = [1 => 'pending', 2 => 'in_progress', 3 => 'resolved', 4 => 'discard
     <a class="qs-btn qs-btn-primary" href="<?= $this->e($newIssueUrl) ?>" data-shortcut="new" title="Alt+N"><?= $this->icon('plus') ?> <?= $this->e($this->t('new_issue')) ?></a>
   <?php endif ?>
 </div>
+
+<?php if (!empty($web)): ?>
+  <section class="ast-ch-box ast-ch-web" aria-labelledby="ch-web">
+    <div class="ast-ch-head"><?= $this->icon('gauge') ?><h2 id="ch-web"><?= $this->e($this->t('web_audit:home_title')) ?></h2></div>
+    <ul class="ast-ch-list">
+      <?php foreach ($web as $w): ?>
+        <li><a class="ast-ch-item" href="<?= $this->e($w['url']) ?>">
+          <span class="ast-ch-main">
+            <span class="ast-ch-title"><?= $this->e($w['site']) ?></span>
+            <span class="ast-ch-sub"><?= $this->e($w['title']) ?> · <?= $this->e($this->t('web_audit:home_link')) ?> <?= $this->icon('arrow-right') ?></span>
+          </span>
+          <span class="ast-ch-scores">
+            <?php foreach (['seo', 'geo'] as $k): ?>
+              <span class="ast-ch-score"><span class="ast-ch-ring" style="--p: <?= (int) $w[$k] ?>; --c: var(--tone-<?= \Quasar\WebAudit\WebAudit::tone($w[$k]) ?>)"><b><?= $w[$k] === null ? '—' : (int) $w[$k] ?></b></span><?= $this->e($this->t('web_audit:kinds.' . $k)) ?></span>
+            <?php endforeach ?>
+          </span>
+        </a></li>
+      <?php endforeach ?>
+    </ul>
+  </section>
+<?php endif ?>
 
 <div class="ast-ch">
   <section class="ast-ch-box" aria-labelledby="ch-open">
