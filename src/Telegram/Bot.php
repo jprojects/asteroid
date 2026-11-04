@@ -41,7 +41,6 @@ final class Bot
             ]);
             $raw = curl_exec($ch);
             $error = $raw === false ? curl_error($ch) : null;
-            curl_close($ch);
         } else {
             $raw = @file_get_contents($url, false, stream_context_create(['http' => [
                 'method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => $body,
