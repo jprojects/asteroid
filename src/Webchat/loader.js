@@ -51,7 +51,7 @@ function ensureFrame() {
   frame = document.createElement('iframe');
   frame.title = cfg.name || cfg.label;
   frame.allow = 'clipboard-write';
-  frame.src = cfg.frame + '&lang=' + encodeURIComponent(lang) + '&page=' + encodeURIComponent(location.href.slice(0, 500));
+  frame.src = cfg.frame + '&lang=' + encodeURIComponent(lang) + '&page=' + encodeURIComponent((location.host + location.pathname).slice(0, 500)); // sin «https://» ni query: el WAF del servidor bloquea URL en parámetros
   panel.appendChild(frame);
 }
 function post(msg) {

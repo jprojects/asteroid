@@ -40,7 +40,7 @@ final class WebchatWidgetPage extends Page
                 'key' => $site['public_key'],
                 'poll' => $this->pageUrl('poll', ['k' => $site['public_key']]),
                 'send' => $this->pageUrl('send', ['k' => $site['public_key']]),
-                'page' => mb_substr((string) $this->param('page', ''), 0, 500),
+                'page' => (string) preg_replace('#^https?://#i', '', mb_substr((string) $this->param('page', ''), 0, 500)), // se reenvía al enviar: sin esquema (WAF)
                 'i18n' => array_map(fn ($k) => $this->text('widget.' . $k), [
                     'placeholder' => 'placeholder', 'send' => 'send', 'name' => 'name', 'email' => 'email',
                     'intro' => 'intro', 'error' => 'error', 'closed' => 'closed', 'close' => 'close', 'you' => 'you', 'too_many' => 'too_many',
@@ -113,7 +113,7 @@ final class WebchatWidgetPage extends Page
             $this->json(['error' => $this->text('widget.error')], 422); // trampa para bots o mensaje no válido
             return;
         }
-        $page = mb_substr((string) ($in['page'] ?? ''), 0, 500);
+        $page = Webchat::pageUrl((string) ($in['page'] ?? ''));
         if (!Webchat::originAllowed($site, $page !== '' ? $page : null) && Webchat::domains($site)) {
             $this->json(['error' => $this->text('widget.error')], 403);
             return;

@@ -102,6 +102,19 @@ final class Webchat
         return preg_match('/^[a-f0-9]{32,64}$/', $token) ? hash('sha256', $site['id'] . '|' . $token) : null;
     }
 
+    /**
+     * La página del visitante llega como «dominio/ruta», sin esquema (el WAF del servidor bloquea peticiones con URL
+     * en los parámetros); aquí se completa con https:// para guardarla y comprobar el dominio.
+     */
+    public static function pageUrl(string $page): string
+    {
+        $page = trim(mb_substr($page, 0, 500));
+        if ($page === '' || preg_match('#^https?://#i', $page)) {
+            return $page;
+        }
+        return preg_match('#^[a-z0-9.-]+(:\d+)?(/|$)#i', $page) ? 'https://' . $page : '';
+    }
+
     public static function ipHash(): string
     {
         return hash('sha256', 'webchat|' . ($_SERVER['REMOTE_ADDR'] ?? ''));
