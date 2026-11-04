@@ -163,6 +163,13 @@ Tablas `telegram_users` (cuentas vinculadas) y `telegram_messages` (qué aviso e
 * * * * * php /home/…/sat.aficat.com/tools/telegram-poll.php > /dev/null 2>&1
 ```
 
+Si el hosting no deja el cron cada minuto (wePanel, cada 5), hay que decirle que espere casi 5 minutos, o los botones
+y respuestas que lleguen entre una ejecución y otra no se atienden hasta la siguiente:
+
+```
+*/5 * * * * php /home/…/sat.aficat.com/tools/telegram-poll.php 290 > /dev/null 2>&1
+```
+
 *Equip → Telegram* muestra la hora de la última consulta y, al abrirla, también recoge lo pendiente (así vincular una
 cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que la web** (en Webempresa,
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
