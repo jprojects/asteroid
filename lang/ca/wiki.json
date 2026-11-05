@@ -1,0 +1,21 @@
+{
+  "title": "Wiki",
+  "description": "Documentació dels projectes",
+  "new_page": "Nova pàgina",
+  "manage": "Totes les pàgines",
+  "search": "Cerca a la wiki…",
+  "general": "General",
+  "projects": "Projectes",
+  "edit": "Edita",
+  "updated": "Actualitzada el {date}",
+  "results": "Resultats per «{q}»",
+  "no_results": "No s'ha trobat res.",
+  "audience": {
+    "client": "Client",
+    "team": "Equip"
+  },
+  "choose": "Tria un projecte per veure'n la documentació.",
+  "empty_client": "Encara no hi ha documentació dels teus projectes.",
+  "empty_project": "Aquest projecte encara no té cap pàgina. Crea'n una amb «Nova pàgina».",
+  "empty_team": "Encara no hi ha cap pàgina. Crea'n una amb «Nova pàgina» o des d'un projecte (botó Wiki)."
+}

@@ -38,6 +38,7 @@
   "actions": {
     "issues": "Project issues",
     "hours": "Project hours",
-    "new_issue": "New issue"
+    "new_issue": "New issue",
+    "wiki": "Wiki"
   }
 }

@@ -205,6 +205,11 @@
         "label": "actions.new_issue",
         "icon": "plus",
         "url": "index.php?r=edit&m=issues&v[project_id]={id}"
+      },
+      {
+        "label": "actions.wiki",
+        "icon": "book-open",
+        "url": "index.php?r=page&m=wiki&project={id}"
       }
     ]
   },

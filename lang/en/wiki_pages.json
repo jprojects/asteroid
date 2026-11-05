@@ -1,0 +1,34 @@
+{
+  "title": "Wiki pages",
+  "description": "Project documentation: for the client or internal to the team",
+  "fields": {
+    "id": "No.",
+    "title": "Title",
+    "audience": "For",
+    "project_id": "Project",
+    "client_id": "Client",
+    "section": "Section",
+    "ordering": "Order",
+    "body": "Content",
+    "updated_by": "Last edited by",
+    "updated_at": "Updated",
+    "created_at": "Created"
+  },
+  "audience": {
+    "client": "Client",
+    "team": "Team (internal)"
+  },
+  "help": {
+    "audience": "Client: the project client's users can read it. Team: only the team (access details, deployment…).",
+    "section": "Groups pages in the wiki menu (e.g. “User guide”, “Installation”).",
+    "ordering": "Order within the section (lower comes first)."
+  },
+  "sections": {
+    "page": "Page",
+    "body": "Content",
+    "info": "Information"
+  },
+  "actions": {
+    "read": "Read"
+  }
+}

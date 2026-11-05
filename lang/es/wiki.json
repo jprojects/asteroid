@@ -1,0 +1,21 @@
+{
+  "title": "Wiki",
+  "description": "Documentación de los proyectos",
+  "new_page": "Nueva página",
+  "manage": "Todas las páginas",
+  "search": "Buscar en la wiki…",
+  "general": "General",
+  "projects": "Proyectos",
+  "edit": "Editar",
+  "updated": "Actualizada el {date}",
+  "results": "Resultados para «{q}»",
+  "no_results": "No se ha encontrado nada.",
+  "audience": {
+    "client": "Cliente",
+    "team": "Equipo"
+  },
+  "choose": "Elige un proyecto para ver su documentación.",
+  "empty_client": "Aún no hay documentación de tus proyectos.",
+  "empty_project": "Este proyecto aún no tiene ninguna página. Crea una con «Nueva página».",
+  "empty_team": "Aún no hay ninguna página. Crea una con «Nueva página» o desde un proyecto (botón Wiki)."
+}

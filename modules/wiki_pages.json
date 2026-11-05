@@ -1,0 +1,46 @@
+{
+  "table": "wiki_pages",
+  "primaryKey": "id",
+  "recordTitle": "title",
+  "hooks": "Quasar\\Hooks\\WikiPagesHooks",
+  "actions": ["view", "create", "edit", "delete"],
+  "menu": false,
+  "scope": {
+    "equip": true,
+    "client": "wiki_pages.audience = 'client' AND wiki_pages.client_id = {user.client_id}"
+  },
+  "fields": {
+    "id": { "type": "number", "readonly": true, "grouping": false },
+    "title": { "type": "text", "required": true, "maxlength": 150, "width": "two-thirds" },
+    "audience": { "type": "select", "required": true, "default": "team", "width": "third", "options": { "client": "audience.client", "team": "audience.team" }, "colors": { "client": "teal", "team": "purple" }, "help": "help.audience" },
+    "project_id": { "type": "select", "required": true, "width": "half", "search": "remote", "source": { "table": "projects", "value": "id", "label": "title", "where": "projects.active = 1" } },
+    "client_id": { "type": "select", "readonly": true, "width": "half", "source": { "table": "clients", "value": "id", "label": "name" } },
+    "section": { "type": "text", "maxlength": 100, "width": "half", "help": "help.section" },
+    "ordering": { "type": "number", "default": 0, "width": "quarter", "help": "help.ordering" },
+    "body": { "type": "richtext", "rows": 18, "images": true, "maxSize": "10M", "listLength": 120, "assist": true },
+    "updated_by": { "type": "select", "readonly": true, "width": "quarter", "source": { "table": "users", "value": "id", "label": "name" } },
+    "updated_at": { "type": "datetime", "readonly": true, "width": "quarter" },
+    "created_at": { "type": "datetime", "readonly": true }
+  },
+  "list": {
+    "columns": [
+      { "field": "title", "minWidth": "240px" },
+      { "field": "project_id", "maxWidth": "220px" },
+      { "field": "client_id", "maxWidth": "200px" },
+      { "field": "audience", "width": "100px" },
+      { "field": "section", "width": "160px" },
+      { "field": "updated_at", "width": "140px" }
+    ],
+    "defaultSort": { "field": "updated_at", "dir": "desc" },
+    "search": ["title", "body", "section"],
+    "filters": [{ "field": "project_id" }, { "field": "client_id" }, { "field": "audience" }],
+    "rowActions": [{ "label": "actions.read", "icon": "book-open", "url": "index.php?r=page&m=wiki&page={id}" }]
+  },
+  "form": {
+    "sections": [
+      { "title": "sections.page", "fields": ["title", "audience", "project_id", "client_id", "section", "ordering"] },
+      { "title": "sections.body", "fields": ["body"] },
+      { "title": "sections.info", "fields": ["updated_by", "updated_at"] }
+    ]
+  }
+}

@@ -264,3 +264,24 @@ CREATE TABLE IF NOT EXISTS notes (
   KEY ix_notes_shared (shared, done),
   CONSTRAINT fk_notes_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Wiki de documentación de los proyectos (modules/wiki_pages.json, página modules/wiki.json): páginas para el cliente
+-- (audience = 'client', las ven los usuarios de ese cliente) o internas del equipo (audience = 'team').
+CREATE TABLE IF NOT EXISTS wiki_pages (
+  id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  project_id  INT UNSIGNED  NOT NULL,
+  client_id   INT UNSIGNED  NULL COMMENT 'El del proyecto (lo pone WikiPagesHooks)',
+  audience    VARCHAR(8)    NOT NULL DEFAULT 'team' COMMENT 'client | team',
+  section     VARCHAR(100)  NOT NULL DEFAULT '',
+  title       VARCHAR(150)  NOT NULL,
+  body        MEDIUMTEXT    NULL,
+  ordering    INT           NOT NULL DEFAULT 0,
+  created_by  INT UNSIGNED  NULL,
+  updated_by  INT UNSIGNED  NULL,
+  created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME      NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_wiki_project (project_id, audience, section, ordering),
+  KEY ix_wiki_client (client_id, audience),
+  CONSTRAINT fk_wiki_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

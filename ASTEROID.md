@@ -11,7 +11,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `notes`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `notes`, `wiki`, `wiki_pages`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
 | `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
 | `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
@@ -177,6 +177,21 @@ y respuestas que lleguen entre una ejecución y otra no se atienden hasta la sig
 cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que la web** (en Webempresa,
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
+
+## Wiki (documentación de los proyectos)
+
+*Wiki* (página `WikiPage`) para leer la documentación de cada proyecto: a la izquierda, proyectos, secciones y páginas;
+a la derecha, la página. Con buscador. Las páginas son el módulo `wiki_pages` (fuera del menú: *Totes les pàgines*,
+*Nova pàgina*, *Edita*; y el botón **Wiki** de cada proyecto):
+
+- **Per a: Client** → la ven los usuarios del cliente del proyecto (manuales de uso…). **Equip** → solo el equipo
+  (accesos, despliegue, cómo está montado).
+- Título, sección (agrupa en el menú), orden y contenido con formato, imágenes y *Ajuda a redactar*.
+- Permisos en el servidor (`scope` de `wiki_pages`): el cliente solo ve (y solo lee) las de *Client* de su cliente;
+  las internas, las de otros clientes o su ficha dan 404. El cliente de la página es siempre el del proyecto
+  (`WikiPagesHooks`).
+
+Tabla `wiki_pages`. Permisos: equip `wiki` (ver) y `wiki_pages` (todo); client `wiki` y `wiki_pages` (ver).
 
 ## Notes (recordatorios del equipo)
 

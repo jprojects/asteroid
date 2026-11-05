@@ -1,0 +1,6 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\WikiPage",
+  "requires": ["wiki_pages", "projects"],
+  "menu": { "group": "main", "order": 6, "icon": "book-open" }
+}

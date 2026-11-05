@@ -1,0 +1,34 @@
+{
+  "title": "Páginas de la wiki",
+  "description": "Documentación de los proyectos: para el cliente o interna del equipo",
+  "fields": {
+    "id": "Núm.",
+    "title": "Título",
+    "audience": "Para",
+    "project_id": "Proyecto",
+    "client_id": "Cliente",
+    "section": "Sección",
+    "ordering": "Orden",
+    "body": "Contenido",
+    "updated_by": "Última edición",
+    "updated_at": "Actualizada",
+    "created_at": "Creada"
+  },
+  "audience": {
+    "client": "Cliente",
+    "team": "Equipo (interna)"
+  },
+  "help": {
+    "audience": "Cliente: la ven los usuarios del cliente del proyecto. Equipo: solo el equipo (accesos, despliegue…).",
+    "section": "Agrupa las páginas en el menú de la wiki (p. ej. «Manual de uso», «Instalación»).",
+    "ordering": "Orden dentro de la sección (más pequeño, más arriba)."
+  },
+  "sections": {
+    "page": "Página",
+    "body": "Contenido",
+    "info": "Información"
+  },
+  "actions": {
+    "read": "Leer"
+  }
+}

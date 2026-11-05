@@ -1,0 +1,34 @@
+{
+  "title": "Pàgines de la wiki",
+  "description": "Documentació dels projectes: per al client o interna de l'equip",
+  "fields": {
+    "id": "Núm.",
+    "title": "Títol",
+    "audience": "Per a",
+    "project_id": "Projecte",
+    "client_id": "Client",
+    "section": "Secció",
+    "ordering": "Ordre",
+    "body": "Contingut",
+    "updated_by": "Darrera edició",
+    "updated_at": "Actualitzada",
+    "created_at": "Creada"
+  },
+  "audience": {
+    "client": "Client",
+    "team": "Equip (interna)"
+  },
+  "help": {
+    "audience": "Client: la veuen els usuaris del client del projecte. Equip: només l'equip (accessos, desplegament…).",
+    "section": "Agrupa les pàgines al menú de la wiki (p. ex. «Manual d'ús», «Instal·lació»).",
+    "ordering": "Ordre dins de la secció (més petit, més amunt)."
+  },
+  "sections": {
+    "page": "Pàgina",
+    "body": "Contingut",
+    "info": "Informació"
+  },
+  "actions": {
+    "read": "Llegeix"
+  }
+}

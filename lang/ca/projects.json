@@ -38,6 +38,7 @@
   "actions": {
     "issues": "Incidències del projecte",
     "hours": "Hores del projecte",
-    "new_issue": "Nova incidència"
+    "new_issue": "Nova incidència",
+    "wiki": "Wiki"
   }
 }
