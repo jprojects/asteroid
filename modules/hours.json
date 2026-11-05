@@ -61,6 +61,7 @@
       { "field": "user_id" },
       { "field": "client_id" },
       { "field": "project_id" },
+      { "field": "issue_id" },
       { "field": "billing" },
       { "field": "modality" }
     ],

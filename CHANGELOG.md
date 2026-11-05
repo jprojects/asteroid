@@ -2,6 +2,17 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.22.2 — 2026-11-05
+
+- Guardado parcial (API `PATCH`, `FormHandler::process(…, true)`): un campo virtual que no venía en los datos y que
+  un `showon` hacía visible (p. ej. «enviar encuesta» al resolver) daba un aviso de PHP («Undefined array key») y,
+  con `debug`, una respuesta que no era JSON. Ahora toma su valor por defecto.
+
+## 0.22.1 — 2026-11-05
+
+- API: los archivos de los campos media de una ficha (`_files` en `GET {m}/{id}`) salían sin nombre ni extensión (y
+  con avisos de PHP en el log) porque sus datos se preparaban dos veces.
+
 ## 0.22.0 — 2026-11-05
 
 - **`where` con `{user.columna}`**: la condición fija de un módulo admite los mismos marcadores que el `scope` y se

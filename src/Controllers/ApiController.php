@@ -380,7 +380,8 @@ final class ApiController extends Controller
         $files = [];
         foreach ($fields as $f) {
             if ($f instanceof MediaField && ($ids = $f->mediaIds($row[$f->name] ?? null))) {
-                $files[$f->name] = array_map(fn (array $r) => $this->apiFile($this->app->media()->info($r)), $this->app->media()->find($ids));
+                // find() ya devuelve los datos de cada archivo (info())
+                $files[$f->name] = array_map(fn (array $info) => $this->apiFile($info), $this->app->media()->find($ids));
             }
         }
         if ($files) {

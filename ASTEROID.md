@@ -214,6 +214,32 @@ Cron diario (de noche; analiza los que tocan): `30 3 * * * /opt/alt/php82/usr/bi
 A mano: `php tools/web-audit.php --all` o `--project=N`. La web se envía a Pulsar sin `https://` (el tallafoc de
 Webempresa bloquea URL en los parámetros). Los textos de los problemas vienen de Pulsar, en catalán.
 
+## Claude Code (MCP): Claude lee y trabaja las incidencias
+
+`tools/mcp.php` es un servidor MCP local (stdio, sin dependencias; PHP con `curl`) que Claude Code arranca en el
+ordenador de cada uno. Usa la API de Asteroid con el **token personal** (Perfil → API): ve y hace lo mismo que ese
+usuario. Herramientas:
+
+| Herramienta | Qué hace |
+|---|---|
+| `asteroid_incidencia` | la incidencia entera: datos, descripción, toda la conversación, horas imputadas y adjuntos (se descargan en `~/.cache/asteroid-mcp/incidencia-N/`; las imágenes también se le muestran a Claude) |
+| `asteroid_les_meves` | las abiertas asignadas a uno |
+| `asteroid_cerca` | buscar por texto |
+| `asteroid_respon` | escribir en la conversación (lo recibe el cliente si la incidencia es visible para él) |
+| `asteroid_imputa` | imputar horas (`1:30`, `45m`…) con comentario |
+| `asteroid_estat` | pendent · en_curs · resolta · descartada |
+
+Las de escritura piden confirmación (Claude Code pregunta antes de usar una herramienta, y el servidor le indica que
+enseñe el texto antes). Alta, una vez por usuario (queda en `~/.claude.json`, fuera de los repositorios):
+
+```bash
+claude mcp add asteroid --scope user \
+  -e ASTEROID_URL=https://sat.aficat.com -e ASTEROID_TOKEN=qs_… \
+  -- php /home/…/asteroid-quasar/tools/mcp.php
+```
+
+Uso: en VS Code, con el repositorio del cliente abierto, «*mira la incidència 4014 i proposa com arreglar-la*».
+
 ## API antigua (enlace con Factusol)
 
 El programa del enlace con Factusol usaba la API del Asteroid antiguo (`admin/index.php?view=api&task=…`): lee las

@@ -71,7 +71,9 @@ final class FormHandler
         if (!$isNew && $existing === null) {
             throw new HttpException(404); // no existe o el usuario no puede verlo
         }
-        $values = $existing ?? $this->defaults();
+        // Los campos que no están en la ficha cargada (los virtuales) toman su valor por defecto: en un guardado
+        // parcial pueden no venir y un showon puede hacerlos visibles (p. ej. al cambiar el estado)
+        $values = ($existing ?? []) + $this->defaults();
         $errors = [];
         $data = [];
 
