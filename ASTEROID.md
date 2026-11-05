@@ -230,11 +230,12 @@ usuario. Herramientas:
 | `asteroid_estat` | pendent · en_curs · resolta · descartada |
 
 Las de escritura piden confirmación (Claude Code pregunta antes de usar una herramienta, y el servidor le indica que
-enseñe el texto antes). Alta, una vez por usuario (queda en `~/.claude.json`, fuera de los repositorios):
+enseñe el texto antes). Alta, una vez por usuario (queda en `~/.claude.json`; `claude` también está dentro de la extensión de VS Code, en
+`~/.vscode/extensions/anthropic.claude-code-*/resources/native-binary/claude`):
 
 ```bash
 claude mcp add asteroid --scope user \
-  -e ASTEROID_URL=https://sat.aficat.com -e ASTEROID_TOKEN=qs_… \
+  -e ASTEROID_URL=https://sat.aficat.com \
   -- php /home/…/asteroid-quasar/tools/mcp.php
 ```
 
