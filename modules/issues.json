@@ -47,7 +47,7 @@
                            "options": { "1": "surveys:stars.1", "2": "surveys:stars.2", "3": "surveys:stars.3", "4": "surveys:stars.4", "5": "surveys:stars.5" },
                            "colors": { "1": "red", "2": "orange", "3": "amber", "4": "teal", "5": "green" } },
     "created_by_client": { "type": "checkbox", "readonly": true, "width": "half", "access": ["equip"], "colors": { "1": "purple" } },
-    "description":       { "type": "richtext", "rows": 10, "images": true, "maxSize": "10M", "listLength": 120 },
+    "description":       { "type": "richtext", "rows": 10, "images": true, "maxSize": "10M", "listLength": 120, "assist": true },
     "attachments":       { "type": "media", "multiple": true, "maxFiles": 30, "maxSize": "20M" },
     "created_by":        { "type": "select", "readonly": true, "width": "third",
                            "source": { "table": "users", "value": "id", "label": "name" } },
