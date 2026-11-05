@@ -3,5 +3,8 @@
     "main": "Soporte",
     "clients": "Clientes",
     "team": "Equipo"
+  },
+  "ai": {
+    "placeholder": "Describe qué quieres ver, p. ej. «las de este mes de Colomer-Rifà» o «las de Kim pendientes de facturar»"
   }
 }

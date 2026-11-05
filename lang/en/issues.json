@@ -71,5 +71,8 @@
     "survey_body": "Your issue has been resolved. Open the link and answer three questions: it only takes a minute. The link expires in {days} days.",
     "survey_answered": "Rating for {record}: {stars}",
     "survey_answered_body": "{user} answered the satisfaction survey"
+  },
+  "ai": {
+    "placeholder": "Describe what you want to see, e.g. \"urgent Colomer-Rifà issues opened this month\" or \"my pending issues with no due date\""
   }
 }

@@ -3,5 +3,8 @@
     "main": "Suport",
     "clients": "Clients",
     "team": "Equip"
+  },
+  "ai": {
+    "placeholder": "Descriu què vols veure, p. ex. «les d'aquest mes de Colomer-Rifà» o «les del Kim pendents de facturar»"
   }
 }

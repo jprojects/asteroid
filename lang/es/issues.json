@@ -71,5 +71,8 @@
     "survey_body": "Tu incidencia se ha resuelto. Abre el enlace y responde tres preguntas: solo te llevará un minuto. El enlace caduca dentro de {days} días.",
     "survey_answered": "Valoración de {record}: {stars}",
     "survey_answered_body": "{user} ha respondido la encuesta de satisfacción"
+  },
+  "ai": {
+    "placeholder": "Describe qué quieres ver, p. ej. «incidencias urgentes de Colomer-Rifà abiertas este mes» o «mis pendientes sin fecha límite»"
   }
 }

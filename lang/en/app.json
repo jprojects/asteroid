@@ -3,5 +3,8 @@
     "main": "Support",
     "clients": "Clients",
     "team": "Team"
+  },
+  "ai": {
+    "placeholder": "Describe what you want to see, e.g. \"this month's for Colomer-Rifà\" or \"Kim's still to be billed\""
   }
 }
