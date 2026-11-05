@@ -19,7 +19,7 @@ use Quasar\Hooks\Asteroid;
  *       'thread_id' => 42,                       // tema del grupo (opcional)
  *       'panic_thread_id' => 51,                 // tema para las incidencias de pánico (opcional; si no, thread_id)
  *       'secret'    => '…',                      // lo comprueba el webhook (cabecera de Telegram)
- *       'events'    => ['issue.new', 'issue.message'],   // también: issue.status, issue.panic
+ *       'events'    => ['issue.new', 'issue.message', 'issue.resolved'],   // también: issue.status (todos), issue.panic
  *       'locale'    => 'ca',
  *   ],
  *
@@ -68,6 +68,12 @@ final class Telegram
             && in_array($event, (array) ($c['events'] ?? ['issue.new', 'issue.message']), true);
     }
 
+    /** ¿Se avisa al grupo de este cambio de estado? (issue.status: todos; issue.resolved: solo al resolverla) */
+    public static function announcesStatus(int $to): bool
+    {
+        return self::wants('issue.status') || ($to === Asteroid::STATUS_RESOLVED && self::wants('issue.resolved'));
+    }
+
     /** Texto de lang/{locale}/telegram.json (los mensajes del bot, en el idioma de la configuración). */
     public static function t(string $key, array $vars = []): string
     {
@@ -90,7 +96,7 @@ final class Telegram
      * Envía al grupo (y tema) del equipo; recuerda de qué incidencia es para poder responderle. Lo de las incidencias de
      * pánico va a su tema (panic_thread_id), si lo hay.
      */
-    public static function toGroup(Database $db, string $html, ?string $issueId = null, ?array $issue = null): void
+    public static function toGroup(Database $db, string $html, ?string $issueId = null, ?array $issue = null, ?array $buttons = null): void
     {
         $c = self::config();
         $thread = $issue !== null && (int) ($issue['priority'] ?? 0) === 2 && !empty($c['panic_thread_id'])
@@ -98,7 +104,7 @@ final class Telegram
             : (isset($c['thread_id']) ? (int) $c['thread_id'] : null);
         try {
             $msgId = self::bot()->send($c['chat_id'], $html, $thread, null,
-                $issueId !== null ? self::issueButtons($issueId) : null);
+                $buttons ?? ($issueId !== null ? self::issueButtons($issueId) : null));
             if ($msgId !== null && $issueId !== null) {
                 self::remember($db, (string) $c['chat_id'], $msgId, $issueId);
             }
@@ -112,8 +118,11 @@ final class Telegram
      * "r:ID" resolverla; los atiende TelegramHookPage::callback().
      * @return list<list<array{text:string,callback_data:string}>>
      */
-    public static function issueButtons(string $issueId): array
+    public static function issueButtons(string $issueId, bool $closed = false): array
     {
+        if ($closed) { // resuelta o descartada: solo imputar horas
+            return [[['text' => self::t('btn.hours'), 'callback_data' => 'h:' . $issueId]]];
+        }
         return [[
             ['text' => self::t('btn.hours'), 'callback_data' => 'h:' . $issueId],
             ['text' => self::t('btn.take'), 'callback_data' => 't:' . $issueId],
@@ -197,13 +206,22 @@ final class Telegram
     /** Cambio de estado (Asteroid::statusChanged). */
     public static function statusChanged(Database $db, array $issue, int $to, User $user): void
     {
-        if (!self::wants('issue.status')) {
+        if (!self::announcesStatus($to)) {
             return;
         }
         $id = (string) $issue['id'];
-        self::toGroup($db, '<b>' . self::e(self::t('notify.status', [
-            'id' => $id, 'status' => self::statusText($to), 'user' => $user->name(),
-        ])) . "</b>\n" . self::e((string) $issue['title']) . ' · ' . self::e(self::issueContext($db, $issue)) . "\n" . self::link($id), $id, $issue);
+        $closed = in_array($to, [Asteroid::STATUS_RESOLVED, 4], true);
+        if ($to === Asteroid::STATUS_RESOLVED) {
+            $minutes = (int) $db->fetchValue('SELECT COALESCE(SUM(minutes), 0) FROM hours WHERE issue_id = ?', [(int) $id]);
+            $html = '<b>' . self::e(self::t('notify.resolved', ['id' => $id, 'user' => $user->name()])) . "</b>\n"
+                . self::e((string) $issue['title']) . ' · ' . self::e(self::issueContext($db, $issue)) . "\n"
+                . self::e(self::t($minutes > 0 ? 'notify.resolved_hours' : 'notify.resolved_no_hours', ['time' => self::duration($minutes)]))
+                . "\n" . self::link($id);
+        } else {
+            $html = '<b>' . self::e(self::t('notify.status', ['id' => $id, 'status' => self::statusText($to), 'user' => $user->name()])) . "</b>\n"
+                . self::e((string) $issue['title']) . ' · ' . self::e(self::issueContext($db, $issue)) . "\n" . self::link($id);
+        }
+        self::toGroup($db, $html, $id, $issue, self::issueButtons($id, $closed));
     }
 
     /** Texto de otro fichero de idioma (p. ej. "issues:status.pending"), en el idioma del bot. */

@@ -87,14 +87,18 @@
     "meet": "Ha iniciat una videotrucada",
     "files": "{n} fitxer(s) adjunt(s)",
     "status": "#{id}: {status} ({user})",
-    "reply_hint": "respon aquest missatge per escriure a la conversa"
+    "reply_hint": "respon aquest missatge per escriure a la conversa",
+    "resolved": "#{id} resolta per {user}",
+    "resolved_hours": "Hores imputades: {time}",
+    "resolved_no_hours": "Sense hores imputades"
   },
   "bot_label": "Bot",
   "events": {
     "issue.new": "incidències noves",
     "issue.message": "missatges",
     "issue.status": "canvis d'estat",
-    "issue.panic": "només pànic"
+    "issue.panic": "només pànic",
+    "issue.resolved": "només resoltes"
   },
   "mode_poll": "Mode consulta",
   "polled_at": "Última consulta: {date}",

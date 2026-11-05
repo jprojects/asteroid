@@ -113,8 +113,9 @@ Código: `src/Webchat/`, `WebchatWidgetPage` (pública: `loader`, el iframe, `po
 Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la página *Equip → Telegram* y el webhook
 `index.php?r=public&m=telegram_hook` (página pública protegida con el `secret`).
 
-**Avisos al grupo** (y tema): incidencias nuevas y mensajes de las conversaciones; opcionalmente cambios de estado
-(`issue.status`) o solo las de pánico (`issue.panic`). Llevan el cliente, el proyecto, el técnico y el enlace.
+**Avisos al grupo** (y tema): incidencias nuevas y mensajes de las conversaciones; opcionalmente las resueltas
+(`issue.resolved`: quién, con las horas imputadas), todos los cambios de estado (`issue.status`) o solo las de pánico
+(`issue.panic`). Llevan el cliente, el proyecto, el técnico y el enlace.
 
 **Desde Telegram** (con la cuenta vinculada a un usuario del equipo; todo con sus permisos y los avisos de siempre):
 
@@ -146,7 +147,7 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
        'thread_id' => 42,
        'panic_thread_id' => 51,                         // opcional: tema para las de pánico (alta, mensajes, estado)
        'secret' => '…',                                 // 16-256 letras, números, _ o -; aleatorio
-       'events' => ['issue.new', 'issue.message'],      // + 'issue.status' | 'issue.panic'
+       'events' => ['issue.new', 'issue.message', 'issue.resolved'],   // + 'issue.status' | 'issue.panic'
        'locale' => 'ca',                                // idioma de los mensajes del bot
        'mode' => 'webhook',                             // o 'poll' (cron, ver abajo)
    ],

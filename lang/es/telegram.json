@@ -87,14 +87,18 @@
     "meet": "Ha iniciado una videollamada",
     "files": "{n} archivo(s) adjunto(s)",
     "status": "#{id}: {status} ({user})",
-    "reply_hint": "responde a este mensaje para escribir en la conversación"
+    "reply_hint": "responde a este mensaje para escribir en la conversación",
+    "resolved": "#{id} resuelta por {user}",
+    "resolved_hours": "Horas imputadas: {time}",
+    "resolved_no_hours": "Sin horas imputadas"
   },
   "bot_label": "Bot",
   "events": {
     "issue.new": "incidencias nuevas",
     "issue.message": "mensajes",
     "issue.status": "cambios de estado",
-    "issue.panic": "solo pánico"
+    "issue.panic": "solo pánico",
+    "issue.resolved": "solo resueltas"
   },
   "mode_poll": "Modo consulta",
   "polled_at": "Última consulta: {date}",

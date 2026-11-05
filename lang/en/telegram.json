@@ -87,14 +87,18 @@
     "meet": "Started a video call",
     "files": "{n} attached file(s)",
     "status": "#{id}: {status} ({user})",
-    "reply_hint": "reply to this message to write in the conversation"
+    "reply_hint": "reply to this message to write in the conversation",
+    "resolved": "#{id} resolved by {user}",
+    "resolved_hours": "Time logged: {time}",
+    "resolved_no_hours": "No time logged"
   },
   "bot_label": "Bot",
   "events": {
     "issue.new": "new issues",
     "issue.message": "messages",
     "issue.status": "status changes",
-    "issue.panic": "panic only"
+    "issue.panic": "panic only",
+    "issue.resolved": "resolved only"
   },
   "mode_poll": "Polling mode",
   "polled_at": "Last check: {date}",

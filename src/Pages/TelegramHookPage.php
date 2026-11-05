@@ -572,9 +572,11 @@ final class TelegramHookPage extends Page
         $vars = ['id' => $row['id'], 'title' => $row['title'], 'user' => $user->name()];
         if ($this->callbackId !== null) {
             $this->notice(Telegram::t($done, $vars), false);
-            if (isset($values['status']) && Telegram::wants('issue.status')) {
-                return; // el grupo ya recibe el aviso del cambio de estado
-            }
+        }
+        // Si el grupo ya recibe el aviso del cambio de estado, no se repite allí
+        $inGroup = (string) $this->msg['chat']['id'] === (string) (Telegram::config()['chat_id'] ?? '');
+        if ($inGroup && isset($values['status']) && Telegram::announcesStatus((int) $values['status'])) {
+            return;
         }
         $this->reply(Telegram::e(Telegram::t($done, $vars))); // en el grupo, para que el resto lo vea
     }
