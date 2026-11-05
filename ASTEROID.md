@@ -393,3 +393,29 @@ se conservan. Resultado con la copia del 26/10/2026: 272 clientes, 238 proyectos
 ## Pendiente respecto al Asteroid antiguo
 
 - Tareas (`todo`), accesos (`accesos`).
+
+## Próximos pasos (decididos, sin empezar)
+
+### Métricas de servicio y plazos (SLA)
+
+Medir y comprometer cuánto se tarda en responder y en resolver. Por fases:
+
+1. **Métricas sobre el historial** (panel del equipo; no cambia cómo se trabaja): primera respuesta (primer mensaje
+   del equipo en la conversación o paso a *En curs*; se puede calcular con todo el historial de `messages`) y
+   resolución (`resolved_at`), media y % dentro de plazo por mes; carga por técnico; por cliente (incidencias, horas,
+   encuestas); incidencias paradas.
+2. **Plazos**: horario laboral (L-V 8-18 y festivos configurables) y plazos por prioridad, mejorables por contrato
+   (`contracts`). Ejemplo: pánico 1 h / 4 h, urgente 4 h / 2 días, normal 1 día / 5 días. Marca de color en la lista y
+   la Pissarra (verde, naranja < 25 % del plazo, rojo vencida) y avisos (técnico; tema Urgent de Telegram si vence).
+3. **Estado «Esperant el client»**: para el reloj; recordatorio al cliente y cierre automático si no contesta.
+4. **Informe para el cliente**: tarjeta en *El meu espai* y correo mensual (incidencias, primera respuesta media,
+   % en plazo, horas, valoración). Base para vender planes de soporte con niveles.
+
+### Notas
+
+Hecho: botón rápido, lista, hechas, compartidas y `/nota` · `/notes` en Telegram. Falta:
+
+- **Convertir en incidencia**: botón en la nota que crea la incidencia (proyecto «AFI intern» para las internas) con
+  el texto y la deja enlazada.
+- **Recordatorio**: el día de `due_on`, aviso en Asteroid (y por Telegram, al usuario vinculado). Cron diario o el de
+  `bin/notifications.php`.
