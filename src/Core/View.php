@@ -7,11 +7,17 @@ namespace Quasar\Core;
  * Motor de plantillas PHP. Las plantillas viven en templates/{plantilla}/ y
  * acceden a estos helpers mediante $this (e, t, url, asset, csrfField...).
  *
+ * "default" es la plantilla base: otra plantilla ('template' en la config) solo contiene lo que cambia, y
+ * cualquier vista, correo, asset o icono que no tenga se toma de default. Si trae assets/theme.css, el
+ * layout lo carga después de style.css (una plantilla puede ser solo eso).
+ *
  * Una plantilla puede sobrescribirse por módulo creando
  * templates/{plantilla}/modules/{módulo}/list.php o form.php.
  */
 final class View
 {
+    public const BASE = 'default';
+
     /** Iconos que usa app.js (filas de tabla, diálogos, avisos, archivos): siempre van en el sprite */
     private const SCRIPT_ICONS = [
         'pencil', 'eye', 'trash-2', 'x', 'grip-vertical', 'file',
@@ -41,9 +47,25 @@ final class View
         return QS_ROOT . '/templates/' . $this->app->template();
     }
 
+    /**
+     * Fichero de la plantilla activa o, si no lo tiene, de la base (default). Ruta relativa a la carpeta de
+     * la plantilla ("list.php", "assets/style.css"); null si no existe en ninguna.
+     */
+    public function file(string $relative): ?string
+    {
+        foreach (array_unique([$this->dir(), QS_ROOT . '/templates/' . self::BASE]) as $dir) {
+            $root = realpath($dir);
+            $path = $root ? realpath($root . '/' . $relative) : false;
+            if ($path && str_starts_with($path, $root . DIRECTORY_SEPARATOR) && is_file($path)) {
+                return $path;
+            }
+        }
+        return null;
+    }
+
     public function resolve(string $preferred, string $fallback): string
     {
-        return is_file($this->dir() . '/' . $preferred . '.php') ? $preferred : $fallback;
+        return $this->file($preferred . '.php') !== null ? $preferred : $fallback;
     }
 
     public function render(string $template, array $vars = [], ?string $layout = 'layout'): string
@@ -54,7 +76,7 @@ final class View
 
     private function renderFile(string $__template, array $__vars): string
     {
-        if (!preg_match('~^[A-Za-z0-9_/-]+$~', $__template) || !is_file($__file = $this->dir() . '/' . $__template . '.php')) {
+        if (!preg_match('~^[A-Za-z0-9_/-]+$~', $__template) || ($__file = $this->file($__template . '.php')) === null) {
             throw new \RuntimeException("Plantilla no encontrada: $__template");
         }
         extract($__vars, EXTR_SKIP);
@@ -93,9 +115,15 @@ final class View
 
     public function asset(string $file): string
     {
-        $path = $this->dir() . '/assets/' . $file;
-        $v = is_file($path) ? filemtime($path) : 0;
+        $path = $this->file('assets/' . $file);
+        $v = $path !== null ? filemtime($path) : 0;
         return $this->e($this->app->url('asset', ['f' => $file, 'v' => $v]));
+    }
+
+    /** Si la plantilla (o la base) tiene ese asset; p. ej. el layout carga theme.css solo si existe. */
+    public function hasAsset(string $file): bool
+    {
+        return $this->file('assets/' . $file) !== null;
     }
 
     public function csrfToken(): string
@@ -184,18 +212,21 @@ final class View
         if (!preg_match('/^[a-z0-9-]{1,64}$/', $name)) {
             return null;
         }
-        $custom = $this->dir() . '/icons/custom/' . $name . '.svg';
-        if (is_file($custom) && preg_match('~<svg\b[^>]*>(.*)</svg>~s', (string) file_get_contents($custom), $m)) {
+        $custom = $this->file('icons/custom/' . $name . '.svg');
+        if ($custom !== null && preg_match('~<svg\b[^>]*>(.*)</svg>~s', (string) file_get_contents($custom), $m)) {
             return trim($m[1]);
         }
+        return $this->iconSet()[$name] ?? null;
+    }
+
+    /** @return array<string,string> iconos Lucide de la plantilla (o de la base): nombre => interior SVG */
+    public function iconSet(): array
+    {
         if ($this->iconSet === null) {
-            $file = $this->dir() . '/icons/lucide.php';
-            if (!is_file($file)) {
-                $file = QS_ROOT . '/templates/default/icons/lucide.php';
-            }
-            $this->iconSet = is_file($file) ? (array) require $file : [];
+            $file = $this->file('icons/lucide.php');
+            $this->iconSet = $file !== null ? (array) require $file : [];
         }
-        return $this->iconSet[$name] ?? null;
+        return $this->iconSet;
     }
 
     /** Barra lateral plegada (cookie que guarda app.js; así se pinta ya plegada, sin parpadeo). */

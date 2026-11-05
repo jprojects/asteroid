@@ -9,6 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= $this->e(($title ?? '') !== '' ? $title . ' · ' . $this->appName() : $this->appName()) ?></title>
 <link rel="stylesheet" href="<?= $this->asset('style.css') ?>">
+<?php if ($this->hasAsset('theme.css')): ?><link rel="stylesheet" href="<?= $this->asset('theme.css') ?>"><?php endif ?>
 <meta name="qs-i18n" content="<?= $this->json($this->dialogTexts()) ?>">
 <link rel="icon" href="<?= $this->logoUrl() ?? $this->asset('logo.svg') ?>">
 <?php if ($this->brandColor()): ?><style>:root { --primary: <?= $this->e($this->brandColor()) ?>; }</style><?php endif ?>

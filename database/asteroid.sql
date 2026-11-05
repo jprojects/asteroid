@@ -246,3 +246,21 @@ CREATE TABLE IF NOT EXISTS web_audits (
   KEY ix_web_audits_project (project_id, kind, created_at),
   CONSTRAINT fk_web_audits_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Notas personales del equipo (modules/notes.json): recordatorios rápidos. Cada uno ve las suyas y las compartidas.
+CREATE TABLE IF NOT EXISTS notes (
+  id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  user_id     INT UNSIGNED  NOT NULL,
+  body        TEXT          NOT NULL,
+  due_on      DATE          NULL,
+  issue_id    INT UNSIGNED  NULL,
+  client_id   INT UNSIGNED  NULL,
+  shared      TINYINT(1)    NOT NULL DEFAULT 0,
+  done        TINYINT(1)    NOT NULL DEFAULT 0,
+  done_at     DATETIME      NULL,
+  created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_notes_user (user_id, done, due_on),
+  KEY ix_notes_shared (shared, done),
+  CONSTRAINT fk_notes_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

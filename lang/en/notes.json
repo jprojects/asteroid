@@ -1,0 +1,30 @@
+{
+  "title": "Notes",
+  "description": "Quick reminders: only you see them, unless you share them with the team",
+  "quick": {
+    "new": "Note"
+  },
+  "fields": {
+    "id": "No.",
+    "body": "Note",
+    "due_on": "For",
+    "client_id": "Client",
+    "issue_id": "Issue",
+    "shared": "Shared",
+    "done": "Done",
+    "user_id": "By",
+    "created_at": "Created"
+  },
+  "help": {
+    "due_on": "Optional: the day you need to deal with it.",
+    "shared": "The whole team sees it (e.g. topics for the meeting). Otherwise only you."
+  },
+  "actions": {
+    "done": "Done",
+    "pending": "Back to pending"
+  },
+  "flash": {
+    "done": "Note done",
+    "pending": "Note pending again"
+  }
+}

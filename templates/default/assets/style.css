@@ -21,6 +21,7 @@
   --sidebar-bg: #1c2230;
   --sidebar-text: #c5cbd6;
   --sidebar-active: #2b3446;
+  --sidebar-text-strong: #fff;  /* marca, elemento activo y al pasar el ratón */
   --radius: 6px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-size: 13px;
@@ -154,7 +155,7 @@ a:hover { text-decoration: underline; }
   padding: 14px 16px;
   font-weight: 600;
   font-size: 15px;
-  color: #fff;
+  color: var(--sidebar-text-strong);
   text-decoration: none !important;
 }
 
@@ -221,8 +222,8 @@ a:hover { text-decoration: underline; }
   color: var(--sidebar-text);
   text-decoration: none !important;
 }
-.qs-nav-item:hover { background: var(--sidebar-active); color: #fff; }
-.qs-nav-item.is-active { background: var(--sidebar-active); color: #fff; box-shadow: inset 3px 0 0 var(--primary); }
+.qs-nav-item:hover { background: var(--sidebar-active); color: var(--sidebar-text-strong); }
+.qs-nav-item.is-active { background: var(--sidebar-active); color: var(--sidebar-text-strong); box-shadow: inset 3px 0 0 var(--primary); }
 .qs-nav-icon { width: 18px; height: 18px; opacity: .85; }
 .qs-nav-item.is-active .qs-nav-icon, .qs-nav-item:hover .qs-nav-icon { opacity: 1; }
 

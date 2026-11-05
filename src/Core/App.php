@@ -262,8 +262,17 @@ final class App
 
     public function template(): string
     {
-        $tpl = (string) ($this->config['template'] ?? 'default');
-        return preg_match('/^[A-Za-z0-9_-]+$/', $tpl) ? $tpl : 'default';
+        $tpl = (string) ($this->config['template'] ?? View::BASE);
+        if (!preg_match('/^[A-Za-z0-9_-]+$/', $tpl) || !is_dir(QS_ROOT . '/templates/' . $tpl)) {
+            // Una plantilla mal escrita en la config no deja la instalación sin pantalla: se usa la base
+            static $warned = false;
+            if (!$warned) {
+                $warned = true;
+                Log::warning('La plantilla "{template}" de la configuración no existe: se usa "{base}"', ['template' => $tpl, 'base' => View::BASE]);
+            }
+            return View::BASE;
+        }
+        return $tpl;
     }
 
     public function url(string $route, array $params = []): string
@@ -395,12 +404,12 @@ final class App
         return $file && is_file($file) && in_array($ext, $extensions, true) ? $file : null;
     }
 
-    /** Sirve los ficheros de templates/{plantilla}/assets para que la plantilla sea autocontenida. */
+    /** Sirve los ficheros de templates/{plantilla}/assets (o de la plantilla base) para que la plantilla sea autocontenida. */
     private function serveAsset(string $file): void
     {
-        $base = realpath(QS_ROOT . '/templates/' . $this->template() . '/assets');
-        $path = $base ? realpath($base . '/' . $file) : false;
-        if (!$base || !$path || !str_starts_with($path, $base . DIRECTORY_SEPARATOR) || !is_file($path)) {
+        // Solo lo que hay dentro de assets/ (nada de "../" hacia el resto de la plantilla)
+        $path = $file !== '' && !str_contains($file, '..') && !str_starts_with($file, '/') ? $this->view->file('assets/' . $file) : null;
+        if ($path === null) {
             http_response_code(404);
             return;
         }

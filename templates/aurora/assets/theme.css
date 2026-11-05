@@ -1,0 +1,70 @@
+/* Quasar · plantilla "aurora" — clara y espaciosa, con barra lateral blanca.
+ *
+ * Solo contiene lo que cambia respecto a la plantilla base (default): vistas, app.js, style.css, iconos y
+ * correos se toman de default. Este fichero se carga después de style.css; el color de marca del cliente
+ * (branding.color) sigue mandando sobre --primary.
+ */
+
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-alt: #f8fafd;
+  --border: #e3e8f0;
+  --border-strong: #cfd7e3;
+  --text: #182033;
+  --text-muted: #667085;
+  --primary: #4f46e5;
+  --primary-soft: color-mix(in srgb, var(--primary) 10%, #fff);
+  --row-hover: #f4f6fd;
+  --row-focus: #e8eafd;
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #475467;
+  --sidebar-active: color-mix(in srgb, var(--primary) 9%, #fff);
+  --sidebar-text-strong: var(--primary);
+  --radius: 10px;
+  --font-size: 14px;
+  --control-h: 34px;
+  --shadow: 0 1px 2px rgb(16 24 40 / .05), 0 1px 3px rgb(16 24 40 / .06);
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Oscuro con matiz índigo; la barra lateral es del mismo tono que las tarjetas (no un bloque más oscuro) */
+  :root {
+    --bg: #0c0e1d;
+    --surface: #151833;
+    --surface-alt: #1a1e3c;
+    --border: #262b4d;
+    --border-strong: #353b63;
+    --text: #e8e9f6;
+    --text-muted: #9a9fc0;
+    --primary: #8f88ff;
+    --primary-soft: color-mix(in srgb, var(--primary) 20%, #151833);
+    --row-hover: #1c2042;
+    --row-focus: #262b57;
+    --sidebar-bg: var(--surface);
+    --sidebar-text: #aeb2d3;
+    --sidebar-active: color-mix(in srgb, var(--primary) 20%, #151833);
+    --sidebar-text-strong: #c9c5ff;
+    --shadow: 0 1px 2px rgb(0 0 0 / .45), 0 0 0 1px rgb(255 255 255 / .02);
+  }
+}
+
+/* Barra lateral del color de las tarjetas (blanca en claro), separada del contenido por una línea */
+.qs-sidebar { border-right: 1px solid var(--border); }
+.qs-nav-item { font-weight: 500; }
+.qs-nav-item.is-active { box-shadow: none; }
+.qs-nav-group { letter-spacing: .08em; font-weight: 600; }
+.qs-brand-logo { background: transparent; }
+
+/* Barra superior sin línea: el contenido flota sobre el fondo */
+.qs-topbar { background: var(--bg); border-bottom-color: transparent; }
+
+/* Tarjetas: secciones de formulario, tabla, portada y login con sombra suave en vez de solo borde */
+.qs-section, .qs-table-wrap, .qs-tile, .qs-login-card { box-shadow: var(--shadow); border-color: var(--border); }
+.qs-section { padding: 18px 20px 20px; }
+.qs-table thead th { text-transform: uppercase; letter-spacing: .04em; font-size: 11px; }
+.qs-table th, .qs-table td { height: 36px; padding: 0 12px; }
+
+.qs-btn { font-weight: 500; }
+.qs-btn-primary { box-shadow: 0 1px 2px color-mix(in srgb, var(--primary) 35%, transparent); }
+.qs-login-card { border-radius: 16px; padding: 32px; }

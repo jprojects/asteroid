@@ -27,6 +27,7 @@ const GROUP_PERMISSIONS = [
         'surveys' => ['view', 'delete', 'export'],
         'pending_billing' => ['view'],
         'telegram' => ['view'],
+        'notes' => ['view', 'create', 'edit', 'delete'],
         'web_audit' => ['view'],
         'clients' => ['view', 'create', 'edit', 'delete', 'export'],
         'projects' => ['view', 'create', 'edit', 'delete', 'export'],

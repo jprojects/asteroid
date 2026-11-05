@@ -1,0 +1,30 @@
+{
+  "title": "Notes",
+  "description": "Recordatoris ràpids: només els veus tu, si no els comparteixes amb l'equip",
+  "quick": {
+    "new": "Nota"
+  },
+  "fields": {
+    "id": "Núm.",
+    "body": "Nota",
+    "due_on": "Per al dia",
+    "client_id": "Client",
+    "issue_id": "Incidència",
+    "shared": "Compartida",
+    "done": "Feta",
+    "user_id": "De",
+    "created_at": "Creada"
+  },
+  "help": {
+    "due_on": "Opcional: el dia que te n'has d'ocupar.",
+    "shared": "La veu tot l'equip (p. ex. temes per a la reunió). Si no, només tu."
+  },
+  "actions": {
+    "done": "Feta",
+    "pending": "Torna-la a pendent"
+  },
+  "flash": {
+    "done": "Nota feta",
+    "pending": "Nota pendent un altre cop"
+  }
+}

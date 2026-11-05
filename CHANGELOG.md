@@ -2,6 +2,29 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.22.0 — 2026-11-05
+
+- **`where` con `{user.columna}`**: la condición fija de un módulo admite los mismos marcadores que el `scope` y se
+  aplica a todos, también a los administradores (que se saltan el `scope`). Sirve para registros personales, como
+  notas privadas de cada usuario. Sin usuario (consola) no deja ver ninguno. Documentado en README, «Registros
+  visibles por usuario».
+
+## 0.21.1 — 2026-11-05
+
+- Plantilla `aurora`: modo oscuro propio (matiz índigo y barra lateral del tono de las tarjetas); antes casi no se
+  distinguía de `default` en oscuro.
+
+## 0.21.0 — 2026-11-05
+
+- **Módulos fuera del menú**: `"menu": false` (atajo de `"menu": { "visible": false }`) quita el módulo del menú y de
+  la portada; sigue accesible por enlaces y botones y con sus permisos. Un `"menu"` mal escrito falla al cargar el
+  módulo. Documentado en README, «Módulos fuera del menú».
+- **Plantillas que heredan de `default`**: otra plantilla (`'template'` en la config) solo contiene lo que cambia;
+  vistas, correos, assets e iconos que no tenga se toman de `default`, así que recibe las mejoras del núcleo. Un
+  `assets/theme.css` de la plantilla se carga después de `style.css`. Una plantilla que no existe cae a `default`.
+- Plantilla nueva **`aurora`** (clara, barra lateral blanca, más espaciosa): solo un `theme.css`.
+- CSS: variable `--sidebar-text-strong` (antes `#fff` fijo) para poder tener la barra lateral clara.
+
 ## 0.20.0 — 2026-11-04
 
 - **Mensajes de alguien de fuera en la conversación**: `ChatService::postExternal()` publica un mensaje sin usuario,

@@ -31,6 +31,7 @@
         "src/Hooks/GroupsHooks.php",
         "src/Hooks/AiUsageHooks.php",
         "templates/default/**",
+        "templates/aurora/**",
         "modules/users.json",
         "modules/groups.json",
         "modules/ai_usage.json",

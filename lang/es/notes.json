@@ -1,0 +1,30 @@
+{
+  "title": "Notas",
+  "description": "Recordatorios rápidos: solo los ves tú, salvo que los compartas con el equipo",
+  "quick": {
+    "new": "Nota"
+  },
+  "fields": {
+    "id": "Núm.",
+    "body": "Nota",
+    "due_on": "Para el día",
+    "client_id": "Cliente",
+    "issue_id": "Incidencia",
+    "shared": "Compartida",
+    "done": "Hecha",
+    "user_id": "De",
+    "created_at": "Creada"
+  },
+  "help": {
+    "due_on": "Opcional: el día que tienes que ocuparte.",
+    "shared": "La ve todo el equipo (p. ej. temas para la reunión). Si no, solo tú."
+  },
+  "actions": {
+    "done": "Hecha",
+    "pending": "Volver a pendiente"
+  },
+  "flash": {
+    "done": "Nota hecha",
+    "pending": "Nota pendiente otra vez"
+  }
+}

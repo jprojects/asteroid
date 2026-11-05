@@ -36,7 +36,7 @@ crearla. Ver el README de Cosmo.
 config/            config.php (+ config.local.php opcional, no versionar)
 modules/           un JSON por módulo  →  modules/clients.json = módulo "clients"
 lang/{es,en}/      common.json + un JSON por módulo/vista
-templates/default/ plantilla (PHP + assets). Cambiable con 'template' en config
+templates/default/ plantilla base (PHP + assets); otras plantillas solo con lo que cambian ('template' en config)
 src/Core/          núcleo: App, Auth, User, Permissions, Lang, View, Module, DataQuery, FormHandler
 src/Fields/        un fichero por tipo de campo
 src/Hooks/         lógica propia de módulos (opcional)
@@ -67,7 +67,7 @@ database/          schema.sql (núcleo) y demo.sql
   "adminOnly": false,                 // true = solo administradores
   "actions": ["view", "create", "edit", "delete"],  // acciones sujetas a permiso
   "hooks": "Quasar\\Hooks\\ProductsHooks",          // opcional
-  "menu": { "group": "main", "order": 30, "icon": "package", "visible": true },   // icono: ver "Iconos"
+  "menu": { "group": "main", "order": 30, "icon": "package", "visible": true },   // icono: ver "Iconos"; false = fuera del menú
 
   "fields": {
     "id":    { "type": "number", "readonly": true, "grouping": false },
@@ -1000,11 +1000,11 @@ Cada registro guardado tiene, junto a la ficha (debajo en pantallas estrechas), 
 - Se actualiza sola cada `chat.poll_seconds` (5 s; menos a menudo si la pestaña no está a la vista), sin websockets:
   funciona en cualquier hosting.
 - **Apuntes del sistema** desde los hooks: `Chat::system('issues', $id, ['issues:log.status', ['to' => ['issues:status.resolved']]], $user->id())`
+  (texto o clave de idioma con variables; se traduce al idioma de quien lo lee).
 - **Mensajes de alguien de fuera** (p. ej. el visitante de un chat web, que no es usuario):
   `$app->chat()->postExternal($module, $id, $row, 'Maria Puig', $texto)`. Se guarda sin usuario y con el nombre en
   `meta.author`; el panel lo muestra con ese nombre, cuenta como no leído y avisa como cualquier mensaje (campos de
   `chat.notify`, quienes ya han escrito y el hook `externalRecipients($id, $row)`). Solo texto.
-  (texto o clave de idioma con variables; se traduce al idioma de quien lo lee).
 - Silenciar: el botón de la campana de la conversación deja de avisar de ella (salvo menciones).
 - Acceso: quien ve el módulo y el registro (`scope`), y, si se indica, `chat.access`. Los adjuntos solo se sirven a
   quien puede ver el mensaje. Tablas `messages` y `message_reads`.
@@ -1339,7 +1339,24 @@ Para que cada usuario vea **solo algunos registros** de un módulo (los de su cl
   etiquetas, la conversación y los avisos. Un registro fuera de su alcance responde 404 aunque se escriba la URL.
 - `set`: columnas que se fijan al crear o modificar un registro (después de los hooks), para que nadie guarde un
   registro fuera de lo que ve.
+- `where` también admite `{user.columna}`, y entonces vale para **todos, también los administradores**: es la forma de
+  tener registros personales que nadie más ve (p. ej. notas: `"where": "notes.user_id = {user.id} OR notes.shared = 1"`).
+  Sin usuario (scripts de consola) una condición así no deja ver ningún registro: consulta la tabla directamente.
 - Los selects de otros módulos respetan el `scope` con `"source": { "module": … }`.
+
+### Módulos fuera del menú
+
+Un módulo que solo se usa enlazado desde otro (las líneas de un pedido, los archivos de una carpeta, un informe que
+se lanza desde un listado…) no tiene por qué ocupar sitio en el menú:
+
+```jsonc
+"menu": false                                     // o, conservando grupo e icono: "menu": { "visible": false, … }
+```
+
+No sale en el menú ni en la portada, pero el módulo funciona igual: se abre desde enlaces y botones
+(`url`, `rowActions`, `quickCreate`, `list.reports`…), aparece en la matriz de permisos y quien no tenga *Ver* no
+puede abrirlo aunque tenga el enlace. `icon` y `group` se siguen usando en la cabecera y la ruta de navegación de la
+página. Un `"menu"` que no sea `false` ni un objeto da error al cargar el módulo.
 
 ### Menú por grupos
 
@@ -1363,9 +1380,67 @@ compartidos propios, como los nombres de grupos del menú nuevos (`"menu": { "cl
 
 Todo el HTML está en `templates/{nombre}/`: `layout.php`, `blank.php`, `login.php`, `home.php`,
 `list.php`, `form.php`, `permissions.php`, `error.php`, `fields/repeater.php`, `fields/media.php`,
-`emails/layout.php` (+ una plantilla por tipo de correo) y `assets/`. Para una plantilla nueva, copia
-`default` y cambia `'template'` en la config. Para personalizar solo un módulo crea
-`templates/default/modules/{módulo}/list.php` o `form.php`.
+`emails/layout.php` (+ una plantilla por tipo de correo), `pages/`, `icons/` y `assets/` (`style.css`, `app.js`).
+
+**`default` es la plantilla base.** Otra plantilla (`'template' => 'aurora'` en la config) **solo contiene lo que
+cambia**: cualquier vista, correo, asset o icono que no tenga se toma de `default`. Así recibe todas las mejoras del
+núcleo (`app.js`, vistas nuevas, correcciones) sin copiarlas.
+
+- **Solo cambiar el aspecto**: un `assets/theme.css`. El layout lo carga después de `style.css` (y antes del color
+  de marca del cliente, `branding.color`, que sigue mandando). Los colores, tamaños y radios están en variables
+  (`--primary`, `--bg`, `--surface`, `--sidebar-bg`, `--sidebar-text-strong`, `--radius`, `--font-size`,
+  `--control-h`…), con su versión para el modo oscuro (`@media (prefers-color-scheme: dark)`).
+- **Cambiar el HTML de una pantalla**: el fichero con el mismo nombre (`templates/aurora/login.php`). Las vistas
+  sustituidas tienen que conservar las clases `qs-*` y los atributos `data-*` que usa `app.js`, y dejan de recibir
+  las mejoras de la de `default`: sustituye lo mínimo.
+- **Pantallas propias de una instalación** (`pages/…`, `modules/{módulo}/list.php`, iconos propios): en
+  `templates/default/` siguen funcionando con cualquier plantilla; en la carpeta de una plantilla, solo con ella.
+- Si `'template'` apunta a una carpeta que no existe, se usa `default` (y queda un aviso en el log).
+
+Incluida: **`aurora`**, clara y espaciosa, con barra lateral blanca: es solo `assets/theme.css` y sirve de ejemplo.
+
+### Crear una plantilla
+
+1. Crea la carpeta `templates/{nombre}/` (minúsculas, números, `-` y `_`).
+2. Para cambiar el aspecto, crea `templates/{nombre}/assets/theme.css` y redefine las variables que quieras:
+
+   ```css
+   :root {
+     --primary: #0f766e;          /* color principal (botones, enlaces, menú activo) */
+     --bg: #f6f7f9;               /* fondo de la página */
+     --surface: #ffffff;          /* tarjetas, tablas, formularios */
+     --border: #e2e5ea;
+     --text: #1c2430;
+     --text-muted: #687385;
+     --sidebar-bg: #0b3b37;       /* barra lateral */
+     --sidebar-text: #b7d3cf;
+     --sidebar-active: #12524c;
+     --sidebar-text-strong: #fff; /* marca, elemento activo y al pasar el ratón */
+     --radius: 8px;
+     --font: "Inter", system-ui, sans-serif;
+     --font-size: 14px;
+     --control-h: 32px;           /* alto de botones y campos */
+   }
+   @media (prefers-color-scheme: dark) {
+     :root { --bg: #0d1117; --surface: #161b22; --text: #e6edf3; /* … */ }
+   }
+   /* y reglas propias si hacen falta, p. ej.: */
+   .qs-section { box-shadow: 0 1px 3px rgb(0 0 0 / .08); }
+   ```
+
+   Todas las variables están al principio de `templates/default/assets/style.css`, con sus valores en claro y en
+   oscuro. Las clases de los elementos empiezan por `qs-`.
+3. Para cambiar el HTML de una pantalla, copia ese fichero de `default` a la misma ruta de tu plantilla y modifícalo
+   (p. ej. `templates/{nombre}/login.php` o `templates/{nombre}/emails/layout.php`). Mantén las clases `qs-*`, los
+   atributos `data-*`, los `name` de los formularios y el `csrfField()`: los usan `app.js` y el servidor.
+4. Actívala en `config.local.php` de la instalación: `'template' => '{nombre}'`. Para volver: `'default'`.
+5. Si es una plantilla del núcleo (para todas las instalaciones), añade `templates/{nombre}/**` a `core.json`; si es
+   de una sola instalación, no: es un fichero del proyecto y las actualizaciones no la tocan.
+
+Un logo propio de la plantilla va en `templates/{nombre}/assets/logo.svg`; el del cliente (`branding.logo`) tiene
+prioridad. Los iconos propios, en `templates/{nombre}/icons/custom/{nombre}.svg` (o en `default`, para todas).
+
+Para personalizar solo un módulo crea `templates/default/modules/{módulo}/list.php` o `form.php`.
 
 Las plantillas usan los helpers de `View` vía `$this`: `e()`, `t()`, `url()`, `asset()`, `csrfField()`,
 `user()`, `menu()`…

@@ -1,0 +1,49 @@
+{
+  "table": "notes",
+  "primaryKey": "id",
+  "recordTitle": "body",
+  "hooks": "Quasar\\Hooks\\NotesHooks",
+  "actions": ["view", "create", "edit", "delete"],
+  "menu": { "group": "team", "order": 5, "icon": "sticky-note", "access": ["equip"] },
+  "where": "notes.user_id = {user.id} OR notes.shared = 1",
+  "quickCreate": {
+    "label": "quick.new",
+    "icon": "sticky-note",
+    "context": {
+      "issues": { "issue_id": "id", "client_id": "client_id" },
+      "clients": "client_id"
+    }
+  },
+  "fields": {
+    "id": { "type": "number", "readonly": true, "grouping": false },
+    "body": { "type": "textarea", "required": true, "rows": 3, "maxlength": 2000, "listLength": 160 },
+    "due_on": { "type": "date", "width": "third", "help": "help.due_on" },
+    "client_id": { "type": "select", "width": "third", "search": "remote", "source": { "table": "clients", "value": "id", "label": "name" } },
+    "issue_id": { "type": "select", "width": "third", "search": "remote", "source": { "table": "issues", "value": "id", "label": "title", "order": "id", "dir": "desc" } },
+    "shared": { "type": "checkbox", "default": 0, "width": "third", "help": "help.shared", "colors": { "1": "blue" } },
+    "done": { "type": "checkbox", "default": 0, "width": "third", "colors": { "1": "green", "0": "amber" } },
+    "user_id": { "type": "select", "readonly": true, "width": "third", "source": { "table": "users", "value": "id", "label": "name" } },
+    "created_at": { "type": "datetime", "readonly": true }
+  },
+  "list": {
+    "columns": [
+      { "field": "done", "width": "80px" },
+      { "field": "body", "minWidth": "280px", "overflow": "wrap", "lines": 3 },
+      { "field": "due_on", "width": "110px" },
+      { "field": "client_id", "maxWidth": "200px" },
+      { "field": "issue_id", "maxWidth": "220px" },
+      { "field": "user_id", "width": "120px" },
+      { "field": "created_at", "width": "140px" }
+    ],
+    "defaultSort": { "field": "done", "dir": "asc" },
+    "search": ["body"],
+    "filters": [{ "field": "done" }, { "field": "shared" }, { "field": "client_id" }, { "field": "due_on" }],
+    "rowActions": [
+      { "label": "actions.done", "icon": "check", "action": "markDone", "showon": "done:0" },
+      { "label": "actions.pending", "icon": "rotate-ccw", "action": "markPending", "showon": "done:1" }
+    ]
+  },
+  "form": {
+    "fields": ["body", "due_on", "client_id", "issue_id", "shared", "done", "user_id", "created_at"]
+  }
+}

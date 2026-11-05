@@ -39,6 +39,17 @@ final class Module
     ) {
         $this->ctx = $ctx;
 
+        // "menu": false = módulo fuera del menú y de la portada (atajo de "menu": { "visible": false })
+        $menu = $def['menu'] ?? [];
+        if ($menu === false) {
+            $menu = ['visible' => false];
+        }
+        if (!is_array($menu) || array_is_list($menu) && $menu !== [] || !is_bool($menu['visible'] ?? true)) {
+            throw new \RuntimeException("Módulo '$name': \"menu\" debe ser false o un objeto { \"group\", \"order\", \"icon\", \"visible\": true|false, \"access\" }");
+        }
+        $def['menu'] = $menu;
+        $this->def = $def;
+
         if ($this->isReport()) {
             // Informe PDF: sus "params" son campos (formulario de filtros) y el controlador es del núcleo
             if (isset($def['fields']) || isset($def['controller'])) {
@@ -383,7 +394,17 @@ final class Module
         $parts = [];
         $bind = [];
         if (isset($this->def['where'])) {
-            $parts[] = '(' . $this->def['where'] . ')';
+            $where = (string) $this->def['where'];
+            if (!str_contains($where, '{user.')) {
+                $parts[] = '(' . $where . ')';
+            } elseif ($user === null) {
+                $parts[] = '(1 = 0)'; // condición de cada usuario sin usuario (consola): ningún registro
+            } else {
+                // {user.columna} como en el scope, también para los administradores (p. ej. notas personales)
+                [$sql, $params] = Scope::bindUser($where, $user);
+                $parts[] = '(' . $sql . ')';
+                array_push($bind, ...$params);
+            }
         }
         if (($c = $this->scope?->condition($user)) !== null) {
             $parts[] = '(' . $c[0] . ')';

@@ -21,6 +21,7 @@ $pageTitle = ($title ?? '') !== '' ? $title . ' · ' . $this->appName() : $this-
 <meta name="csrf-token" content="<?= $this->e($this->csrfToken()) ?>">
 <title><?= $this->e($pageTitle) ?></title>
 <link rel="stylesheet" href="<?= $this->asset('style.css') ?>">
+<?php if ($this->hasAsset('theme.css')): ?><link rel="stylesheet" href="<?= $this->asset('theme.css') ?>"><?php endif ?>
 <meta name="qs-i18n" content="<?= $this->json($this->dialogTexts()) ?>">
 <link rel="icon" href="<?= $this->logoUrl() ?? $this->asset('logo.svg') ?>">
 <?php if ($this->brandColor()): ?><style>:root { --primary: <?= $this->e($this->brandColor()) ?>; }</style><?php endif ?>

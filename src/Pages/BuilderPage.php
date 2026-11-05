@@ -263,7 +263,7 @@ final class BuilderPage extends Page
 
     private function specs(): ModuleSpec
     {
-        $icons = array_keys((array) require QS_ROOT . '/templates/default/icons/lucide.php');
+        $icons = array_keys($this->app->view->iconSet());
         return new ModuleSpec($this->app->db, QS_ROOT . '/modules', $icons);
     }
 

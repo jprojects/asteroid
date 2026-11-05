@@ -20,7 +20,7 @@ return [
     // Página de inicio: el nombre de un módulo (p. ej. 'tpv') para quien puede verlo; null = el inicio con el menú
     'home' => null,
 
-    // Carpeta dentro de templates/
+    // Carpeta dentro de templates/: default (base) o aurora; una plantilla solo trae lo que cambia y el resto sale de default
     'template' => 'default',
 
     // Imagen corporativa del cliente

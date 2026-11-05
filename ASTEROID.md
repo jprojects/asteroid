@@ -11,7 +11,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `notes`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
 | `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
 | `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
@@ -174,6 +174,16 @@ y respuestas que lleguen entre una ejecución y otra no se atienden hasta la sig
 cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que la web** (en Webempresa,
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
+
+## Notes (recordatorios del equipo)
+
+Botón **Nota** en la barra superior (al lado de *Imputar hores*): apunta un recordatorio en un momento, con fecha,
+cliente o incidencia opcionales (dentro de una incidencia ya va enlazada a ella). *Equip → Notes*: la lista, con las
+pendientes primero, para marcarlas como hechas, editarlas o eliminarlas.
+
+Cada nota es de quien la crea (no se puede cambiar) y **solo la ve él**, también si es administrador: lo garantiza el
+`where` del módulo con `{user.id}` (Quasar 0.22.0). Con **Compartida** la ve todo el equipo (temas para la reunión…).
+Tabla `notes`; `NotesHooks`. Solo para el grupo `equip`.
 
 ## Salut de la web (informes SEO/GEO con Pulsar)
 
