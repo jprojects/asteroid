@@ -238,6 +238,12 @@ claude mcp add asteroid --scope user \
   -- php /home/…/asteroid-quasar/tools/mcp.php
 ```
 
+El token va en un fichero privado (no en la configuración ni en git):
+
+```bash
+mkdir -p ~/.config/asteroid-mcp && nano ~/.config/asteroid-mcp/token && chmod 600 ~/.config/asteroid-mcp/token
+```
+
 Uso: en VS Code, con el repositorio del cliente abierto, «*mira la incidència 4014 i proposa com arreglar-la*».
 
 ## API antigua (enlace con Factusol)

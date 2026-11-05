@@ -11,6 +11,7 @@
  *     -e ASTEROID_URL=https://sat.aficat.com -e ASTEROID_TOKEN=qs_… \
  *     -- php /home/…/asteroid-quasar/tools/mcp.php
  *
+ * Sin ASTEROID_TOKEN, el token se lee de ~/.config/asteroid-mcp/token (o de ASTEROID_TOKEN_FILE), con permisos 600.
  * Opcional: ASTEROID_FILES (carpeta de los adjuntos descargados; por defecto ~/.cache/asteroid-mcp).
  * Protocolo: JSON-RPC 2.0, un mensaje por línea en stdin/stdout (los avisos van a stderr).
  */
@@ -28,6 +29,11 @@ const STATUSES = ['pendent' => 1, 'en_curs' => 2, 'resolta' => 3, 'descartada' =
 
 $base = rtrim((string) getenv('ASTEROID_URL'), '/');
 $token = (string) getenv('ASTEROID_TOKEN');
+if ($token === '') {
+    // O en un fichero privado (así no queda en la configuración de Claude Code): ~/.config/asteroid-mcp/token
+    $tokenFile = (string) (getenv('ASTEROID_TOKEN_FILE') ?: ((getenv('HOME') ?: '') . '/.config/asteroid-mcp/token'));
+    $token = is_readable($tokenFile) ? trim((string) file_get_contents($tokenFile)) : '';
+}
 $filesDir = (string) (getenv('ASTEROID_FILES') ?: ((getenv('HOME') ?: sys_get_temp_dir()) . '/.cache/asteroid-mcp'));
 
 // ------------------------------------------------------------------------------------------------- API de Asteroid
@@ -380,7 +386,7 @@ function send(array $message): void
 
 $tools = ($base !== '' && $token !== '') ? new Tools(new AsteroidApi($base, $token), $filesDir) : null;
 if ($tools === null) {
-    fwrite(STDERR, "asteroid-mcp: falten ASTEROID_URL i ASTEROID_TOKEN\n");
+    fwrite(STDERR, "asteroid-mcp: falten ASTEROID_URL i el token (ASTEROID_TOKEN o ~/.config/asteroid-mcp/token)\n");
 }
 
 while (($line = fgets(STDIN)) !== false) {
@@ -414,7 +420,7 @@ while (($line = fgets(STDIN)) !== false) {
             'tools/list' => ['tools' => Tools::definitions()],
             'tools/call' => (function () use ($tools, $msg) {
                 if ($tools === null) {
-                    return ['content' => [['type' => 'text', 'text' => 'Configura ASTEROID_URL i ASTEROID_TOKEN (claude mcp add … -e …).']], 'isError' => true];
+                    return ['content' => [['type' => 'text', 'text' => 'Falta el token: desa\'l a ~/.config/asteroid-mcp/token (Asteroid → Perfil → API) o posa ASTEROID_TOKEN.']], 'isError' => true];
                 }
                 try {
                     return $tools->call((string) ($msg['params']['name'] ?? ''), (array) ($msg['params']['arguments'] ?? []));
