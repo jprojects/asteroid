@@ -24,6 +24,8 @@ use Quasar\Telegram\Telegram;
  *   - Botones de los avisos (callback()): imputar horas a la incidencia (15 min … 4 h; luego, respondiendo a la
  *     confirmación, la descripción o otro tiempo), asignársela y resolverla.
  *   - /pissarra [nom|totes|sense] · /meves · /noves · /incidencia N · /agafa N · /resol N · /vincular CODI · /ajuda
+ *   - /nota TEXT (nota personal; respondiendo a un aviso, enlazada a esa incidencia) · /notes (las pendientes, con
+ *     un botón «Feta» cada una)
  */
 final class TelegramHookPage extends Page
 {
@@ -103,6 +105,8 @@ final class TelegramHookPage extends Page
                 'agafa' => $this->update($user, $args, ['worker_id' => (string) $user->id()], 'bot.taken'),
                 'resol' => $this->update($user, $args, ['status' => (string) Asteroid::STATUS_RESOLVED], 'bot.resolved'),
                 'hores' => $this->hoursCommand($user, $args),
+                'nota' => $this->createNote($user, $args),
+                'notes' => $this->listNotes($user),
                 default => $this->reply(Telegram::e(Telegram::t('bot.unknown'))),
             };
             return;
@@ -161,6 +165,7 @@ final class TelegramHookPage extends Page
                 'h' => isset($parts[2]) ? $this->logHours($user, $id, Telegram::duration(max(0, (int) $parts[2])), true) : $this->askHours($user, $id),
                 't' => $this->update($user, $id, ['worker_id' => (string) $user->id()], 'bot.taken_by'),
                 'r' => $this->update($user, $id, ['status' => (string) Asteroid::STATUS_RESOLVED], 'bot.resolved_by'),
+                'n' => $this->noteDone($user, $id),
                 default => null,
             };
         } catch (\Throwable $e) {
@@ -281,6 +286,104 @@ final class TelegramHookPage extends Page
             return;
         }
         $this->reply(Telegram::e($text));
+    }
+
+    // ---------------------------------------------------------------- notas (modules/notes.json)
+
+    /** /nota TEXT: nota personal. Respondiendo a un aviso de una incidencia, queda enlazada a ella y a su cliente. */
+    private function createNote(User $user, string $text): void
+    {
+        $m = $this->app->modules()->get('notes');
+        if ($m === null || !ModuleRegistry::canAccess($user, $m, 'create')) {
+            $this->reply(Telegram::e(Telegram::t('bot.forbidden')));
+            return;
+        }
+        if ($text === '') {
+            $this->reply(Telegram::e(Telegram::t('bot.note_usage')));
+            return;
+        }
+        $data = ['body' => mb_substr($text, 0, 2000), 'shared' => '0', 'done' => '0'];
+        $replyTo = $this->msg['reply_to_message']['message_id'] ?? null;
+        $issueId = $replyTo !== null ? $this->app->db->fetchValue(
+            "SELECT record_id FROM telegram_messages WHERE chat_id = ? AND message_id = ? AND module = 'issues'",
+            [(string) $this->msg['chat']['id'], (int) $replyTo]
+        ) : null;
+        if ($issueId !== null && ($issue = Asteroid::issue($this->app->db, (string) $issueId)) !== null) {
+            $data['issue_id'] = (string) $issue['id'];
+            $data['client_id'] = $issue['client_id'] !== null ? (string) $issue['client_id'] : '';
+        }
+        $result = (new FormHandler($m, $this->app->db))->process($data, null, $user, true);
+        if (!$result['ok']) {
+            $this->reply(Telegram::e(Telegram::t('bot.not_saved', ['error' => implode(' · ', $result['errors'])])));
+            return;
+        }
+        Log::info('Telegram: nota {id} de {user}', ['id' => $result['id'], 'user' => $user->id()]);
+        $this->reply(Telegram::e(Telegram::t(isset($data['issue_id']) ? 'bot.note_saved_issue' : 'bot.note_saved', ['issue' => $data['issue_id'] ?? ''])),
+            [[['text' => Telegram::t('btn.note_done'), 'callback_data' => 'n:' . (int) $result['id']]]]);
+    }
+
+    /** /notes: las pendientes que ve el usuario (las suyas y las compartidas), con un botón «Feta» cada una. */
+    private function listNotes(User $user): void
+    {
+        [$html, $buttons] = $this->notesMessage($user);
+        $this->reply($html, $buttons);
+    }
+
+    /** Botón «Feta»: marca la nota (si el usuario la ve) y, si es la lista de /notes, la actualiza. */
+    private function noteDone(User $user, string $id): void
+    {
+        $m = $this->app->modules()->get('notes');
+        $handler = $m !== null ? new FormHandler($m, $this->app->db) : null;
+        if ($handler === null || !ModuleRegistry::canAccess($user, $m, 'edit') || !ctype_digit($id) || $handler->load($id) === null) {
+            $this->notice(Telegram::t('bot.forbidden'));
+            return;
+        }
+        $result = $handler->process(['done' => '1'], $id, $user, true);
+        if (!$result['ok']) {
+            $this->notice(Telegram::t('bot.not_saved', ['error' => implode(' · ', $result['errors'])]));
+            return;
+        }
+        $chat = $this->msg['chat']['id'];
+        $msgId = (int) $this->msg['message_id'];
+        $isList = str_contains((string) ($this->msg['text'] ?? ''), Telegram::t('bot.notes_title'));
+        if ($isList) {
+            [$html, $buttons] = $this->notesMessage($user);
+            Telegram::bot()->edit($chat, $msgId, $html, $buttons ?: null);
+        } else {
+            Telegram::bot()->edit($chat, $msgId, Telegram::e(Telegram::t('bot.note_done', ['id' => $id])));
+        }
+        $this->notice(Telegram::t('bot.note_done', ['id' => $id]), false);
+    }
+
+    /** @return array{0:string,1:list<list<array>>} el texto de las notas pendientes y sus botones */
+    private function notesMessage(User $user): array
+    {
+        $m = $this->app->modules()->get('notes');
+        if ($m === null || !ModuleRegistry::canAccess($user, $m)) {
+            return [Telegram::e(Telegram::t('bot.forbidden')), []];
+        }
+        [$where, $bind] = $m->rowCondition() ?? ['1 = 1', []];
+        $rows = $this->app->db->fetchAll(
+            "SELECT notes.id, notes.body, notes.due_on, notes.shared, notes.issue_id FROM notes
+              WHERE ($where) AND notes.done = 0 ORDER BY notes.due_on IS NULL, notes.due_on, notes.id DESC LIMIT " . self::LIST_LIMIT,
+            $bind
+        );
+        if (!$rows) {
+            return [Telegram::e(Telegram::t('bot.notes_empty')), []];
+        }
+        $lines = ['<b>' . Telegram::e(Telegram::t('bot.notes_title')) . '</b>'];
+        $buttons = [];
+        foreach ($rows as $r) {
+            $meta = array_filter([
+                $r['due_on'] ? date('d/m', (int) strtotime((string) $r['due_on'])) : null,
+                $r['issue_id'] ? '#' . (int) $r['issue_id'] : null,
+                (int) $r['shared'] ? Telegram::t('bot.note_shared') : null,
+            ]);
+            $lines[] = '<b>' . (int) $r['id'] . '.</b> ' . Telegram::e(mb_strimwidth(preg_replace('/\s+/', ' ', (string) $r['body']) ?? '', 0, 120, '…'))
+                . ($meta ? ' <i>(' . Telegram::e(implode(' · ', $meta)) . ')</i>' : '');
+            $buttons[] = ['text' => Telegram::t('btn.note_done_n', ['id' => $r['id']]), 'callback_data' => 'n:' . (int) $r['id']];
+        }
+        return [implode("\n", $lines), array_chunk($buttons, 3)];
     }
 
     // ---------------------------------------------------------------- vincular cuentas

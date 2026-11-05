@@ -11,14 +11,14 @@
   "open_bot": "Abrir {bot}",
   "code_help": "También puedes escribir /vincular {code} al bot. El código caduca dentro de 10 minutos.",
   "linked_as": "Vinculado con {name} desde el {date}",
-  "commands": "Responde a un aviso del grupo para escribir en la conversación de la incidencia, o usa los botones (imputar horas, cogerla, resolverla). Órdenes: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /ajuda.",
+  "commands": "Responde a un aviso del grupo para escribir en la conversación de la incidencia, o usa los botones (imputar horas, cogerla, resolverla). Órdenes: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /nota, /notes, /ajuda.",
   "unlink": "Desvincular",
   "unlink_confirm": "El bot dejará de reconocer tu cuenta de Telegram. ¿Quieres continuar?",
   "unlinked": "Cuenta de Telegram desvinculada",
   "bot_title": "Bot y webhook",
   "bot": {
     "help_title": "Bot de Asteroid",
-    "help": "Responde a un aviso para escribir en la conversación de la incidencia.\nEn los avisos: botones para imputar horas, cogerla o resolverla.\n/pissarra [nombre|totes|sense] · por dónde empezar\n/meves · mis incidencias abiertas\n/noves · abiertas sin asignar\n/incidencia N · resumen de la incidencia N\n/agafa N · asignármela\n/resol N · marcarla como resuelta\n/hores N [tiempo] · imputar horas a la incidencia N (sin tiempo, te pregunta)\n/desvincular · desvincular esta cuenta",
+    "help": "Responde a un aviso para escribir en la conversación de la incidencia.\nEn los avisos: botones para imputar horas, cogerla o resolverla.\n/pissarra [nombre|totes|sense] · por dónde empezar\n/meves · mis incidencias abiertas\n/noves · abiertas sin asignar\n/incidencia N · resumen de la incidencia N\n/agafa N · asignármela\n/resol N · marcarla como resuelta\n/hores N [tiempo] · imputar horas a la incidencia N (sin tiempo, te pregunta)\n/nota TEXTO · guarda una nota (respondiendo a un aviso, enlazada a la incidencia)\n/notes · tus notas pendientes\n/desvincular · desvincular esta cuenta",
     "error": "No se ha podido hacer. Vuelve a intentarlo o hazlo desde la web.",
     "unknown": "No conozco esta orden. Escribe /ajuda.",
     "link_invalid": "Este código no es válido o ha caducado. Genera uno en Asteroid: Equip → Telegram.",
@@ -50,7 +50,14 @@
     "not_yours": "Estos botones son de {user}.",
     "already": "Ya está imputado.",
     "taken_by": "{user} se ha asignado la #{id} · {title}",
-    "resolved_by": "{user} ha resuelto la #{id} · {title}"
+    "resolved_by": "{user} ha resuelto la #{id} · {title}",
+    "note_usage": "Escribe el texto de la nota: /nota llamar a Webempresa. Si respondes a un aviso, se enlaza a la incidencia.",
+    "note_saved": "Nota guardada. Solo la ves tú (Equip → Notes).",
+    "note_saved_issue": "Nota guardada y enlazada a la #{issue}.",
+    "notes_title": "Tus notas pendientes",
+    "notes_empty": "No tienes ninguna nota pendiente.",
+    "note_done": "Nota {id} hecha",
+    "note_shared": "compartida"
   },
   "bot_bad": "El token no es válido",
   "group": "Avisos al grupo",
@@ -97,7 +104,9 @@
     "hours": "Imputar horas",
     "take": "Cogerla",
     "resolve": "Resolver",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "note_done": "Hecha",
+    "note_done_n": "Hecha {id}"
   },
   "cron_at": "Último cron: {date}",
   "cron_never": "El cron no ha arrancado nunca (o no con esta versión)",

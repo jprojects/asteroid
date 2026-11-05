@@ -11,14 +11,14 @@
   "open_bot": "Open {bot}",
   "code_help": "You can also send /vincular {code} to the bot. The code expires in 10 minutes.",
   "linked_as": "Linked to {name} since {date}",
-  "commands": "Reply to a group notification to write in the issue conversation, or use the buttons (log time, take it, resolve it). Commands: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /ajuda.",
+  "commands": "Reply to a group notification to write in the issue conversation, or use the buttons (log time, take it, resolve it). Commands: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /nota, /notes, /ajuda.",
   "unlink": "Unlink",
   "unlink_confirm": "The bot will stop recognising your Telegram account. Continue?",
   "unlinked": "Telegram account unlinked",
   "bot_title": "Bot and webhook",
   "bot": {
     "help_title": "Asteroid bot",
-    "help": "Reply to a notice to write in the issue conversation.\nOn notifications: buttons to log time, take it or resolve it.\n/pissarra [name|totes|sense] · where to start\n/meves · my open issues\n/noves · open and unassigned\n/incidencia N · summary of issue N\n/agafa N · assign it to me\n/resol N · mark it as resolved\n/hores N [time] · log time on issue N (without a time, it asks)\n/desvincular · unlink this account",
+    "help": "Reply to a notice to write in the issue conversation.\nOn notifications: buttons to log time, take it or resolve it.\n/pissarra [name|totes|sense] · where to start\n/meves · my open issues\n/noves · open and unassigned\n/incidencia N · summary of issue N\n/agafa N · assign it to me\n/resol N · mark it as resolved\n/hores N [time] · log time on issue N (without a time, it asks)\n/nota TEXT · save a note (replying to a notification, linked to the issue)\n/notes · your pending notes\n/desvincular · unlink this account",
     "error": "That didn't work. Try again or do it on the web.",
     "unknown": "Unknown command. Type /ajuda.",
     "link_invalid": "This code is not valid or has expired. Create one in Asteroid: Equip → Telegram.",
@@ -50,7 +50,14 @@
     "not_yours": "These buttons belong to {user}.",
     "already": "Already logged.",
     "taken_by": "{user} took #{id} · {title}",
-    "resolved_by": "{user} resolved #{id} · {title}"
+    "resolved_by": "{user} resolved #{id} · {title}",
+    "note_usage": "Write the text of the note: /nota call Webempresa. If you reply to a notification, it is linked to the issue.",
+    "note_saved": "Note saved. Only you can see it (Equip → Notes).",
+    "note_saved_issue": "Note saved and linked to #{issue}.",
+    "notes_title": "Your pending notes",
+    "notes_empty": "You have no pending notes.",
+    "note_done": "Note {id} done",
+    "note_shared": "shared"
   },
   "bot_bad": "The token is not valid",
   "group": "Group notices",
@@ -97,7 +104,9 @@
     "hours": "Log time",
     "take": "Take it",
     "resolve": "Resolve",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "note_done": "Done",
+    "note_done_n": "Done {id}"
   },
   "cron_at": "Last cron run: {date}",
   "cron_never": "The cron has never started (or not with this version)",

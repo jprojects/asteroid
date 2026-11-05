@@ -11,14 +11,14 @@
   "open_bot": "Obre {bot}",
   "code_help": "També pots escriure /vincular {code} al bot. El codi caduca d'aquí a 10 minuts.",
   "linked_as": "Vinculat amb {name} des del {date}",
-  "commands": "Respon un avís del grup per escriure a la conversa de la incidència, o fes servir els botons (imputar hores, agafar-la, resoldre-la). Ordres: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /ajuda.",
+  "commands": "Respon un avís del grup per escriure a la conversa de la incidència, o fes servir els botons (imputar hores, agafar-la, resoldre-la). Ordres: /pissarra, /meves, /noves, /incidencia N, /agafa N, /resol N, /hores N, /nota, /notes, /ajuda.",
   "unlink": "Desvincula",
   "unlink_confirm": "El bot deixarà de reconèixer el teu compte de Telegram. Vols continuar?",
   "unlinked": "Compte de Telegram desvinculat",
   "bot_title": "Bot i webhook",
   "bot": {
     "help_title": "Bot d'Asteroid",
-    "help": "Respon un avís per escriure a la conversa de la incidència.\nAls avisos: botons per imputar hores, agafar-la o resoldre-la.\n/pissarra [nom|totes|sense] · per on començar\n/meves · les meves incidències obertes\n/noves · obertes sense assignar\n/incidencia N · resum de la incidència N\n/agafa N · assigna-me-la\n/resol N · marca-la com a resolta\n/hores N [temps] · imputa hores a la incidència N (sense temps, et pregunta)\n/desvincular · desvincula aquest compte",
+    "help": "Respon un avís per escriure a la conversa de la incidència.\nAls avisos: botons per imputar hores, agafar-la o resoldre-la.\n/pissarra [nom|totes|sense] · per on començar\n/meves · les meves incidències obertes\n/noves · obertes sense assignar\n/incidencia N · resum de la incidència N\n/agafa N · assigna-me-la\n/resol N · marca-la com a resolta\n/hores N [temps] · imputa hores a la incidència N (sense temps, et pregunta)\n/nota TEXT · desa una nota (responent a un avís, enllaçada a la incidència)\n/notes · les teves notes pendents\n/desvincular · desvincula aquest compte",
     "error": "No s'ha pogut fer. Torna-ho a provar o fes-ho des de la web.",
     "unknown": "No conec aquesta ordre. Escriu /ajuda.",
     "link_invalid": "Aquest codi no és vàlid o ha caducat. Genera'n un a Asteroid: Equip → Telegram.",
@@ -50,7 +50,14 @@
     "not_yours": "Aquests botons són de {user}.",
     "already": "Ja està imputat.",
     "taken_by": "{user} s'ha assignat la #{id} · {title}",
-    "resolved_by": "{user} ha resolt la #{id} · {title}"
+    "resolved_by": "{user} ha resolt la #{id} · {title}",
+    "note_usage": "Escriu el text de la nota: /nota trucar a Webempresa. Si respons a un avís, s'enllaça a la incidència.",
+    "note_saved": "Nota desada. Només la veus tu (Equip → Notes).",
+    "note_saved_issue": "Nota desada i enllaçada a la #{issue}.",
+    "notes_title": "Les teves notes pendents",
+    "notes_empty": "No tens cap nota pendent.",
+    "note_done": "Nota {id} feta",
+    "note_shared": "compartida"
   },
   "bot_bad": "El token no és vàlid",
   "group": "Avisos al grup",
@@ -97,7 +104,9 @@
     "hours": "Imputa hores",
     "take": "Agafa-la",
     "resolve": "Resol",
-    "cancel": "Cancel·la"
+    "cancel": "Cancel·la",
+    "note_done": "Feta",
+    "note_done_n": "Feta {id}"
   },
   "cron_at": "Últim cron: {date}",
   "cron_never": "El cron no ha arrencat mai (o no amb aquesta versió)",

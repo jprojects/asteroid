@@ -124,6 +124,8 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
   4:00 que solo puede usar quien lo ha pedido; las horas son de hoy, de ese usuario, de la incidencia y su proyecto),
   *Agafa-la* y *Resol*. Responder a la confirmación de unas horas les pone la descripción, o cambia el tiempo si la
   respuesta es un tiempo (`1:15`, `45m`, `2h`).
+- `/nota TEXT`: una nota personal (*Equip → Notes*); respondiendo a un aviso, queda enlazada a esa incidencia y a su
+  cliente. `/notes`: las pendientes (las suyas y las compartidas), con un botón **Feta** cada una.
 - `/pissarra [nom|totes|sense]`, `/meves`, `/noves` (abiertas sin asignar), `/incidencia N` (resumen y últimos
   mensajes; también se puede responder), `/agafa N`, `/resol N`, `/hores N [temps] [descripció]` (sin tiempo, pregunta
   con botones), `/ajuda`, `/desvincular`.
