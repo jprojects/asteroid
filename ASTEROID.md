@@ -249,7 +249,7 @@ Uso: en VS Code, con el repositorio del cliente abierto, «*mira la incidència 
 
 ## API antigua (enlace con Factusol)
 
-El programa del enlace con Factusol usaba la API del Asteroid antiguo (`admin/index.php?view=api&task=…`): lee las
+El programa del enlace con Factusol (un proyecto VBA) usaba la API del Asteroid antiguo (`index.php?task=api.getHours…&mode=raw`): lee las
 horas con el código Factusol del cliente y las marca como facturadas. `LegacyApiPage` (módulo `api_legacy`, página
 pública) la reproduce con las mismas tareas, parámetros y JSON; solo cambia la dirección:
 
@@ -265,6 +265,10 @@ El `token` es un token personal (Perfil → API, `qs_…`) o el antiguo del prog
 ```php
 'legacy_api' => ['tokens' => ['EL_TOKEN_ANTIGUO' => 98]],   // token => id del usuario (del equipo) como el que actúa
 ```
+
+En el VBA solo cambia el inicio de la dirección: `index.php?task=api.…` → `index.php?r=public&m=api_legacy&task=api.…`
+(el resto de parámetros, incluido `mode=raw`, igual). El JSON es como el de antes: todo texto y los acentos escapados
+(`\u00e0`). `remoteClientId` es el *Codi Factusol* de la ficha del cliente.
 
 Ese usuario necesita permiso en las horas (ver; editar para `setBilled`) y en las incidencias. Las tareas con
 `apikey` de proyecto del Asteroid antiguo (`setIssue`, `getIssuesById`…) no están: para crear incidencias desde fuera

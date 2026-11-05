@@ -15,6 +15,8 @@ use Quasar\Hooks\Asteroid;
  * enlace con Factusol lee las horas con el código Factusol del cliente y las marca como facturadas. Mismas tareas,
  * parámetros y JSON que antes; solo cambia la dirección:
  *
+ * Lo usa el enlace con Factusol (un proyecto VBA); antes llamaba a index.php?task=api.getHours…, ahora:
+ *
  *   index.php?r=public&m=api_legacy&task=getHours&token=…[&billed=0|1|2][&budget=0|1|2][&projectId=N][&limit=N]
  *   index.php?r=public&m=api_legacy&task=setBilled&token=…&id=N&billed=0|1|2
  *   index.php?r=public&m=api_legacy&task=getIssues&token=…[&projectId=N][&limit=N]
@@ -88,7 +90,7 @@ final class LegacyApiPage extends Page
               ORDER BY i.id DESC' . ($limit > 0 ? ' LIMIT ' . $limit : ''),
             $args
         );
-        $this->json(array_map([$this, 'strings'], $rows));
+        $this->out(array_map([$this, 'strings'], $rows));
     }
 
     /** Marca unas horas: 0 no facturadas · 1 facturadas · 2 no facturables. */
@@ -134,7 +136,7 @@ final class LegacyApiPage extends Page
               ORDER BY i.id DESC" . ($limit > 0 ? ' LIMIT ' . $limit : ''),
             $args
         );
-        $this->json(array_map([$this, 'strings'], $rows));
+        $this->out(array_map([$this, 'strings'], $rows));
     }
 
     /** Usuario del token (personal de la API o antiguo de la configuración), del equipo; la petición actúa como él. */
@@ -180,6 +182,15 @@ final class LegacyApiPage extends Page
 
     private function result(string $msg, string $code): void
     {
-        $this->json(['result' => ['msg' => $msg, 'code' => $code]]);
+        $this->out(['result' => ['msg' => $msg, 'code' => $code]]);
+    }
+
+    /** JSON como el del Asteroid antiguo (json_encode sin opciones: acentos escapados, solo ASCII, cómodo para VBA). */
+    private function out(array $data): void
+    {
+        http_response_code(200);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        echo json_encode($data);
     }
 }
