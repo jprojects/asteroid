@@ -28,13 +28,15 @@ const MAX_INLINE_BYTES = 1_500_000;
 const STATUSES = ['pendent' => 1, 'en_curs' => 2, 'resolta' => 3, 'descartada' => 4];
 
 $base = rtrim((string) getenv('ASTEROID_URL'), '/');
+// Carpeta del usuario: HOME en Linux/macOS, USERPROFILE en Windows (allí HOME no suele existir).
+$home = (string) (getenv('HOME') ?: getenv('USERPROFILE') ?: '');
 $token = (string) getenv('ASTEROID_TOKEN');
 if ($token === '') {
     // O en un fichero privado (así no queda en la configuración de Claude Code): ~/.config/asteroid-mcp/token
-    $tokenFile = (string) (getenv('ASTEROID_TOKEN_FILE') ?: ((getenv('HOME') ?: '') . '/.config/asteroid-mcp/token'));
+    $tokenFile = (string) (getenv('ASTEROID_TOKEN_FILE') ?: ($home . '/.config/asteroid-mcp/token'));
     $token = is_readable($tokenFile) ? trim((string) file_get_contents($tokenFile)) : '';
 }
-$filesDir = (string) (getenv('ASTEROID_FILES') ?: ((getenv('HOME') ?: sys_get_temp_dir()) . '/.cache/asteroid-mcp'));
+$filesDir = (string) (getenv('ASTEROID_FILES') ?: (($home ?: sys_get_temp_dir()) . '/.cache/asteroid-mcp'));
 
 // ------------------------------------------------------------------------------------------------- API de Asteroid
 
@@ -92,7 +94,10 @@ final class AsteroidApi
             CURLOPT_TIMEOUT => 60,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_USERAGENT => 'Asteroid-MCP/1.0',
-        ] + ($body !== null ? [CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE)] : []));
+        ] + (PHP_OS_FAMILY === 'Windows' && defined('CURLSSLOPT_NATIVE_CA')
+            // El PHP de Windows no trae certificados: se usan los del sistema (si no, falla el HTTPS).
+            ? [CURLOPT_SSL_OPTIONS => CURLSSLOPT_NATIVE_CA] : []
+        ) + ($body !== null ? [CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE)] : []));
         $raw = curl_exec($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         if ($raw === false) {
