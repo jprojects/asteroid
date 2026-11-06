@@ -116,10 +116,13 @@ final class AgendaGoogle implements CalendarSource
         $dir = QS_ROOT . '/storage/cache/agenda';
         $file = $dir . '/' . hash('sha256', $email . '|' . $from->format('c') . '|' . $to->format('c')) . '.json';
         $cached = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
-        if (is_array($cached) && (int) ($cached['until'] ?? 0) > time()) {
+        $noAccess = (array) $app->settings()->get('agenda.no_access', []);
+        // Un error guardado deja de valer si ese calendario ya se ha podido leer después (en otra vista o rango)
+        $staleError = is_array($cached) && !empty($cached['error']) && (int) ($noAccess[$email] ?? 0) < (int) ($cached['at'] ?? 0);
+        if (is_array($cached) && (int) ($cached['until'] ?? 0) > time() && !$staleError) {
             return (array) ($cached['events'] ?? []);
         }
-        $noAccess = (array) $app->settings()->get('agenda.no_access', []);
+        $error = false;
         try {
             $events = $google->calendarEvents($email, $from, $to);
             $until = time() + self::TTL;
@@ -131,17 +134,17 @@ final class AgendaGoogle implements CalendarSource
             if (!isset($noAccess[$email]) || $noAccess[$email] < time() - 3600) {
                 Log::warning('Agenda: no se puede leer el calendario de {email}: {error}', ['email' => $email, 'error' => $e->getMessage()]);
             }
-            if (in_array($e->status, [403, 404], true)) {
-                $noAccess[$email] = time();
-                $app->settings()->set('agenda.no_access', $noAccess);
-            }
+            // Se anota cuándo falló: si luego se lee bien (en cualquier rango), se borra y los errores guardados caducan
+            $noAccess[$email] = time();
+            $app->settings()->set('agenda.no_access', $noAccess);
             $events = [];
             $until = time() + self::ERROR_TTL;
+            $error = true;
         }
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
-        @file_put_contents($file, json_encode(['until' => $until, 'events' => $events], JSON_UNESCAPED_UNICODE), LOCK_EX);
+        @file_put_contents($file, json_encode(['until' => $until, 'events' => $events, 'error' => $error, 'at' => time()], JSON_UNESCAPED_UNICODE), LOCK_EX);
         $this->clean($dir);
         return $events;
     }
