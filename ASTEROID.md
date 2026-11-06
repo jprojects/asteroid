@@ -11,7 +11,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 
 | | |
 |---|---|
-| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `notes`, `wiki`, `wiki_pages`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
+| `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `notes`, `wiki`, `wiki_pages`, `issue_from_mail`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
 | `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
 | `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
@@ -192,6 +192,24 @@ y respuestas que lleguen entre una ejecución y otra no se atienden hasta la sig
 cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que la web** (en Webempresa,
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
+
+## Incidencia desde un correo
+
+Botón **Des d'un correu** en la barra de *Incidències* (solo el equipo; página `IssueFromMailPage`, fuera del menú).
+Se suelta el `.eml` (Gmail: ⋮ → «Descargar mensaje»; Proton: «Exportar») o se pega el texto del correo, y se revisa:
+
+- **Título**: el asunto sin «RE:», «Fwd:»…
+- **Cliente y proyecto**: por el remitente (un usuario de cliente con ese correo, el correo de la ficha del cliente, o
+  el dominio si no es genérico como gmail.com); sus proyectos salen primero. En un reenviado, el remitente original.
+- **Descripción**: el HTML del correo (o el texto) sin el historial citado (Gmail, Yahoo, Outlook, Apple, Proton) ni la
+  firma, con una línea «Correu de … · fecha».
+- **Adjuntos**: pasan a la incidencia los tipos que admite Quasar (los vídeos, no: se avisa).
+- Asignada a quien la crea y visible para el cliente si se ha encontrado (se puede cambiar).
+
+El correo leído se guarda como borrador en `storage/cache/mail-drafts` (24 h, solo para quien lo subió): al revisar
+solo viajan título, proyecto y prioridad, así el texto (con enlaces) no choca con el cortafuegos de Webempresa. El
+tamaño máximo es el de PHP (`upload_max_filesize` y `post_max_size`). Código: `src/MailImport/EmlParser.php` (MIME sin
+librerías).
 
 ## Agenda (Google Calendar del equipo)
 

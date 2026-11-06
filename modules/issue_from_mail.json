@@ -1,0 +1,13 @@
+{
+  "type": "page",
+  "controller": "Quasar\\Pages\\IssueFromMailPage",
+  "requires": [
+    "issues",
+    "projects",
+    "clients"
+  ],
+  "menu": {
+    "visible": false,
+    "icon": "mail-plus"
+  }
+}

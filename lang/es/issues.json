@@ -74,5 +74,8 @@
   },
   "ai": {
     "placeholder": "Describe qué quieres ver, p. ej. «incidencias urgentes de Colomer-Rifà abiertas este mes» o «mis pendientes sin fecha límite»"
+  },
+  "actions": {
+    "from_mail": "Desde un correo"
   }
 }

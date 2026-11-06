@@ -22,6 +22,7 @@ use Quasar\Core\Migrator;
 const GROUP_PERMISSIONS = [
     'equip' => [
         'issues' => ['view', 'create', 'edit', 'delete', 'export'],
+        'issue_from_mail' => ['view'],
         'agenda' => ['view'],
         'pissarra' => ['view'],
         'surveys' => ['view', 'delete', 'export'],
