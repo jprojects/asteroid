@@ -14,11 +14,17 @@
     "open_issues": "Incid. obertes",
     "users": "Usuaris",
     "created_at": "Data d'alta",
-    "webchat": "Xat web"
+    "webchat": "Xat web",
+    "legal_name": "Nom fiscal",
+    "address": "Domicili fiscal",
+    "postal_code": "Codi postal",
+    "city": "Població",
+    "province": "Província"
   },
   "sections": {
     "general": "Client",
-    "summary": "Resum"
+    "summary": "Resum",
+    "fiscal": "Dades fiscals"
   },
   "actions": {
     "issues": "Incidències del client",
@@ -26,6 +32,7 @@
     "users": "Usuaris del client"
   },
   "help": {
-    "webchat": "AFI li activa el xat per a la seva web: el client el configura a «El meu xat web»."
+    "webchat": "AFI li activa el xat per a la seva web: el client el configura a «El meu xat web».",
+    "legal_name": "Raó social tal com surt a les factures (FactuSOL). Es fa servir als textos legals de les seves webs."
   }
 }

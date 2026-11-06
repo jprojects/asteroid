@@ -93,6 +93,24 @@ try {
         echo "  ✓ columna clients.webchat\n";
     }
 
+    // Datos fiscales del cliente (los textos legales de sus webs; se pueden volcar de FactuSOL: tools/import-factusol.php)
+    foreach ([
+        'legal_name' => "ALTER TABLE clients ADD COLUMN legal_name VARCHAR(150) NULL AFTER phone",
+        'address' => "ALTER TABLE clients ADD COLUMN address VARCHAR(255) NULL AFTER legal_name",
+        'postal_code' => "ALTER TABLE clients ADD COLUMN postal_code VARCHAR(10) NULL AFTER address",
+        'city' => "ALTER TABLE clients ADD COLUMN city VARCHAR(100) NULL AFTER postal_code",
+        'province' => "ALTER TABLE clients ADD COLUMN province VARCHAR(100) NULL AFTER city",
+    ] as $column => $ddl) {
+        $exists = (int) $db->fetchValue(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'clients' AND COLUMN_NAME = ?",
+            [$schema, $column]
+        );
+        if (!$exists) {
+            $db->pdo()->exec($ddl);
+            echo "  ✓ columna clients.$column\n";
+        }
+    }
+
     // Informes SEO/GEO (Pulsar): la web del proyecto y si se analiza
     foreach ([
         'website' => "ALTER TABLE projects ADD COLUMN website VARCHAR(255) NULL AFTER api_key",

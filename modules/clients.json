@@ -12,6 +12,11 @@
     "factusol_code": { "type": "text", "maxlength": 100, "width": "third" },
     "email":         { "type": "email", "maxlength": 150, "width": "third" },
     "phone":         { "type": "text", "maxlength": 50, "width": "third" },
+    "legal_name":    { "type": "text", "maxlength": 150, "width": "two-thirds", "help": "help.legal_name" },
+    "address":       { "type": "text", "maxlength": 255 },
+    "postal_code":   { "type": "text", "maxlength": 10, "width": "third" },
+    "city":          { "type": "text", "maxlength": 100, "width": "third" },
+    "province":      { "type": "text", "maxlength": 100, "width": "third" },
     "active":        { "type": "checkbox", "default": 1, "width": "third", "colors": { "1": "green", "0": "gray" } },
     "webchat":       { "type": "checkbox", "default": 0, "width": "third", "access": ["equip"], "help": "help.webchat", "colors": { "1": "teal" } },
     "notes":         { "type": "textarea", "rows": 3 },
@@ -34,7 +39,7 @@
     ],
     "expand": ["notes"],
     "defaultSort": { "field": "name", "dir": "asc" },
-    "search": ["name", "nif", "factusol_code", "email"],
+    "search": ["name", "legal_name", "nif", "factusol_code", "email"],
     "filters": [{ "field": "active" }],
     "rowActions": [
       { "label": "actions.issues", "icon": "bug", "url": "index.php?r=list&m=issues&f[client_id]={id}" },
@@ -46,6 +51,7 @@
   "form": {
     "sections": [
       { "title": "sections.general", "fields": ["name", "nif", "factusol_code", "email", "phone", "active", "webchat", "notes"] },
+      { "title": "sections.fiscal", "fields": ["legal_name", "address", "postal_code", "city", "province"] },
       { "title": "sections.summary", "fields": ["projects", "open_issues", "users", "created_at"] }
     ]
   }

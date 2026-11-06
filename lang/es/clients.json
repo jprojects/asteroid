@@ -14,11 +14,17 @@
     "open_issues": "Incid. abiertas",
     "users": "Usuarios",
     "created_at": "Fecha de alta",
-    "webchat": "Chat web"
+    "webchat": "Chat web",
+    "legal_name": "Nombre fiscal",
+    "address": "Domicilio fiscal",
+    "postal_code": "Código postal",
+    "city": "Población",
+    "province": "Provincia"
   },
   "sections": {
     "general": "Cliente",
-    "summary": "Resumen"
+    "summary": "Resumen",
+    "fiscal": "Datos fiscales"
   },
   "actions": {
     "issues": "Incidencias del cliente",
@@ -26,6 +32,7 @@
     "users": "Usuarios del cliente"
   },
   "help": {
-    "webchat": "AFI le activa el chat para su web: el cliente lo configura en «Mi chat web»."
+    "webchat": "AFI le activa el chat para su web: el cliente lo configura en «Mi chat web».",
+    "legal_name": "Razón social tal como sale en las facturas (FactuSOL). Se usa en los textos legales de sus webs."
   }
 }

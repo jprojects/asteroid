@@ -14,11 +14,17 @@
     "open_issues": "Open issues",
     "users": "Users",
     "created_at": "Created",
-    "webchat": "Web chat"
+    "webchat": "Web chat",
+    "legal_name": "Legal name",
+    "address": "Registered address",
+    "postal_code": "Postcode",
+    "city": "Town",
+    "province": "Province"
   },
   "sections": {
     "general": "Client",
-    "summary": "Summary"
+    "summary": "Summary",
+    "fiscal": "Tax details"
   },
   "actions": {
     "issues": "Client issues",
@@ -26,6 +32,7 @@
     "users": "Client users"
   },
   "help": {
-    "webchat": "AFI enables the chat for their website: the client sets it up in “My web chat”."
+    "webchat": "AFI enables the chat for their website: the client sets it up in “My web chat”.",
+    "legal_name": "Company name as it appears on invoices (FactuSOL). Used in the legal texts of their websites."
   }
 }

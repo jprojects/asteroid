@@ -21,6 +21,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 | `tools/check-core.php`, `tools/update-core.php` | comprobar que el núcleo no se ha tocado y traer el de una versión de Quasar |
 | `tools/asteroid-migrate.php` | crea o pone al día las tablas, `users.client_id` y los grupos con sus permisos |
 | `tools/import-asteroid.php` | importa los datos del Asteroid antiguo |
+| `tools/import-factusol.php` | vuelca los datos fiscales de los clientes desde una exportación de FactuSOL |
 | `config/config.local.php` | credenciales (no versionar) |
 
 ## Roles
@@ -343,6 +344,35 @@ En el VBA solo cambia el inicio de la dirección: `index.php?task=api.…` → `
 Ese usuario necesita permiso en las horas (ver; editar para `setBilled`) y en las incidencias. Las tareas con
 `apikey` de proyecto del Asteroid antiguo (`setIssue`, `getIssuesById`…) no están: para crear incidencias desde fuera
 está la API del núcleo.
+
+## Datos fiscales de los clientes (FactuSOL)
+
+La ficha del cliente tiene *Dades fiscals*: nombre fiscal (razón social), domicilio fiscal, código postal, población y
+provincia (además del NIF, el teléfono y el correo de siempre). Sirven para los textos legales de las webs de los
+clientes: `tools/legal.py` de Neutron los lee por la API (`GET /api/v1/clients?q=<NIF>`) con el token personal.
+
+Se vuelcan desde FactuSOL exportando la tabla de clientes (F_CLI) a CSV con cabecera:
+
+```
+php tools/import-factusol.php clientes.csv > factusol.sql     # SQL para phpMyAdmin (sin SSH)
+php tools/import-factusol.php clientes.csv --apply [--dry-run] # directamente, donde haya acceso a la BD
+```
+
+Columnas: `CODCLI` (código), `NIFCLI`, `NOFCLI` (nombre fiscal; si está vacío vale `NOCCLI`, el comercial), `DOMCLI`,
+`CPOCLI`, `POBCLI`, `PROCLI`, `TELCLI`, `EMACLI`; separador `;` `,` o tabulador, UTF-8 o Windows-1252. Cada fila se busca
+por el *Codi Factusol* y, si no, por el NIF (y entonces se apunta el código). Solo rellena lo vacío, salvo con
+`--overwrite`; no crea clientes nuevos. Se puede repetir cuando haya clientes nuevos.
+
+Las columnas las crea `tools/asteroid-migrate.php`; en phpMyAdmin, antes del volcado:
+
+```sql
+ALTER TABLE clients
+  ADD COLUMN legal_name VARCHAR(150) NULL AFTER phone,
+  ADD COLUMN address VARCHAR(255) NULL AFTER legal_name,
+  ADD COLUMN postal_code VARCHAR(10) NULL AFTER address,
+  ADD COLUMN city VARCHAR(100) NULL AFTER postal_code,
+  ADD COLUMN province VARCHAR(100) NULL AFTER city;
+```
 
 ## API (apps y bots)
 
