@@ -16,6 +16,10 @@
     "setup_1": "En Google Cloud Console, crea un proyecto y activa la «Google Meet REST API».",
     "setup_2": "Configura la pantalla de consentimiento OAuth (tipo interno si es una cuenta de Google Workspace) con el ámbito meetings.space.created.",
     "setup_3": "Crea unas credenciales «ID de cliente de OAuth» de tipo aplicación web con esta URI de redirección autorizada:",
-    "setup_4": "Pon client_id y client_secret en 'google' de config.local.php y pulsa «Conectar con Google»."
+    "setup_4": "Pon client_id y client_secret en 'google' de config.local.php y pulsa «Conectar con Google».",
+    "calendar_ok": "Google Calendar: permiso de lectura concedido",
+    "calendar_missing": "Google Calendar está activado pero la cuenta no ha dado el permiso: vuelve a conectar para aceptarlo.",
+    "reconnect": "Volver a conectar con Google",
+    "setup_calendar": "Para Google Calendar: activa también la «Google Calendar API» y añade el ámbito calendar.readonly a la pantalla de consentimiento. Los calendarios de las demás personas se tienen que poder ver desde la cuenta conectada (compartidos dentro de la organización)."
   }
 }

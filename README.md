@@ -650,7 +650,8 @@ fecha es `datetime`, de **semana** y de **día** con una rejilla de horas. Se co
   "hours": [8, 20],                // horas visibles en semana y día
   "slot": 15,                      // minutos de cada franja: 5, 10, 15, 20, 30 o 60 (por defecto 30)
   "days": [1, 2, 3, 4, 5, 6],      // días visibles en la semana: 1 = lunes … 7 = domingo (por defecto todos)
-  "duration": 60                   // minutos de un evento sin fin y de las altas desde una franja
+  "duration": 60,                  // minutos de un evento sin fin y de las altas desde una franja
+  "extra": "Quasar\\Hooks\\AgendaGoogle"  // opcional: eventos de fuera (ver abajo)
 }
 ```
 
@@ -666,6 +667,13 @@ fecha es `datetime`, de **semana** y de **día** con una rejilla de horas. Se co
   `start` y `end` (`Y-m-d\TH:i`).
 - Solo muestra los registros que el usuario ve en el módulo de origen (`scope`). Se puede crear otro calendario con
   otro nombre de módulo y la misma clase (p. ej. `modules/agenda.json` sobre las citas de un salón).
+- **Eventos de fuera** (`extra`): una clase propia que implementa `Quasar\Core\CalendarSource` (`events($app, $user,
+  $from, $to)` y `legend($app, $user)`) añade eventos que no son del módulo, por ejemplo los de Google Calendar
+  (`GoogleClient::calendarEvents()`). Son de solo lectura: no se arrastran ni se estiran y su enlace se abre en otra
+  pestaña. Cada uno da `start`/`end` (`Y-m-d H:i`, o `Y-m-d` si es de todo el día, con el fin exclusivo como Google),
+  `title`, `url`, `tone` (`#rrggbb` o un tono) y `label` (de quién es, también en la leyenda). Con `extra`, las vistas
+  de semana y día se pueden usar aunque la fecha del módulo sea `date` (sus registros van en «Sense hora»). Un error de
+  la clase se anota en el log y el calendario se ve sin esos eventos.
 - Textos: `cal.*` de `common.json` (meses, días, vistas…). Cada calendario puede redefinir los suyos en su idioma, p. ej.
   `lang/ca/agenda.json`: `"cal": { "new": "Nova cita", "empty": "No hi ha cites" }`.
 - Un error en `calendar` (vista desconocida, `end` que no es datetime, `slot` no admitido…) da un mensaje claro al abrir
@@ -1074,6 +1082,22 @@ correo). Google Meet no se puede incrustar en la página: se abre en otra pesta�
   como usuario de prueba; Google caduca los tokens de las apps en prueba a los 7 días (habrá que volver a conectar).
 - Si falla al crear la reunión, el usuario ve un aviso y el detalle queda en el log (`Google: POST … → 403: …`): suele
   ser la API sin activar en el proyecto o el ámbito sin conceder.
+
+### Google Calendar (lectura)
+
+Con `'calendar' => true` en `google`, al conectar se pide también el permiso de **lectura de Google Calendar**
+(`calendar.readonly`) y `GoogleClient::calendarEvents($calendarId, $from, $to)` devuelve los eventos de un calendario
+(título, inicio y fin en la zona horaria de PHP, todo el día, enlace al evento, enlace de Meet, lugar). Para mostrarlos
+en un calendario, una clase `CalendarSource` (opción `extra`, ver «Calendario»).
+
+1. En Google Cloud Console activa también la **Google Calendar API** y añade el ámbito `calendar.readonly` a la
+   pantalla de consentimiento.
+2. `'calendar' => true` en la configuración de `google`.
+3. *Integraciones*: si la cuenta se conectó antes, indica que falta el permiso; **Volver a conectar con Google** lo pide.
+
+- El id del calendario principal de una persona es su dirección. La cuenta conectada solo lee los calendarios que
+  puede ver: en Google Workspace, los compartidos dentro de la organización. Sin acceso, Google responde 404 o 403
+  (`GoogleException::$status`). Si solo se comparte la disponibilidad, los eventos llegan sin título (`busyOnly`).
 
 ## Exportación a Excel y PDF
 

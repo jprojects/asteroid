@@ -7,14 +7,15 @@ use Quasar\Core\Log;
 use Quasar\Core\Settings;
 
 /**
- * Conexión de la instalación con una cuenta de Google (OAuth 2.0) y creación de salas de Google Meet
- * con la Meet REST API. Sin librerías: HTTP con cURL.
+ * Conexión de la instalación con una cuenta de Google (OAuth 2.0), creación de salas de Google Meet con la Meet
+ * REST API y, opcionalmente, lectura de calendarios (Google Calendar API, solo lectura). Sin librerías: cURL.
  *
  *   'google' => [
  *       'client_id' => '….apps.googleusercontent.com',
  *       'client_secret' => '…',
  *       'meet_access' => 'OPEN',   // OPEN: entra cualquiera con el enlace · TRUSTED: los de la organización
  *                                  // y los invitados · RESTRICTED: solo invitados · null: lo que diga la cuenta
+ *       'calendar' => true,        // opcional: permiso de lectura de Google Calendar (calendarEvents())
  *   ],
  *
  * Un administrador conecta la cuenta una sola vez (Administración → Integraciones). El token de refresco
@@ -28,7 +29,10 @@ final class GoogleClient
     private const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
     private const USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
     private const MEET_URL = 'https://meet.googleapis.com/v2/spaces';
+    private const CALENDAR_URL = 'https://www.googleapis.com/calendar/v3/calendars/';
     private const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/meetings.space.created'];
+    public const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+    private const CALENDAR_PAGES = 5;
     private const ACCESS_TYPES = ['OPEN', 'TRUSTED', 'RESTRICTED'];
 
     public function __construct(
@@ -55,7 +59,7 @@ final class GoogleClient
             'client_id' => $this->config['client_id'],
             'redirect_uri' => $this->redirectUri,
             'response_type' => 'code',
-            'scope' => implode(' ', self::SCOPES),
+            'scope' => implode(' ', $this->scopes()),
             'access_type' => 'offline',
             'prompt' => 'consent',            // así Google devuelve siempre el token de refresco
             'include_granted_scopes' => 'true',
@@ -87,6 +91,7 @@ final class GoogleClient
         $connection = [
             'email' => (string) ($info['email'] ?? ''),
             'connected_at' => date('c'),
+            'scopes' => array_values(array_filter($scopes)),
         ];
         $this->settings->set('google.oauth', $connection + ['refresh_token' => $this->encrypt((string) $token['refresh_token'])]);
         $this->cacheToken($token);
@@ -94,13 +99,96 @@ final class GoogleClient
         return $connection;
     }
 
-    /** @return array{email:string,connected_at:string}|null */
+    /** @return array{email:string,connected_at:string,calendar:bool}|null */
     public function connection(): ?array
     {
         $c = $this->settings->get('google.oauth');
         return is_array($c) && !empty($c['refresh_token'])
-            ? ['email' => (string) ($c['email'] ?? ''), 'connected_at' => (string) ($c['connected_at'] ?? '')]
+            ? ['email' => (string) ($c['email'] ?? ''), 'connected_at' => (string) ($c['connected_at'] ?? ''),
+               'calendar' => in_array(self::CALENDAR_SCOPE, (array) ($c['scopes'] ?? []), true)]
             : null;
+    }
+
+    /** ¿Se pide el permiso de Google Calendar ('calendar' => true en la configuración)? */
+    public function calendarEnabled(): bool
+    {
+        return !empty($this->config['calendar']);
+    }
+
+    /** ¿Se puede leer Google Calendar? (activado y concedido al conectar; si no, hay que volver a conectar) */
+    public function calendarReady(): bool
+    {
+        return $this->calendarEnabled() && ($this->connection()['calendar'] ?? false);
+    }
+
+    /**
+     * Eventos de un calendario (el id es la dirección de la persona para su calendario principal) que se solapan con
+     * [$from, $to). La cuenta conectada tiene que poder verlo: en Google Workspace, si se comparten los calendarios
+     * dentro de la organización. Las horas, en la zona horaria de PHP.
+     * @return list<array{id:string,title:string,start:string,end:?string,allDay:bool,url:?string,meet:?string,location:?string,busyOnly:bool}>
+     *   start/end "Y-m-d H:i", o "Y-m-d" si es de todo el día (fin exclusivo)
+     * @throws GoogleException (status 403/404 si no se tiene acceso a ese calendario)
+     */
+    public function calendarEvents(string $calendarId, \DateTimeInterface $from, \DateTimeInterface $to): array
+    {
+        if (!$this->calendarReady()) {
+            throw new GoogleException('Google Calendar no está activado o falta el permiso: vuelve a conectar la cuenta');
+        }
+        $tz = new \DateTimeZone(date_default_timezone_get());
+        $out = [];
+        $pageToken = null;
+        for ($page = 0; $page < self::CALENDAR_PAGES; $page++) {
+            $query = [
+                'timeMin' => $from->format(DATE_RFC3339),
+                'timeMax' => $to->format(DATE_RFC3339),
+                'singleEvents' => 'true',
+                'orderBy' => 'startTime',
+                'maxResults' => 250,
+                'fields' => 'nextPageToken,items(id,status,summary,start,end,htmlLink,hangoutLink,location,visibility,conferenceData/entryPoints)',
+            ] + ($pageToken !== null ? ['pageToken' => $pageToken] : []);
+            $data = $this->request('GET', self::CALENDAR_URL . rawurlencode($calendarId) . '/events?' . http_build_query($query), null, $this->accessToken());
+            foreach ((array) ($data['items'] ?? []) as $e) {
+                if (($e['status'] ?? '') === 'cancelled') {
+                    continue;
+                }
+                $allDay = isset($e['start']['date']);
+                $when = static fn (array $t): ?string => isset($t['date']) ? (string) $t['date']
+                    : (isset($t['dateTime']) ? (new \DateTimeImmutable((string) $t['dateTime']))->setTimezone($tz)->format('Y-m-d H:i') : null);
+                $start = $when((array) ($e['start'] ?? []));
+                if ($start === null) {
+                    continue;
+                }
+                $meet = isset($e['hangoutLink']) ? (string) $e['hangoutLink'] : null;
+                foreach ((array) ($e['conferenceData']['entryPoints'] ?? []) as $p) {
+                    if ($meet === null && ($p['entryPointType'] ?? '') === 'video' && !empty($p['uri'])) {
+                        $meet = (string) $p['uri'];
+                    }
+                }
+                $out[] = [
+                    'id' => (string) ($e['id'] ?? ''),
+                    'title' => trim((string) ($e['summary'] ?? '')),
+                    'start' => $start,
+                    'end' => $when((array) ($e['end'] ?? [])),
+                    'allDay' => $allDay,
+                    'url' => isset($e['htmlLink']) ? (string) $e['htmlLink'] : null,
+                    'meet' => $meet,
+                    'location' => isset($e['location']) ? (string) $e['location'] : null,
+                    // Con permiso solo de disponibilidad, Google da el evento sin título
+                    'busyOnly' => !isset($e['summary']),
+                ];
+            }
+            $pageToken = isset($data['nextPageToken']) ? (string) $data['nextPageToken'] : null;
+            if ($pageToken === null) {
+                break;
+            }
+        }
+        return $out;
+    }
+
+    /** @return list<string> permisos que se piden al conectar */
+    private function scopes(): array
+    {
+        return $this->calendarEnabled() ? [...self::SCOPES, self::CALENDAR_SCOPE] : self::SCOPES;
     }
 
     public function disconnect(): void

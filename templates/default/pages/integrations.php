@@ -3,7 +3,8 @@
  * Página "integrations" (Quasar\Pages\IntegrationsPage): conexión con Google para Google Meet.
  *
  * @var \Quasar\Core\View $this
- * @var ?array{email:string,connected_at:string} $connection
+ * @var ?array{email:string,connected_at:string,calendar:bool} $connection
+ * @var bool $calendarEnabled  'calendar' => true en la configuración de google
  * @var string $redirectUri  dirección que hay que dar de alta en Google Cloud
  * @var string $connectUrl
  * @var string $disconnectUrl
@@ -21,6 +22,15 @@
           'date' => $connection['connected_at'] !== '' ? date($this->t('format.datetime'), strtotime($connection['connected_at'])) : '—',
       ])) ?>
     </p>
+    <?php if ($calendarEnabled): ?>
+      <p class="qs-integration-state<?= $connection['calendar'] ? ' is-on' : '' ?>">
+        <?= $this->icon($connection['calendar'] ? 'calendar-check' : 'triangle-alert') ?>
+        <?= $this->e($this->t($connection['calendar'] ? 'google.calendar_ok' : 'google.calendar_missing')) ?>
+      </p>
+      <?php if (!$connection['calendar']): ?>
+        <a class="qs-btn qs-btn-primary" href="<?= $this->e($connectUrl) ?>"><?= $this->icon('plug') ?> <?= $this->e($this->t('google.reconnect')) ?></a>
+      <?php endif ?>
+    <?php endif ?>
     <form method="post" action="<?= $this->e($disconnectUrl) ?>">
       <?= $this->csrfField() ?>
       <button type="submit" class="qs-btn qs-btn-danger" data-confirm="<?= $this->e($this->t('google.disconnect_confirm')) ?>">
@@ -39,6 +49,7 @@
       <li><?= $this->e($this->t('google.setup_2')) ?></li>
       <li><?= $this->e($this->t('google.setup_3')) ?> <code><?= $this->e($redirectUri) ?></code></li>
       <li><?= $this->e($this->t('google.setup_4')) ?></li>
+      <?php if ($calendarEnabled): ?><li><?= $this->e($this->t('google.setup_calendar')) ?></li><?php endif ?>
     </ol>
   </details>
 </section>

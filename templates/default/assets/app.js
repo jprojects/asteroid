@@ -3406,7 +3406,7 @@
     let drag = null;
     let suppressClick = false;
 
-    $$('.qs-cal-tevent:not(.is-clipped)', grid).forEach((ev) => {
+    $$('.qs-cal-tevent:not(.is-clipped):not(.is-fixed)', grid).forEach((ev) => {
       // Es un enlace: sin esto el navegador empieza su propio arrastre (y cancela los eventos de puntero)
       ev.draggable = false;
       ev.addEventListener('dragstart', (e) => e.preventDefault());

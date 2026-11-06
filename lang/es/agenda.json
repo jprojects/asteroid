@@ -1,6 +1,6 @@
 {
   "title": "Agenda",
-  "description": "Incidencias por fecha límite",
+  "description": "Agenda del equipo (Google Calendar) e incidencias por fecha límite",
   "today": "Hoy",
   "prev": "Mes anterior",
   "next": "Mes siguiente",
@@ -31,5 +31,10 @@
     "sáb.",
     "dom."
   ],
-  "no_access": "No tienes permiso para ver las incidencias"
+  "no_access": "No tienes permiso para ver las incidencias",
+  "google_busy": "Ocupado",
+  "cal": {
+    "empty": "No hay nada en estas fechas"
+  },
+  "google_no_access": "sin acceso"
 }

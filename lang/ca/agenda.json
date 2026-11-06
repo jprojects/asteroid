@@ -1,6 +1,6 @@
 {
   "title": "Agenda",
-  "description": "Incidències per data límit",
+  "description": "Agenda de l'equip (Google Calendar) i incidències per data límit",
   "today": "Avui",
   "prev": "Mes anterior",
   "next": "Mes següent",
@@ -31,5 +31,10 @@
     "ds.",
     "dg."
   ],
-  "no_access": "No tens permís per veure les incidències"
+  "no_access": "No tens permís per veure les incidències",
+  "google_busy": "Ocupat",
+  "cal": {
+    "empty": "No hi ha res en aquestes dates"
+  },
+  "google_no_access": "sense accés"
 }

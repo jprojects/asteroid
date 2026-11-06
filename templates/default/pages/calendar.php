@@ -94,7 +94,7 @@ $navLabel = ['month' => ['cal.prev_month', 'cal.next_month'], 'week' => ['cal.pr
                 <?php endif ?>
               </div>
               <?php foreach (array_slice($day['events'], 0, $maxPerDay) as $ev): ?>
-                <a <?= sprintf($tone($ev['tone'], (int) $ev['color']), 'qs-cal-event') ?> href="<?= $this->e($ev['url']) ?>" title="<?= $this->e($eventTitle($ev)) ?>">
+                <a <?= sprintf($tone($ev['tone'], (int) $ev['color']), 'qs-cal-event' . ($ev['external'] ? ' is-fixed' : '')) ?> href="<?= $this->e($ev['url']) ?>" title="<?= $this->e($eventTitle($ev)) ?>"<?= $ev['external'] ? ' target="_blank" rel="noopener"' : '' ?>>
                   <?php if ($ev['time']): ?><span class="qs-cal-time"><?= $this->e($ev['time']) ?></span><?php endif ?>
                   <span class="qs-cal-title"><?= $this->e($ev['title']) ?></span>
                 </a>
@@ -143,7 +143,7 @@ $navLabel = ['month' => ['cal.prev_month', 'cal.next_month'], 'week' => ['cal.pr
           <?php foreach ($columns as $col): ?>
             <div>
               <?php foreach ($col['untimed'] as $ev): ?>
-                <a <?= sprintf($tone($ev['tone'], (int) $ev['color']), 'qs-cal-event') ?> href="<?= $this->e($ev['url']) ?>" title="<?= $this->e($eventTitle($ev)) ?>">
+                <a <?= sprintf($tone($ev['tone'], (int) $ev['color']), 'qs-cal-event' . ($ev['external'] ? ' is-fixed' : '')) ?> href="<?= $this->e($ev['url']) ?>" title="<?= $this->e($eventTitle($ev)) ?>"<?= $ev['external'] ? ' target="_blank" rel="noopener"' : '' ?>>
                   <span class="qs-cal-title"><?= $this->e($ev['title']) ?></span>
                 </a>
               <?php endforeach ?>
@@ -168,12 +168,12 @@ $navLabel = ['month' => ['cal.prev_month', 'cal.next_month'], 'week' => ['cal.pr
                   $ev['top'] / $span * 100, ($ev['bottom'] - $ev['top']) / $span * 100,
                   $ev['lane'] / $ev['lanes'] * 100, 100 / $ev['lanes']);
               ?>
-              <a <?= sprintf($tone($ev['tone'], (int) $ev['color'], $style), 'qs-cal-tevent' . ($ev['clipped'] ? ' is-clipped' : '')) ?>
+              <a <?= sprintf($tone($ev['tone'], (int) $ev['color'], $style), 'qs-cal-tevent' . ($ev['clipped'] ? ' is-clipped' : '') . ($ev['external'] ? ' is-fixed' : '')) ?>
                  href="<?= $this->e($ev['url']) ?>" title="<?= $this->e($eventTitle($ev)) ?>"
-                 data-id="<?= $this->e($ev['id']) ?>" data-start="<?= $this->e($ev['start']) ?>" data-end="<?= $this->e((string) $ev['end']) ?>">
+                 <?php if ($ev['external']): ?>target="_blank" rel="noopener"<?php else: ?>data-id="<?= $this->e($ev['id']) ?>" data-start="<?= $this->e($ev['start']) ?>" data-end="<?= $this->e((string) $ev['end']) ?>"<?php endif ?>>
                 <span class="qs-cal-time"><?= $this->e($ev['time'] . ($ev['timeEnd'] ? '–' . $ev['timeEnd'] : '')) ?></span>
                 <span class="qs-cal-title"><?= $this->e($ev['title']) ?></span>
-                <?php if ($grid['moveUrl'] && !$ev['clipped']): ?><span class="qs-cal-resize" aria-hidden="true"></span><?php endif ?>
+                <?php if ($grid['moveUrl'] && !$ev['clipped'] && !$ev['external']): ?><span class="qs-cal-resize" aria-hidden="true"></span><?php endif ?>
               </a>
             <?php endforeach ?>
           </div>

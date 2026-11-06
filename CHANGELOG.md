@@ -2,6 +2,15 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.23.0 — 2026-11-06
+
+- **Google Calendar (lectura)**: `'calendar' => true` en `google` pide al conectar el permiso `calendar.readonly`;
+  `GoogleClient::calendarEvents()` lee los eventos de un calendario (con su enlace de Meet). *Integraciones* indica si
+  falta el permiso y permite volver a conectar. Documentado en README, «Google Calendar (lectura)».
+- **Eventos de fuera en el calendario**: opción `extra` de `calendar` con una clase `Quasar\Core\CalendarSource`;
+  sus eventos son de solo lectura (no se arrastran) y se abren en otra pestaña, y salen en la leyenda. Con `extra`,
+  semana y día también con una fecha `date`. Documentado en README, «Calendario».
+
 ## 0.22.2 — 2026-11-05
 
 - Guardado parcial (API `PATCH`, `FormHandler::process(…, true)`): un campo virtual que no venía en los datos y que

@@ -8,6 +8,11 @@
     "source": "issues",
     "date": "due_on",
     "title": "title",
-    "color": "status"
+    "color": "status",
+    "views": ["week", "month", "day"],
+    "hours": [8, 20],
+    "days": [1, 2, 3, 4, 5],
+    "slot": 30,
+    "extra": "Quasar\\Hooks\\AgendaGoogle"
   }
 }

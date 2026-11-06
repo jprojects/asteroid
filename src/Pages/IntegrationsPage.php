@@ -23,6 +23,7 @@ final class IntegrationsPage extends Page
         $google = $this->google();
         $this->view([
             'connection' => $google->connection(),
+            'calendarEnabled' => $google->calendarEnabled(),
             'redirectUri' => $google->redirectUri(),
             'connectUrl' => $this->pageUrl('connect'),
             'disconnectUrl' => $this->pageUrl('disconnect'),

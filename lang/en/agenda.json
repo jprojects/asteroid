@@ -1,6 +1,6 @@
 {
   "title": "Agenda",
-  "description": "Issues by due date",
+  "description": "Team agenda (Google Calendar) and issues by due date",
   "today": "Today",
   "prev": "Previous month",
   "next": "Next month",
@@ -31,5 +31,10 @@
     "Sat",
     "Sun"
   ],
-  "no_access": "You are not allowed to see the issues"
+  "no_access": "You are not allowed to see the issues",
+  "google_busy": "Busy",
+  "cal": {
+    "empty": "Nothing on these dates"
+  },
+  "google_no_access": "no access"
 }

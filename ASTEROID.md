@@ -178,6 +178,27 @@ cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
 
+## Agenda (Google Calendar del equipo)
+
+*Agenda* (calendario del núcleo sobre las incidencias por fecha límite) muestra también el **Google Calendar de cada
+persona del equipo**, con sus Meet, en semana (por defecto), mes o día. Los eventos de Google son de solo lectura: al
+pulsarlos se abren en Google Calendar; se crean y se cambian allí. Cada persona tiene su color en la leyenda; si su
+calendario no se puede leer, sale «(sense accés)».
+
+Lo lee la cuenta de Google conectada en *Integracions* (la misma de los Meet), con `src/Hooks/AgendaGoogle.php`
+(`"extra"` de `modules/agenda.json`, Quasar 0.23.0). Caché de 5 minutos por calendario en `storage/cache/agenda`.
+
+1. Google Cloud Console: activar la **Google Calendar API** y añadir el ámbito `calendar.readonly` a la pantalla de
+   consentimiento.
+2. `config.local.php`: `'calendar' => true` dentro de `'google'`.
+3. *Integracions*: **Torna a connectar amb Google** (pide el permiso nuevo).
+4. Que la cuenta conectada pueda ver los calendarios de los demás: en Workspace, compartidos dentro de la organización
+   («ver todos los detalles»; si solo se comparte la disponibilidad, salen como «Ocupat»), o que cada uno comparta el
+   suyo con esa cuenta.
+
+Personas: los usuarios activos del equipo (y administradores) con correo del dominio de la cuenta conectada. Para
+otra lista: `'agenda' => ['calendars' => ['kim@aficat.com' => '#2563eb', 'sala@aficat.com' => null]]`.
+
 ## Wiki (documentación de los proyectos)
 
 *Wiki* (página `WikiPage`) para leer la documentación de cada proyecto: a la izquierda, proyectos, secciones y páginas;

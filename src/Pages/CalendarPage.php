@@ -5,6 +5,7 @@ namespace Quasar\Pages;
 
 use DateTimeImmutable;
 use Quasar\Controllers\Page;
+use Quasar\Core\CalendarSource;
 use Quasar\Core\Database;
 use Quasar\Core\FormHandler;
 use Quasar\Core\HttpException;
@@ -31,7 +32,8 @@ use Quasar\Fields\SelectField;
  *       "hours":  [8, 20],        horas visibles en semana y día
  *       "slot":   30,             minutos de cada franja (5, 10, 15, 20, 30 o 60)
  *       "days":   [1, 2, 3, 4, 5, 6],  días de la semana visibles en semana (1 = lunes … 7 = domingo)
- *       "duration": 60            minutos de un evento sin fin y de las altas desde una franja
+ *       "duration": 60,           minutos de un evento sin fin y de las altas desde una franja
+ *       "extra":  "Quasar\\Hooks\\…"  opcional: eventos de fuera (CalendarSource), de solo lectura
  *     }
  *   }
  *
@@ -69,7 +71,7 @@ final class CalendarPage extends Page
             'views' => count($c['views']) > 1 ? array_map(fn ($v) => ['view' => $v, 'label' => $this->text('cal.views.' . $v),
                 'url' => $this->pageUrl('index', ['view' => $v, 'date' => $anchor->format('Y-m-d')])], $c['views']) : [],
             'newUrl' => $this->allowed('create', $source) ? $this->app->url('edit', ['m' => $source->name]) : null,
-            'legend' => $c['color'] instanceof SelectField ? $this->legend($c['color']) : [],
+            'legend' => array_merge($c['color'] instanceof SelectField ? $this->legend($c['color']) : [], $this->extraLegend($c)),
             'maxPerDay' => self::MAX_PER_DAY,
         ];
         $vars += $view === 'month' ? $this->monthView($c, $anchor) : $this->timeView($c, $anchor, $view);
@@ -152,9 +154,19 @@ final class CalendarPage extends Page
         if ($colorField !== null && !$colorField->canView()) {
             $colorField = null;
         }
-        $timed = $dateField->type() === 'datetime';
+        $sourceTimed = $dateField->type() === 'datetime';
         $error = fn (string $msg) => new \RuntimeException("Módulo '{$this->module->name}': calendar.$msg");
-        if ($endField !== null && ($endField->type() !== 'datetime' || !$timed)) {
+        $extra = null;
+        if (isset($cfg['extra'])) {
+            $class = (string) $cfg['extra'];
+            if (!class_exists($class) || !is_subclass_of($class, CalendarSource::class)) {
+                throw $error("extra tiene que ser una clase que implemente Quasar\\Core\\CalendarSource ($class)");
+            }
+            $extra = new $class();
+        }
+        // Semana y día: con fecha y hora en el módulo o con eventos de fuera (que pueden tener hora)
+        $timed = $sourceTimed || $extra !== null;
+        if ($endField !== null && ($endField->type() !== 'datetime' || !$sourceTimed)) {
             throw $error('end tiene que ser un campo datetime, y date también');
         }
 
@@ -186,8 +198,9 @@ final class CalendarPage extends Page
         return [
             'source' => $source, 'date' => $dateField, 'end' => $endField, 'title' => $titleField, 'color' => $colorField,
             'views' => $views, 'hours' => $hours, 'slot' => $slot, 'days' => $days, 'duration' => $duration, 'timed' => $timed,
+            'sourceTimed' => $sourceTimed, 'extra' => $extra,
             // Se arrastra si la fecha (y el fin) se pueden editar: sin "readonly" ni "editAccess" que lo impidan
-            'editable' => $timed && !$dateField->isReadonly() && $dateField->canEdit()
+            'editable' => $sourceTimed && !$dateField->isReadonly() && $dateField->canEdit()
                 && ($endField === null || (!$endField->isReadonly() && $endField->canEdit())),
         ];
     }
@@ -216,7 +229,7 @@ final class CalendarPage extends Page
                 'weekend' => (int) $day->format('N') >= 6,
                 'events' => $events[$key] ?? [],
                 // Alta con la fecha del día ya puesta (ModuleController::prefill)
-                'newUrl' => $canCreate ? $this->newUrl($c, $key . ($c['timed'] ? 'T09:00' : '')) : null,
+                'newUrl' => $canCreate ? $this->newUrl($c, $key . ($c['sourceTimed'] ? 'T09:00' : '')) : null,
                 'dayUrl' => in_array('day', $c['views'], true) ? $this->pageUrl('index', ['view' => 'day', 'date' => $key]) : null,
             ];
         }
@@ -286,7 +299,7 @@ final class CalendarPage extends Page
                 'weekend' => (int) $d->format('N') >= 6,
                 'untimed' => $untimed,
                 'events' => $this->lanes($timed),
-                'newUrl' => $canCreate ? $this->newUrl($c, $key . 'T' . sprintf('%02d:00', $startH)) : null,
+                'newUrl' => $canCreate ? $this->newUrl($c, $key . ($c['sourceTimed'] ? 'T' . sprintf('%02d:00', $startH) : '')) : null,
                 'dayUrl' => $view === 'week' && in_array('day', $c['views'], true) ? $this->pageUrl('index', ['view' => 'day', 'date' => $key]) : null,
             ];
         }
@@ -316,7 +329,8 @@ final class CalendarPage extends Page
             // Para app.js: arrastrar, estirar y crear en una franja
             'grid' => [
                 'moveUrl' => $c['editable'] && $this->allowed('edit', $c['source']) ? $this->pageUrl('move') : null,
-                'newUrl' => $canCreate ? $this->app->url('edit', ['m' => $c['source']->name]) : null,
+                // Crear en una franja: solo si la fecha del módulo tiene hora
+                'newUrl' => $canCreate && $c['sourceTimed'] ? $this->app->url('edit', ['m' => $c['source']->name]) : null,
                 'dateField' => $c['date']->name,
                 'endField' => $c['end']?->name,
                 'startHour' => $startH,
@@ -409,7 +423,7 @@ final class CalendarPage extends Page
             if ($end !== null && $end <= $date) {
                 $end = null;
             }
-            $time = $c['timed'] && ($date->format('H:i') !== '00:00' || $end !== null) ? $date->format('H:i') : null;
+            $time = $c['sourceTimed'] && ($date->format('H:i') !== '00:00' || $end !== null) ? $date->format('H:i') : null;
             $color = isset($row['__color']) ? (string) $row['__color'] : null;
             // Un campo que guarda el color ("#rrggbb") lo da tal cual; un select, por su "colors" o su posición
             $hex = $color !== null && !$colorField instanceof SelectField && preg_match('/^#[0-9a-f]{6}$/i', $color) ? $color : null;
@@ -424,9 +438,87 @@ final class CalendarPage extends Page
                 'colorLabel' => $color !== null && $colorField instanceof SelectField ? $colorField->format($color) : null,
                 'tone' => $hex ?? ($color !== null && $colorField instanceof SelectField ? $colorField->badgeColor($color) : null),
                 'url' => $this->app->url('edit', ['m' => $source->name, 'id' => $row['__id']]),
+                'external' => false,
+            ];
+        }
+        if ($c['extra'] !== null) {
+            foreach ($this->extraEvents($c['extra'], $from, $to) as $key => $list) {
+                $out[$key] = array_merge($out[$key] ?? [], $list);
+            }
+            foreach ($out as &$list) {
+                usort($list, static fn ($a, $b) => [$a['time'] !== null, $a['start']] <=> [$b['time'] !== null, $b['start']]);
+            }
+            unset($list);
+        }
+        return $out;
+    }
+
+    /**
+     * Eventos de la fuente "extra" (CalendarSource), con el mismo formato que los del módulo y agrupados por día.
+     * Los de todo el día que duran varios días salen en cada uno. Un error de la fuente no rompe el calendario.
+     * @return array<string,list<array<string,mixed>>>
+     */
+    private function extraEvents(CalendarSource $extra, DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        try {
+            $events = $extra->events($this->app, $this->user(), $from, $to);
+        } catch (\Throwable $e) {
+            Log::error('{module}: los eventos de fuera del calendario han fallado', ['module' => $this->module->name, 'exception' => $e]);
+            return [];
+        }
+        $out = [];
+        foreach ($events as $n => $e) {
+            try {
+                $start = new DateTimeImmutable((string) $e['start']);
+                $end = !empty($e['end']) ? new DateTimeImmutable((string) $e['end']) : null;
+            } catch (\Exception) {
+                continue;
+            }
+            $allDay = !empty($e['allDay']) || strlen((string) $e['start']) === 10;
+            $item = [
+                'title' => (string) ($e['title'] ?? ''),
+                'color' => 0,
+                'colorLabel' => isset($e['label']) ? (string) $e['label'] : null,
+                'tone' => isset($e['tone']) && $e['tone'] !== '' ? (string) $e['tone'] : null,
+                'url' => (string) ($e['url'] ?? '#'),
+                'external' => true,
+            ];
+            if ($allDay) {
+                $last = $end !== null && $end > $start ? $end : $start->modify('+1 day'); // fin exclusivo
+                for ($d = max($start, $from); $d < $last && $d < $to; $d = $d->modify('+1 day')) {
+                    $out[$d->format('Y-m-d')][] = $item + ['id' => 'x' . $n, 'time' => null, 'timeEnd' => null,
+                        'start' => $d->format('Y-m-d 00:00'), 'end' => null];
+                }
+                continue;
+            }
+            if ($start < $from || $start >= $to) {
+                continue;
+            }
+            $sameDay = $end !== null && $end->format('Y-m-d') === $start->format('Y-m-d');
+            $out[$start->format('Y-m-d')][] = $item + [
+                'id' => 'x' . $n,
+                'time' => $start->format('H:i'),
+                'timeEnd' => $sameDay ? $end->format('H:i') : null,
+                'start' => $start->format('Y-m-d H:i'),
+                'end' => $end !== null && $end > $start ? $end->format('Y-m-d H:i') : null,
             ];
         }
         return $out;
+    }
+
+    /** @return list<array{label:string,color:int,tone:?string}> la leyenda de la fuente "extra" */
+    private function extraLegend(array $c): array
+    {
+        if ($c['extra'] === null) {
+            return [];
+        }
+        try {
+            return array_map(static fn (array $l) => ['label' => (string) $l['label'], 'color' => 0, 'tone' => (string) $l['tone']],
+                $c['extra']->legend($this->app, $this->user()));
+        } catch (\Throwable $e) {
+            Log::error('{module}: la leyenda de los eventos de fuera ha fallado', ['module' => $this->module->name, 'exception' => $e]);
+            return [];
+        }
     }
 
     /** Alta con la fecha (y el fin, si lo hay) ya puestos (ModuleController::prefill) */
