@@ -124,5 +124,30 @@
   "update_via": {
     "cron": "pel cron",
     "web": "en obrir aquesta pàgina"
-  }
+  },
+  "client": {
+    "help": "Aquí rebràs els missatges del teu xat web i les nostres respostes a les teves incidències. Per contestar, respon el missatge (mantén-lo premut i tria «Respon»).",
+    "linked": "Fet! A partir d’ara rebràs aquí els avisos de {client}, {name}.",
+    "sent": "Enviat.",
+    "visitor": "Un visitant",
+    "webchat": "Nou missatge al xat web · {name}",
+    "resolved": "Hem resolt la incidència #{id}",
+    "reply_hint": "Respon aquest missatge per contestar."
+  },
+  "menu": {
+    "pissarra": "Per on començar (Pissarra)",
+    "meves": "Les meves incidències obertes",
+    "noves": "Obertes sense assignar",
+    "incidencia": "Resum d’una incidència: /incidencia N",
+    "agafa": "Assigna-me-la: /agafa N",
+    "resol": "Marca-la resolta: /resol N",
+    "hores": "Imputa hores: /hores N [temps]",
+    "nota": "Desa una nota: /nota text",
+    "notes": "Les meves notes pendents",
+    "ajuda": "Ajuda del bot",
+    "desvincular": "Desvincula aquest compte"
+  },
+  "commands_sync": "Actualitza les ordres del bot",
+  "commands_help": "Menú «/» només al grup i als xats de l'equip; cap per als clients.",
+  "commands_synced": "Ordres del bot actualitzades ({n} xats)"
 }

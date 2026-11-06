@@ -5,7 +5,9 @@ namespace Quasar\Pages;
 
 use Quasar\Controllers\Page;
 use Quasar\Core\HtmlSanitizer;
+use Quasar\Core\HttpException;
 use Quasar\Hooks\Asteroid;
+use Quasar\Telegram\Telegram;
 use Quasar\WebAudit\WebAudit;
 
 /**
@@ -33,7 +35,50 @@ final class ClientHomePage extends Page
             'issuesUrl' => $this->otherModule('issues')->url(),
             'filesUrl' => $this->allowed('view', $this->otherModule('files')) ? $this->otherModule('files')->url() : null,
             'web' => $this->webHealth(),
+            'telegram' => $this->telegramBox(),
         ]);
+    }
+
+    /** POST: código para vincular Telegram (avisos del chat web y de sus incidencias en el móvil). */
+    public function actionTgcode(): void
+    {
+        $this->requirePost();
+        if (!Asteroid::isClient($this->user()) || !Telegram::enabled()) {
+            throw new HttpException(403);
+        }
+        Telegram::linkCode($this->app->settings(), $this->user()->id());
+        $this->app->redirect($this->pageUrl() . '#telegram');
+    }
+
+    /** POST: deja de recibir avisos por Telegram. */
+    public function actionTgunlink(): void
+    {
+        $this->requirePost();
+        $tg = $this->app->db->fetchValue('SELECT telegram_id FROM telegram_users WHERE user_id = ?', [$this->user()->id()]);
+        if ($tg !== null) {
+            Telegram::commandsFor((int) $tg, false);
+            $this->app->db->query('DELETE FROM telegram_users WHERE user_id = ?', [$this->user()->id()]);
+        }
+        $this->flash('success', $this->text('tg_unlinked'));
+        $this->app->redirect($this->pageUrl());
+    }
+
+    /** Estado de Telegram del usuario (si el bot está configurado). */
+    private function telegramBox(): ?array
+    {
+        if (!Telegram::enabled()) {
+            return null;
+        }
+        $settings = $this->app->settings();
+        $code = $settings->get('telegram.pending.' . $this->user()->id());
+        $code = is_array($code) && (int) ($code['expires'] ?? 0) > time() ? (string) $code['code'] : null;
+        return [
+            'link' => $this->app->db->fetch('SELECT telegram_name, linked_at FROM telegram_users WHERE user_id = ?', [$this->user()->id()]),
+            'code' => $code,
+            'bot' => $code !== null ? Telegram::botUsername($settings) : null,
+            'codeUrl' => $this->pageUrl('tgcode'),
+            'unlinkUrl' => $this->pageUrl('tgunlink'),
+        ];
     }
 
     /** Lo mismo para una app (GET /api/v1/pages/client_home). */

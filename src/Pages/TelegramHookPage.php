@@ -26,6 +26,10 @@ use Quasar\Telegram\Telegram;
  *   - /pissarra [nom|totes|sense] · /meves · /noves · /incidencia N · /agafa N · /resol N · /vincular CODI · /ajuda
  *   - /nota TEXT (nota personal; respondiendo a un aviso, enlazada a esa incidencia) · /notes (las pendientes, con
  *     un botón «Feta» cada una)
+ *
+ * Los usuarios de los clientes también se pueden vincular (El meu espai): reciben en privado los mensajes de su chat
+ * web y de sus incidencias, y solo pueden **responder a esos mensajes** (con sus permisos de siempre). Ninguna orden
+ * del equipo les funciona; el menú «/» solo existe en el grupo y en los chats del equipo (Telegram::syncCommands).
  */
 final class TelegramHookPage extends Page
 {
@@ -84,6 +88,11 @@ final class TelegramHookPage extends Page
                 $this->link($args); // enlace t.me/bot?start=CODI
                 return;
             }
+            if (($client = $this->linkedClient()) !== null) {
+                // Un cliente no usa órdenes: solo puede desvincularse; lo demás, cómo contestar
+                $cmd === 'desvincular' ? $this->unlink($client) : $this->reply(Telegram::e(Telegram::t('client.help')));
+                return;
+            }
             if (in_array($cmd, ['start', 'ajuda', 'help'], true)) {
                 $this->reply($this->help());
                 return;
@@ -121,6 +130,10 @@ final class TelegramHookPage extends Page
             'SELECT module, record_id FROM telegram_messages WHERE chat_id = ? AND message_id = ?',
             [(string) $this->msg['chat']['id'], (int) $replyTo]
         );
+        if (($client = $this->linkedClient()) !== null) {
+            $this->clientReply($client, $ref, $text);
+            return;
+        }
         if ($ref === null || !in_array($ref['module'], ['issues', 'hours'], true)) {
             return;
         }
@@ -399,20 +412,63 @@ final class TelegramHookPage extends Page
             return;
         }
         $this->app->settings()->delete($key);
+        $this->app->settings()->delete('telegram.pending.' . (int) $data['user']); // el código ya no sirve
         $from = $this->msg['from'];
         $name = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? '')) ?: (string) ($from['username'] ?? '');
         $db = $this->app->db;
         $db->query('DELETE FROM telegram_users WHERE telegram_id = ? OR user_id = ?', [(int) $from['id'], (int) $data['user']]);
         $db->insert('telegram_users', ['user_id' => (int) $data['user'], 'telegram_id' => (int) $from['id'], 'telegram_name' => mb_substr($name, 0, 100)]);
-        $userName = (string) $db->fetchValue('SELECT name FROM users WHERE id = ?', [(int) $data['user']]);
-        Log::info('Telegram: cuenta {tg} vinculada al usuario {user}', ['tg' => (int) $from['id'], 'user' => (int) $data['user']]);
-        $this->reply(Telegram::e(Telegram::t('bot.linked', ['name' => $userName])) . "\n\n" . $this->help());
+        $u = $db->fetch('SELECT u.name, u.client_id, c.name AS client FROM users u LEFT JOIN clients c ON c.id = u.client_id WHERE u.id = ?', [(int) $data['user']]);
+        $isClient = $u !== null && $u['client_id'] !== null;
+        Log::info('Telegram: cuenta {tg} vinculada al usuario {user}', ['tg' => (int) $from['id'], 'user' => (int) $data['user'], 'client' => $isClient]);
+        Telegram::commandsFor((int) $from['id'], !$isClient); // el menú de órdenes, solo para el equipo
+        $this->reply($isClient
+            ? Telegram::e(Telegram::t('client.linked', ['name' => (string) $u['name'], 'client' => (string) ($u['client'] ?? '')])) . "\n\n" . Telegram::e(Telegram::t('client.help'))
+            : Telegram::e(Telegram::t('bot.linked', ['name' => (string) ($u['name'] ?? '')])) . "\n\n" . $this->help());
     }
 
     private function unlink(User $user): void
     {
         $this->app->db->query('DELETE FROM telegram_users WHERE user_id = ?', [$user->id()]);
+        Telegram::commandsFor((int) $this->msg['from']['id'], false);
         $this->reply(Telegram::e(Telegram::t('bot.unlinked')));
+    }
+
+    /** Usuario de un cliente vinculado a quien escribe (la petición actúa como él), o null (equipo o sin vincular). */
+    private function linkedClient(): ?User
+    {
+        $row = $this->app->db->fetch(
+            'SELECT u.* FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE t.telegram_id = ? AND u.active = 1 AND u.client_id IS NOT NULL',
+            [(int) $this->msg['from']['id']]
+        );
+        if ($row === null) {
+            return null;
+        }
+        $this->app->auth->actAs($row, 0);
+        $user = $this->app->auth->user();
+        return $user !== null && Asteroid::isClient($user) ? $user : null;
+    }
+
+    /**
+     * Respuesta de un cliente a un aviso privado: se publica en esa conversación (chat web o incidencia) con sus
+     * permisos de siempre ("scope"). Cualquier otra cosa recibe la ayuda.
+     */
+    private function clientReply(User $user, ?array $ref, string $text): void
+    {
+        $m = $ref !== null && in_array($ref['module'], ['webchat', 'issues'], true) ? $this->app->modules()->get((string) $ref['module']) : null;
+        if ($m === null) {
+            $this->reply(Telegram::e(Telegram::t('client.help')));
+            return;
+        }
+        $id = (string) $ref['record_id'];
+        $row = $this->app->chat()->record($m, $id, $user); // null si no es suyo
+        if ($row === null) {
+            $this->reply(Telegram::e(Telegram::t('bot.forbidden')));
+            return;
+        }
+        $this->app->chat()->post($m, $id, $row, $user, $text); // en una incidencia, el equipo recibe el aviso de siempre
+        Log::info('Telegram: respuesta del cliente {user} en {module} {id}', ['user' => $user->id(), 'module' => $m->name, 'id' => $id]);
+        $this->reply(Telegram::e(Telegram::t('client.sent')));
     }
 
     /** Usuario del equipo vinculado a quien escribe (y la petición actúa como él), o null con un aviso. */

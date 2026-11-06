@@ -249,6 +249,165 @@ final class Telegram
         return implode(' · ', array_filter([(string) ($issue['client_name'] ?? ''), $project, $worker !== '' ? $worker : self::t('unassigned')]));
     }
 
+    // ---------------------------------------------------------------- clientes (avisos privados)
+
+    /** Órdenes del menú «/» del equipo (en el grupo y en el chat privado de cada persona del equipo). */
+    private const MENU = ['pissarra', 'meves', 'noves', 'incidencia', 'agafa', 'resol', 'hores', 'nota', 'notes', 'ajuda', 'desvincular'];
+
+    /** @return array<int,int> user_id => telegram_id de los vinculados de entre esos usuarios */
+    public static function linkedIds(Database $db, array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_map('intval', $userIds)));
+        if (!$userIds) {
+            return [];
+        }
+        $rows = $db->fetchAll(
+            'SELECT t.user_id, t.telegram_id FROM telegram_users t JOIN users u ON u.id = t.user_id
+              WHERE u.active = 1 AND t.user_id IN (' . implode(',', array_fill(0, count($userIds), '?')) . ')',
+            $userIds
+        );
+        return array_combine(array_map('intval', array_column($rows, 'user_id')), array_map('intval', array_column($rows, 'telegram_id'))) ?: [];
+    }
+
+    /** Mensaje privado a cada usuario vinculado; responder a él contesta en ese registro (module/record). */
+    public static function toUsers(Database $db, array $userIds, string $html, string $module, string $recordId): void
+    {
+        if (!self::enabled()) {
+            return;
+        }
+        foreach (self::linkedIds($db, $userIds) as $telegramId) {
+            try {
+                $msgId = self::bot()->send($telegramId, $html);
+                if ($msgId !== null) {
+                    self::remember($db, (string) $telegramId, $msgId, $recordId, $module);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Telegram: no se ha podido avisar en privado', ['exception' => $e]);
+            }
+        }
+    }
+
+    /** Mensaje de un visitante en el chat web: a los usuarios del cliente vinculados (WebchatHooks). */
+    public static function webchatMessage(Database $db, string $conversationId): void
+    {
+        $c = $db->fetch('SELECT id, client_id, visitor_name, visitor_email, page_url FROM webchat_conversations WHERE id = ?', [(int) $conversationId]);
+        $m = $c !== null ? $db->fetch(
+            "SELECT body FROM messages WHERE module = 'webchat' AND record_id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1",
+            [(string) $conversationId]
+        ) : null;
+        if ($c === null || $m === null) {
+            return;
+        }
+        $who = trim((string) $c['visitor_name']) !== '' ? (string) $c['visitor_name'] : self::t('client.visitor');
+        $html = '<b>' . self::e(self::t('client.webchat', ['name' => $who])) . '</b>'
+            . ($c['visitor_email'] ? ' · ' . self::e((string) $c['visitor_email']) : '') . "\n\n"
+            . self::e(mb_substr(trim((string) $m['body']), 0, 1500)) . "\n\n<i>" . self::e(self::t('client.reply_hint')) . '</i>';
+        self::toUsers($db, Asteroid::clientUserIds($db, $c['client_id']), $html, 'webchat', (string) $c['id']);
+    }
+
+    /** Mensaje en una incidencia visible para el cliente: a sus usuarios vinculados (menos a quien lo escribe). */
+    public static function issueMessageToClients(Database $db, array $issue, User $author): void
+    {
+        $id = (string) $issue['id'];
+        $msg = $db->fetch(
+            "SELECT kind, body FROM messages WHERE module = 'issues' AND record_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1",
+            [$id, $author->id()]
+        );
+        if ($msg === null || $msg['kind'] === 'system') {
+            return;
+        }
+        $recipients = array_values(array_diff(Asteroid::clientRecipients($db, $issue), [$author->id()]));
+        if (!$recipients) {
+            return;
+        }
+        $body = $msg['kind'] === 'meet' ? self::t('notify.meet') : trim((string) $msg['body']);
+        $html = '<b>#' . self::e($id) . ' · ' . self::e((string) $issue['title']) . "</b>\n"
+            . '<b>' . self::e($author->name()) . ':</b> ' . self::e(mb_substr($body, 0, 1500)) . "\n\n<i>" . self::e(self::t('client.reply_hint')) . '</i>';
+        self::toUsers($db, $recipients, $html, 'issues', $id);
+    }
+
+    /** Incidencia resuelta: a los usuarios del cliente vinculados, si es visible para ellos. */
+    public static function issueResolvedToClients(Database $db, array $issue): void
+    {
+        $id = (string) $issue['id'];
+        $html = '<b>' . self::e(self::t('client.resolved', ['id' => $id])) . "</b>\n" . self::e((string) $issue['title']) . "\n\n<i>"
+            . self::e(self::t('client.reply_hint')) . '</i>';
+        self::toUsers($db, Asteroid::clientRecipients($db, $issue), $html, 'issues', $id);
+    }
+
+    // ---------------------------------------------------------------- menú de órdenes y vinculación
+
+    /** Código para vincular una cuenta (10 minutos): /start CODI o el enlace t.me/bot?start=CODI. */
+    public static function linkCode(\Quasar\Core\Settings $settings, int $userId, int $ttl = 600): array
+    {
+        $old = $settings->get('telegram.pending.' . $userId);
+        if (is_array($old) && isset($old['code'])) {
+            $settings->delete('telegram.link.' . $old['code']);
+        }
+        $code = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $expires = time() + $ttl;
+        $settings->set('telegram.link.' . $code, ['user' => $userId, 'expires' => $expires]);
+        $settings->set('telegram.pending.' . $userId, ['code' => $code, 'expires' => $expires]);
+        return ['code' => $code, 'expires' => $expires];
+    }
+
+    /** Nombre del bot (para el enlace t.me/…), guardado un día. */
+    public static function botUsername(\Quasar\Core\Settings $settings): ?string
+    {
+        $cached = $settings->get('telegram.bot_username');
+        if (is_array($cached) && (int) ($cached['until'] ?? 0) > time()) {
+            return (string) $cached['name'];
+        }
+        $me = self::enabled() ? self::bot()->call('getMe') : null;
+        if (!isset($me['username'])) {
+            return null;
+        }
+        $settings->set('telegram.bot_username', ['name' => (string) $me['username'], 'until' => time() + 86400]);
+        return (string) $me['username'];
+    }
+
+    /** @return list<array{command:string,description:string}> */
+    private static function menu(): array
+    {
+        return array_map(static fn (string $c) => ['command' => $c, 'description' => mb_substr(self::t('menu.' . $c), 0, 256)], self::MENU);
+    }
+
+    /** Menú de órdenes de un chat privado: el del equipo, o ninguno (clientes, desvinculados). */
+    public static function commandsFor(int $telegramId, bool $team): void
+    {
+        if (!self::enabled()) {
+            return;
+        }
+        $scope = ['type' => 'chat', 'chat_id' => $telegramId];
+        $team ? self::bot()->call('setMyCommands', ['commands' => self::menu(), 'scope' => $scope])
+              : self::bot()->call('deleteMyCommands', ['scope' => $scope]);
+    }
+
+    /**
+     * Pone el menú «/» del bot: el del equipo en el grupo y en el chat de cada persona del equipo vinculada; ninguno
+     * para los demás (clientes incluidos). @return int chats con menú
+     */
+    public static function syncCommands(Database $db): int
+    {
+        $bot = self::bot();
+        foreach (['default', 'all_private_chats', 'all_group_chats', 'all_chat_administrators'] as $type) {
+            $bot->call('deleteMyCommands', ['scope' => ['type' => $type]]);
+        }
+        $n = 0;
+        $c = self::config();
+        if (!empty($c['chat_id'])) {
+            $bot->call('setMyCommands', ['commands' => self::menu(), 'scope' => ['type' => 'chat', 'chat_id' => $c['chat_id']]]);
+            $n++;
+        }
+        foreach ($db->fetchAll('SELECT t.telegram_id, u.client_id, u.active FROM telegram_users t JOIN users u ON u.id = t.user_id') as $r) {
+            $team = $r['client_id'] === null && (int) $r['active'] === 1;
+            self::commandsFor((int) $r['telegram_id'], $team);
+            $n += $team ? 1 : 0;
+        }
+        Log::info('Telegram: menú de órdenes actualizado ({n} chats)', ['n' => $n]);
+        return $n;
+    }
+
     public static function link(string $issueId): string
     {
         return '<a href="' . self::e(self::url(Asteroid::issueUrl($issueId))) . '">' . self::e(self::t('open')) . '</a>';

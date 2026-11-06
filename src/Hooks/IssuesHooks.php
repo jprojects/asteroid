@@ -107,8 +107,10 @@ final class IssuesHooks extends ModuleHooks
         if ($issue === null) {
             return [];
         }
-        // Se llama justo después de guardar el mensaje: también va al grupo de Telegram
+        // Se llama justo después de guardar el mensaje: también va al grupo de Telegram y, en privado, a los
+        // usuarios del cliente vinculados (si la incidencia es visible para ellos)
         Telegram::messagePosted($this->db, $issue, $author);
+        Telegram::issueMessageToClients($this->db, $issue, $author);
         $ids = Asteroid::clientRecipients($this->db, $issue);
         // Sin técnico asignado, un mensaje del cliente llega a todo el equipo
         if (!$issue['worker_id'] && Asteroid::isClient($author)) {

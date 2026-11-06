@@ -124,5 +124,30 @@
   "update_via": {
     "cron": "by the cron",
     "web": "when opening this page"
-  }
+  },
+  "client": {
+    "help": "You will get your website chat messages and our replies to your issues here. To answer, reply to the message (press and hold it and choose “Reply”).",
+    "linked": "Done! From now on you will get the notifications for {client} here, {name}.",
+    "sent": "Sent.",
+    "visitor": "A visitor",
+    "webchat": "New website chat message · {name}",
+    "resolved": "We have resolved issue #{id}",
+    "reply_hint": "Reply to this message to answer."
+  },
+  "menu": {
+    "pissarra": "Where to start (Pissarra)",
+    "meves": "My open issues",
+    "noves": "Open and unassigned",
+    "incidencia": "Issue summary: /incidencia N",
+    "agafa": "Assign it to me: /agafa N",
+    "resol": "Mark it resolved: /resol N",
+    "hores": "Log time: /hores N [time]",
+    "nota": "Save a note: /nota text",
+    "notes": "My pending notes",
+    "ajuda": "Bot help",
+    "desvincular": "Unlink this account"
+  },
+  "commands_sync": "Update the bot commands",
+  "commands_help": "Command menu only in the group and the team chats; none for clients.",
+  "commands_synced": "Bot commands updated ({n} chats)"
 }

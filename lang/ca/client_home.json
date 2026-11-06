@@ -14,5 +14,15 @@
   "all_files": "Tots els documents",
   "download": "Descarrega",
   "resolved_title": "Resoltes recentment",
-  "resolved_on": "Resolta el {date}"
+  "resolved_on": "Resolta el {date}",
+  "tg_title": "Avisos al mòbil (Telegram)",
+  "tg_intro": "Rep al Telegram els missatges dels visitants del teu xat web i les nostres respostes a les teves incidències. Per contestar, només cal respondre el missatge.",
+  "tg_link": "Vincula el meu Telegram",
+  "tg_code_intro": "Obre el bot i prem «Inicia»:",
+  "tg_open": "Obre {bot}",
+  "tg_code_help": "També pots enviar /start {code} al bot. El codi caduca d'aquí a 10 minuts.",
+  "tg_linked": "Vinculat amb el Telegram de {name}",
+  "tg_unlink": "Deixa de rebre avisos",
+  "tg_unlink_confirm": "Deixaràs de rebre els avisos al Telegram. Vols continuar?",
+  "tg_unlinked": "Ja no rebràs avisos al Telegram"
 }

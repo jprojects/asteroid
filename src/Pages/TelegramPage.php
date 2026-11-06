@@ -60,6 +60,7 @@ final class TelegramPage extends Page
                 'unlink' => $this->pageUrl('unlink'),
                 'webhook' => $this->pageUrl('webhook'),
                 'test' => $this->pageUrl('test'),
+                'commands' => $this->pageUrl('commands'),
             ],
         ]);
     }
@@ -72,21 +73,27 @@ final class TelegramPage extends Page
         if (Asteroid::isClient($user) || !Telegram::enabled()) {
             throw new HttpException(403);
         }
-        $settings = $this->app->settings();
-        $old = $settings->get('telegram.pending.' . $user->id());
-        if (is_array($old) && isset($old['code'])) {
-            $settings->delete('telegram.link.' . $old['code']);
-        }
-        $code = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-        $expires = time() + self::CODE_TTL;
-        $settings->set('telegram.link.' . $code, ['user' => $user->id(), 'expires' => $expires]);
-        $settings->set('telegram.pending.' . $user->id(), ['code' => $code, 'expires' => $expires]);
+        Telegram::linkCode($this->app->settings(), $user->id(), self::CODE_TTL);
+        $this->app->redirect($this->pageUrl());
+    }
+
+    /** POST (administradores): menú «/» del bot solo en el grupo y en los chats del equipo. */
+    public function actionCommands(): void
+    {
+        $this->requirePost();
+        $this->requireAdmin();
+        $n = Telegram::syncCommands($this->app->db);
+        $this->flash('success', $this->text('commands_synced', ['n' => $n]));
         $this->app->redirect($this->pageUrl());
     }
 
     public function actionUnlink(): void
     {
         $this->requirePost();
+        $tg = $this->app->db->fetchValue('SELECT telegram_id FROM telegram_users WHERE user_id = ?', [$this->user()->id()]);
+        if ($tg !== null) {
+            Telegram::commandsFor((int) $tg, false);
+        }
         $this->app->db->query('DELETE FROM telegram_users WHERE user_id = ?', [$this->user()->id()]);
         $this->flash('success', $this->text('unlinked'));
         $this->app->redirect($this->pageUrl());

@@ -124,5 +124,30 @@
   "update_via": {
     "cron": "por el cron",
     "web": "al abrir esta página"
-  }
+  },
+  "client": {
+    "help": "Aquí recibirás los mensajes de tu chat web y nuestras respuestas a tus incidencias. Para contestar, responde al mensaje (mantenlo pulsado y elige «Responder»).",
+    "linked": "¡Hecho! A partir de ahora recibirás aquí los avisos de {client}, {name}.",
+    "sent": "Enviado.",
+    "visitor": "Un visitante",
+    "webchat": "Nuevo mensaje en el chat web · {name}",
+    "resolved": "Hemos resuelto la incidencia #{id}",
+    "reply_hint": "Responde a este mensaje para contestar."
+  },
+  "menu": {
+    "pissarra": "Por dónde empezar (Pissarra)",
+    "meves": "Mis incidencias abiertas",
+    "noves": "Abiertas sin asignar",
+    "incidencia": "Resumen de una incidencia: /incidencia N",
+    "agafa": "Asignármela: /agafa N",
+    "resol": "Marcarla resuelta: /resol N",
+    "hores": "Imputar horas: /hores N [tiempo]",
+    "nota": "Guardar una nota: /nota texto",
+    "notes": "Mis notas pendientes",
+    "ajuda": "Ayuda del bot",
+    "desvincular": "Desvincular esta cuenta"
+  },
+  "commands_sync": "Actualizar las órdenes del bot",
+  "commands_help": "Menú «/» solo en el grupo y en los chats del equipo; ninguno para los clientes.",
+  "commands_synced": "Órdenes del bot actualizadas ({n} chats)"
 }

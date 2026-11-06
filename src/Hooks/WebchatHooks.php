@@ -6,6 +6,7 @@ namespace Quasar\Hooks;
 use Quasar\Core\Chat;
 use Quasar\Core\ModuleHooks;
 use Quasar\Core\User;
+use Quasar\Telegram\Telegram;
 use Quasar\Webchat\Webchat;
 
 /**
@@ -36,8 +37,10 @@ final class WebchatHooks extends ModuleHooks
         return [];
     }
 
+    /** Mensaje de un visitante: avisa a todos los usuarios del cliente (y por Telegram, a los vinculados). */
     public function externalRecipients(string $id, array $row): array
     {
+        Telegram::webchatMessage($this->db, $id);
         $clientId = (int) $this->db->fetchValue('SELECT client_id FROM webchat_conversations WHERE id = ?', [(int) $id]);
         return $clientId > 0 ? Webchat::agents($this->db, $clientId) : [];
     }

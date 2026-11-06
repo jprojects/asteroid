@@ -13,6 +13,7 @@
  * @var string $issuesUrl
  * @var ?string $filesUrl
  * @var list<array> $web    webs con informe SEO/GEO (Salut de la web)
+ * @var ?array $telegram    vincular Telegram (null si el bot no está configurado)
  */
 $dateFmt = $this->t('format.date');
 $date = static fn (string $d): string => $d !== '' ? date($dateFmt, (int) strtotime($d)) : '';
@@ -41,6 +42,8 @@ $statusKey = [1 => 'pending', 2 => 'in_progress', 3 => 'resolved', 4 => 'discard
 .ast-ch-file { flex-shrink: 0; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 6px; background: var(--surface-alt); border: 1px solid var(--border); font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
 .ast-ch-resolved { margin-top: 14px; flex-shrink: 0; }
 .ast-ch-web { margin-bottom: 14px; flex-shrink: 0; }
+.ast-ch-tg { padding: 12px 14px; display: grid; gap: 8px; justify-items: start; }
+.ast-ch-tg p { margin: 0; }
 .ast-ch-web .ast-ch-item { align-items: center; }
 .ast-ch-scores { display: flex; gap: 12px; flex-shrink: 0; }
 .ast-ch-score { display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
@@ -151,6 +154,31 @@ $statusKey = [1 => 'pending', 2 => 'in_progress', 3 => 'resolved', 4 => 'discard
     <?php endif ?>
   </section>
 </div>
+
+<?php if (!empty($telegram)): ?>
+  <section class="ast-ch-box ast-ch-resolved" id="telegram" aria-labelledby="ch-tg">
+    <div class="ast-ch-head"><?= $this->icon('smartphone') ?><h2 id="ch-tg"><?= $this->e($this->t('tg_title')) ?></h2></div>
+    <div class="ast-ch-tg">
+      <?php if ($telegram['link']): ?>
+        <p><?= $this->icon('circle-check') ?> <?= $this->e($this->t('tg_linked', ['name' => trim((string) $telegram['link']['telegram_name']) ?: 'Telegram'])) ?></p>
+        <form method="post" action="<?= $this->e($telegram['unlinkUrl']) ?>"><?= $this->csrfField() ?>
+          <button type="submit" class="qs-btn qs-btn-sm" data-confirm="<?= $this->e($this->t('tg_unlink_confirm')) ?>"><?= $this->e($this->t('tg_unlink')) ?></button>
+        </form>
+      <?php elseif ($telegram['code']): ?>
+        <p><?= $this->e($this->t('tg_code_intro')) ?></p>
+        <?php if ($telegram['bot']): ?>
+          <p><a class="qs-btn qs-btn-primary" href="https://t.me/<?= $this->e($telegram['bot']) ?>?start=<?= $this->e($telegram['code']) ?>" target="_blank" rel="noopener"><?= $this->icon('send') ?> <?= $this->e($this->t('tg_open', ['bot' => '@' . $telegram['bot']])) ?></a></p>
+        <?php endif ?>
+        <p class="qs-help"><?= $this->e($this->t('tg_code_help', ['code' => $telegram['code']])) ?></p>
+      <?php else: ?>
+        <p><?= $this->e($this->t('tg_intro')) ?></p>
+        <form method="post" action="<?= $this->e($telegram['codeUrl']) ?>"><?= $this->csrfField() ?>
+          <button type="submit" class="qs-btn qs-btn-primary"><?= $this->icon('smartphone') ?> <?= $this->e($this->t('tg_link')) ?></button>
+        </form>
+      <?php endif ?>
+    </div>
+  </section>
+<?php endif ?>
 
 <?php if ($resolved): ?>
   <section class="ast-ch-box ast-ch-resolved" aria-labelledby="ch-resolved">

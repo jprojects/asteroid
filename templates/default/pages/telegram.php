@@ -132,6 +132,9 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
               <button type="submit" class="qs-btn qs-btn-sm"><?= $this->icon('send') ?> <?= $this->e($this->t('test_send')) ?></button>
             </form>
           <?php endif ?>
+          <form method="post" action="<?= $this->e($urls['commands']) ?>"><?= $this->csrfField() ?>
+            <button type="submit" class="qs-btn qs-btn-sm" title="<?= $this->e($this->t('commands_help')) ?>"><?= $this->icon('list') ?> <?= $this->e($this->t('commands_sync')) ?></button>
+          </form>
         </div>
         <?php if ($linked): ?>
           <h3 class="qs-subtitle"><?= $this->e($this->t('linked_users')) ?></h3>

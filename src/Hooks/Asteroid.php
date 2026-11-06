@@ -110,6 +110,9 @@ final class Asteroid
             'urgent' => $to === self::STATUS_RESOLVED,
         ]);
         Telegram::statusChanged($db, $issue, $to, $user);
+        if ($to === self::STATUS_RESOLVED) {
+            Telegram::issueResolvedToClients($db, $issue);
+        }
     }
 
     /** Apunte y aviso al técnico al que se le asigna una incidencia. */

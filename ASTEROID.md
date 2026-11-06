@@ -133,6 +133,21 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
 - Con webhook, después de actualizar hay que volver a pulsar **Activa el webhook** para que Telegram envíe también los
   botones (`callback_query`); en modo consulta no hace falta.
 
+**Clientes** (en privado; nunca ven nada del grupo ni del equipo): cada usuario de un cliente se vincula desde
+*El meu espai → Avisos al mòbil* y recibe del bot, en su chat privado:
+
+- los mensajes de los visitantes de **su chat web** (`Telegram::webchatMessage`, desde `WebchatHooks`);
+- en **sus incidencias visibles**, vuestros mensajes y cuando se resuelven (a los mismos usuarios que la web,
+  `Asteroid::clientRecipients`).
+
+Contesta **respondiendo al mensaje**: se publica en esa conversación con sus permisos de siempre (el visitante lo ve en
+la web; en una incidencia, el equipo recibe el aviso de siempre). Una respuesta a algo que no es suyo da «No tens
+permís». Las órdenes no le funcionan: cualquier otra cosa recibe una ayuda breve (solo `/desvincular`).
+
+**Menú de órdenes «/»**: lo gestiona Asteroid (no BotFather): la lista del equipo en el grupo y en el chat privado de
+cada persona del equipo vinculada; ninguna en el resto (clientes incluidos). Se pone al vincular o desvincular y con
+*Equip → Telegram → Actualitza les ordres del bot* (hay que pulsarlo una vez después de borrar las de BotFather).
+
 **Puesta en marcha:**
 
 1. @BotFather → `/newbot` → el token. Añade el bot al grupo del equipo (si el grupo tiene temas, el bot tiene que

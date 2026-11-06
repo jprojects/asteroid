@@ -14,5 +14,15 @@
   "all_files": "All documents",
   "download": "Download",
   "resolved_title": "Recently resolved",
-  "resolved_on": "Resolved on {date}"
+  "resolved_on": "Resolved on {date}",
+  "tg_title": "Notifications on your phone (Telegram)",
+  "tg_intro": "Get the messages from your website chat visitors and our replies to your issues on Telegram. To answer, just reply to the message.",
+  "tg_link": "Link my Telegram",
+  "tg_code_intro": "Open the bot and press “Start”:",
+  "tg_open": "Open {bot}",
+  "tg_code_help": "You can also send /start {code} to the bot. The code expires in 10 minutes.",
+  "tg_linked": "Linked to {name}'s Telegram",
+  "tg_unlink": "Stop notifications",
+  "tg_unlink_confirm": "You will stop receiving notifications on Telegram. Continue?",
+  "tg_unlinked": "You will no longer get notifications on Telegram"
 }

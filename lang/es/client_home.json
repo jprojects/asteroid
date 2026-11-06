@@ -14,5 +14,15 @@
   "all_files": "Todos los documentos",
   "download": "Descargar",
   "resolved_title": "Resueltas recientemente",
-  "resolved_on": "Resuelta el {date}"
+  "resolved_on": "Resuelta el {date}",
+  "tg_title": "Avisos en el móvil (Telegram)",
+  "tg_intro": "Recibe en Telegram los mensajes de los visitantes de tu chat web y nuestras respuestas a tus incidencias. Para contestar, solo tienes que responder al mensaje.",
+  "tg_link": "Vincular mi Telegram",
+  "tg_code_intro": "Abre el bot y pulsa «Iniciar»:",
+  "tg_open": "Abrir {bot}",
+  "tg_code_help": "También puedes enviar /start {code} al bot. El código caduca en 10 minutos.",
+  "tg_linked": "Vinculado con el Telegram de {name}",
+  "tg_unlink": "Dejar de recibir avisos",
+  "tg_unlink_confirm": "Dejarás de recibir los avisos en Telegram. ¿Quieres continuar?",
+  "tg_unlinked": "Ya no recibirás avisos en Telegram"
 }
