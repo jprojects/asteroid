@@ -60,6 +60,12 @@ final class ProfileController extends Controller
             'trustedDevices' => $twoFactor->trustedCount($user->id()),
             'lastLogin' => $row['last_login'],
             'username' => $row['username'],
+            // Conexión personal con Google Calendar (si la instalación tiene Google con 'calendar')
+            'google' => ($g = $this->app->google()) !== null && $g->calendarEnabled() ? [
+                'connection' => $g->userConnection($user->id()),
+                'connectUrl' => $this->app->url('page', ['m' => 'integrations', 'a' => 'mine']),
+                'disconnectUrl' => $this->app->url('page', ['m' => 'integrations', 'a' => 'mineoff']),
+            ] : null,
             'api' => $this->apiEnabled() ? [
                 'tokens' => (new ApiTokens($this->app->db))->forUser($user->id()),
                 'new' => $this->takeNewToken(),

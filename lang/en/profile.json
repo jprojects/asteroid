@@ -63,5 +63,13 @@
     "revoke": "Revoke",
     "revoke_confirm": "The app or bot using “{name}” will stop working. Continue?",
     "revoked": "Token revoked"
+  },
+  "google": {
+    "title": "Google Calendar",
+    "intro": "Connect your Google Calendar so the Agenda shows your events (read only). Your team mates will also see it in the Agenda; private events only as “Busy”.",
+    "connect": "Connect my Google Calendar",
+    "connected_as": "Connected as {email} since {date}",
+    "disconnect": "Disconnect",
+    "disconnect_confirm": "The Agenda will stop showing your calendar. Continue?"
   }
 }

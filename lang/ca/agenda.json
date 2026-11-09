@@ -36,5 +36,9 @@
   "cal": {
     "empty": "No hi ha res en aquestes dates"
   },
-  "google_no_access": "sense accés"
+  "google_no_access": "sense accés",
+  "google_who_me": "El meu calendari",
+  "google_who_all": "Tot l'equip",
+  "google_connect": "Connecta el meu Google Calendar",
+  "google_not_connected": "Encara no has connectat el teu Google Calendar."
 }

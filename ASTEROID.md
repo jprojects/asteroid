@@ -214,24 +214,27 @@ librerías).
 
 ## Agenda (Google Calendar del equipo)
 
-*Agenda* (calendario del núcleo sobre las incidencias por fecha límite) muestra también el **Google Calendar de cada
-persona del equipo**, con sus Meet, en semana (por defecto), mes o día. Los eventos de Google son de solo lectura: al
-pulsarlos se abren en Google Calendar; se crean y se cambian allí. Cada persona tiene su color en la leyenda; si su
-calendario no se puede leer, sale «(sense accés)».
+*Agenda* (calendario del núcleo sobre las incidencias por fecha límite) muestra también el **Google Calendar** del
+equipo, con sus Meet, en semana (por defecto), mes o día. Los eventos de Google son de solo lectura: al pulsarlos se
+abren en Google Calendar; se crean y se cambian allí.
 
-Lo lee la cuenta de Google conectada en *Integracions* (la misma de los Meet), con `src/Hooks/AgendaGoogle.php`
-(`"extra"` de `modules/agenda.json`, Quasar 0.23.0). Caché de 5 minutos por calendario en `storage/cache/agenda`.
+- **Cada persona conecta el suyo** desde su **perfil** («Connecta el meu Google Calendar», Quasar 0.24.0): se lee con
+  su propio permiso, sin compartir calendarios. Quien no se ha conectado ve en la Agenda el aviso y el enlace.
+- **«El meu calendari»** (por defecto) o **«Tot l'equip»** (los compañeros conectados; sus eventos privados, como
+  «Ocupat»). Cada persona tiene su color en la leyenda; si no se puede leer, sale «(sense accés)».
+- La cuenta de *Integracions* (la de los Meet) también sale, aunque no se conecte desde el perfil.
+
+`src/Hooks/AgendaGoogle.php` (`"extra"` de `modules/agenda.json`). Caché de 5 minutos por calendario en
+`storage/cache/agenda` (un error guardado deja de valer en cuanto ese calendario se lee bien).
 
 1. Google Cloud Console: activar la **Google Calendar API** y añadir el ámbito `calendar.readonly` a la pantalla de
    consentimiento.
 2. `config.local.php`: `'calendar' => true` dentro de `'google'`.
 3. *Integracions*: **Torna a connectar amb Google** (pide el permiso nuevo).
-4. Que la cuenta conectada pueda ver los calendarios de los demás: en Workspace, compartidos dentro de la organización
-   («ver todos los detalles»; si solo se comparte la disponibilidad, salen como «Ocupat»), o que cada uno comparta el
-   suyo con esa cuenta.
+4. Cada persona del equipo: *Perfil → Google Calendar → Connecta el meu Google Calendar*.
 
-Personas: los usuarios activos del equipo (y administradores) con correo del dominio de la cuenta conectada. Para
-otra lista: `'agenda' => ['calendars' => ['kim@aficat.com' => '#2563eb', 'sala@aficat.com' => null]]`.
+Calendarios que no son de nadie (una sala…), leídos con la cuenta de *Integracions* y solo en «Tot l'equip»:
+`'agenda' => ['calendars' => ['sala@aficat.com' => '#2563eb']]`.
 
 ## Wiki (documentación de los proyectos)
 

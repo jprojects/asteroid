@@ -12,6 +12,7 @@
  * @var ?string $lastLogin
  * @var string $username
  * @var ?array{tokens:list<array>,new:?string,url:string} $api   null si la API no está activada
+ * @var ?array{connection:?array,connectUrl:string,disconnectUrl:string} $google  Google Calendar personal (o null)
  */
 $renderField = function (\Quasar\Fields\Field $field) use ($values, $errors): string {
     $error = $errors[$field->name] ?? null;
@@ -90,6 +91,27 @@ $renderField = function (\Quasar\Fields\Field $field) use ($values, $errors): st
     </div>
   </fieldset>
 </form>
+
+<?php if (!empty($google)): ?>
+  <div class="qs-form" id="google">
+    <fieldset class="qs-section">
+      <legend><?= $this->e($this->t('google.title')) ?></legend>
+      <p class="qs-help"><?= $this->e($this->t('google.intro')) ?></p>
+      <?php if ($google['connection']): ?>
+        <p><?= $this->icon('calendar-check') ?> <?= $this->e($this->t('google.connected_as', [
+            'email' => $google['connection']['email'] ?: '—',
+            'date' => $google['connection']['connected_at'] !== '' ? date($this->t('format.datetime'), (int) strtotime($google['connection']['connected_at'])) : '—',
+        ])) ?></p>
+        <form method="post" action="<?= $this->e($google['disconnectUrl']) ?>">
+          <?= $this->csrfField() ?>
+          <button type="submit" class="qs-btn" data-confirm="<?= $this->e($this->t('google.disconnect_confirm')) ?>"><?= $this->icon('unplug') ?> <?= $this->e($this->t('google.disconnect')) ?></button>
+        </form>
+      <?php else: ?>
+        <a class="qs-btn qs-btn-primary" href="<?= $this->e($google['connectUrl']) ?>"><?= $this->icon('calendar-plus') ?> <?= $this->e($this->t('google.connect')) ?></a>
+      <?php endif ?>
+    </fieldset>
+  </div>
+<?php endif ?>
 
 <?php if ($api !== null): ?>
   <?php $dtFmt = $this->t('format.datetime'); $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) : '—'; ?>

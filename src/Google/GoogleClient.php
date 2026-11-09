@@ -21,6 +21,9 @@ use Quasar\Core\Settings;
  * Un administrador conecta la cuenta una sola vez (Administración → Integraciones). El token de refresco
  * se guarda cifrado en la tabla settings con una clave derivada de client_secret: una copia de la BD sola
  * no sirve para usarlo.
+ *
+ * Con 'calendar', además, cada usuario puede conectar **su propio** Google Calendar desde su perfil (solo lectura;
+ * connectUser(), userConnection(), calendarEvents(…, $userId)): se lee con su token, sin compartir calendarios.
  */
 final class GoogleClient
 {
@@ -52,14 +55,14 @@ final class GoogleClient
         return $this->redirectUri;
     }
 
-    /** URL de la pantalla de consentimiento de Google. */
-    public function authUrl(string $state): string
+    /** URL de la pantalla de consentimiento de Google ($forUser: la conexión personal de un usuario, solo calendario). */
+    public function authUrl(string $state, bool $forUser = false): string
     {
         return self::AUTH_URL . '?' . http_build_query([
             'client_id' => $this->config['client_id'],
             'redirect_uri' => $this->redirectUri,
             'response_type' => 'code',
-            'scope' => implode(' ', $this->scopes()),
+            'scope' => implode(' ', $forUser ? ['openid', 'email', self::CALENDAR_SCOPE] : $this->scopes()),
             'access_type' => 'offline',
             'prompt' => 'consent',            // así Google devuelve siempre el token de refresco
             'include_granted_scopes' => 'true',
@@ -109,6 +112,59 @@ final class GoogleClient
             : null;
     }
 
+    // ---------------------------------------------------------------- conexión personal (cada usuario, su calendario)
+
+    /**
+     * Guarda la conexión personal de un usuario (vuelta de Google de authUrl(…, true)).
+     * @return array{email:string,connected_at:string}
+     */
+    public function connectUser(int $userId, string $code): array
+    {
+        $token = $this->request('POST', self::TOKEN_URL, [
+            'code' => $code,
+            'client_id' => $this->config['client_id'],
+            'client_secret' => $this->config['client_secret'],
+            'redirect_uri' => $this->redirectUri,
+            'grant_type' => 'authorization_code',
+        ]);
+        if (empty($token['refresh_token'])) {
+            throw new GoogleException('Google no ha devuelto un token de refresco: quita el acceso de la aplicación en tu cuenta de Google y vuelve a conectar');
+        }
+        if (!in_array(self::CALENDAR_SCOPE, explode(' ', (string) ($token['scope'] ?? '')), true)) {
+            throw new GoogleException('No se ha concedido el permiso para leer el calendario');
+        }
+        $info = $this->request('GET', self::USERINFO_URL, null, (string) $token['access_token']);
+        $connection = ['email' => (string) ($info['email'] ?? ''), 'connected_at' => date('c')];
+        $this->settings->set('google.user.' . $userId, $connection + ['refresh_token' => $this->encrypt((string) $token['refresh_token'])]);
+        $this->cacheToken($token, $userId);
+        Log::info('Google: el usuario {user} ha conectado su calendario ({email})', ['user' => $userId, 'email' => $connection['email']]);
+        return $connection;
+    }
+
+    /** @return array{email:string,connected_at:string}|null la conexión personal del usuario */
+    public function userConnection(int $userId): ?array
+    {
+        $c = $this->settings->get('google.user.' . $userId);
+        return is_array($c) && !empty($c['refresh_token'])
+            ? ['email' => (string) ($c['email'] ?? ''), 'connected_at' => (string) ($c['connected_at'] ?? '')]
+            : null;
+    }
+
+    public function disconnectUser(int $userId): void
+    {
+        $c = $this->settings->get('google.user.' . $userId);
+        if (is_array($c) && !empty($c['refresh_token'])) {
+            try {
+                $this->request('POST', self::REVOKE_URL, ['token' => $this->decrypt((string) $c['refresh_token'])]);
+            } catch (GoogleException $e) {
+                Log::notice('Google: no se ha podido revocar el token personal', ['exception' => $e]);
+            }
+        }
+        $this->settings->delete('google.user.' . $userId);
+        $this->settings->delete('google.user_token.' . $userId);
+        Log::info('Google: el usuario {user} ha desconectado su calendario', ['user' => $userId]);
+    }
+
     /** ¿Se pide el permiso de Google Calendar ('calendar' => true en la configuración)? */
     public function calendarEnabled(): bool
     {
@@ -122,18 +178,20 @@ final class GoogleClient
     }
 
     /**
-     * Eventos de un calendario (el id es la dirección de la persona para su calendario principal) que se solapan con
-     * [$from, $to). La cuenta conectada tiene que poder verlo: en Google Workspace, si se comparten los calendarios
-     * dentro de la organización. Las horas, en la zona horaria de PHP.
-     * @return list<array{id:string,title:string,start:string,end:?string,allDay:bool,url:?string,meet:?string,location:?string,busyOnly:bool}>
+     * Eventos de un calendario (el id es la dirección de la persona para su calendario principal; "primary", el de
+     * la cuenta) que se solapan con [$from, $to). Con $userId se lee con la conexión personal de ese usuario; si no,
+     * con la de la instalación, que tiene que poder ver ese calendario (en Workspace, compartido dentro de la
+     * organización). Las horas, en la zona horaria de PHP.
+     * @return list<array{id:string,title:string,start:string,end:?string,allDay:bool,url:?string,meet:?string,location:?string,busyOnly:bool,private:bool}>
      *   start/end "Y-m-d H:i", o "Y-m-d" si es de todo el día (fin exclusivo)
      * @throws GoogleException (status 403/404 si no se tiene acceso a ese calendario)
      */
-    public function calendarEvents(string $calendarId, \DateTimeInterface $from, \DateTimeInterface $to): array
+    public function calendarEvents(string $calendarId, \DateTimeInterface $from, \DateTimeInterface $to, ?int $userId = null): array
     {
-        if (!$this->calendarReady()) {
+        if ($userId !== null ? !$this->calendarEnabled() || $this->userConnection($userId) === null : !$this->calendarReady()) {
             throw new GoogleException('Google Calendar no está activado o falta el permiso: vuelve a conectar la cuenta');
         }
+        $bearer = $this->accessToken($userId);
         $tz = new \DateTimeZone(date_default_timezone_get());
         $out = [];
         $pageToken = null;
@@ -146,7 +204,7 @@ final class GoogleClient
                 'maxResults' => 250,
                 'fields' => 'nextPageToken,items(id,status,summary,start,end,htmlLink,hangoutLink,location,visibility,conferenceData/entryPoints)',
             ] + ($pageToken !== null ? ['pageToken' => $pageToken] : []);
-            $data = $this->request('GET', self::CALENDAR_URL . rawurlencode($calendarId) . '/events?' . http_build_query($query), null, $this->accessToken());
+            $data = $this->request('GET', self::CALENDAR_URL . rawurlencode($calendarId) . '/events?' . http_build_query($query), null, $bearer);
             foreach ((array) ($data['items'] ?? []) as $e) {
                 if (($e['status'] ?? '') === 'cancelled') {
                     continue;
@@ -175,6 +233,8 @@ final class GoogleClient
                     'location' => isset($e['location']) ? (string) $e['location'] : null,
                     // Con permiso solo de disponibilidad, Google da el evento sin título
                     'busyOnly' => !isset($e['summary']),
+                    // Privado: quien no es el propietario solo debería ver que está ocupado
+                    'private' => in_array($e['visibility'] ?? '', ['private', 'confidential'], true),
                 ];
             }
             $pageToken = isset($data['nextPageToken']) ? (string) $data['nextPageToken'] : null;
@@ -231,15 +291,16 @@ final class GoogleClient
 
     // ---------------------------------------------------------------- tokens
 
-    private function accessToken(): string
+    /** Token de acceso de la instalación (o de la conexión personal de $userId), renovado si ha caducado. */
+    private function accessToken(?int $userId = null): string
     {
-        $cached = $this->settings->get('google.token');
+        $cached = $this->settings->get($userId !== null ? 'google.user_token.' . $userId : 'google.token');
         if (is_array($cached) && ($cached['expires'] ?? 0) > time() + 60 && !empty($cached['token'])) {
             return $this->decrypt((string) $cached['token']);
         }
-        $c = $this->settings->get('google.oauth');
+        $c = $this->settings->get($userId !== null ? 'google.user.' . $userId : 'google.oauth');
         if (!is_array($c) || empty($c['refresh_token'])) {
-            throw new GoogleException('La instalación no está conectada con Google');
+            throw new GoogleException($userId !== null ? 'El usuario no ha conectado su Google Calendar' : 'La instalación no está conectada con Google');
         }
         $token = $this->request('POST', self::TOKEN_URL, [
             'client_id' => $this->config['client_id'],
@@ -247,14 +308,14 @@ final class GoogleClient
             'refresh_token' => $this->decrypt((string) $c['refresh_token']),
             'grant_type' => 'refresh_token',
         ]);
-        $this->cacheToken($token);
+        $this->cacheToken($token, $userId);
         return (string) $token['access_token'];
     }
 
-    private function cacheToken(array $token): void
+    private function cacheToken(array $token, ?int $userId = null): void
     {
         if (!empty($token['access_token'])) {
-            $this->settings->set('google.token', [
+            $this->settings->set($userId !== null ? 'google.user_token.' . $userId : 'google.token', [
                 'token' => $this->encrypt((string) $token['access_token']),
                 'expires' => time() + (int) ($token['expires_in'] ?? 3600),
             ]);

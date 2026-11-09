@@ -15,6 +15,16 @@ final class PageController extends Controller
 {
     public function dispatch(): void
     {
+        // Acciones abiertas a cualquier usuario con sesión (Page::USER_ACTIONS): la página comprueba lo suyo
+        $name = $_GET['m'] ?? '';
+        $candidate = is_string($name) ? $this->app->modules()->get($name) : null;
+        $class = $candidate !== null && $candidate->isPage() ? $candidate->pageController() : null;
+        if ($class !== null && in_array((string) ($_GET['a'] ?? 'index'), $class::USER_ACTIONS, true)) {
+            $this->user();
+            $this->app->view->setDomain($candidate->name);
+            $this->run($candidate);
+            return;
+        }
         $module = $this->module('view');
         if ($module->isPublic()) {
             $this->app->redirect($module->url($_GET['a'] ?? null ? ['a' => (string) $_GET['a']] : []));

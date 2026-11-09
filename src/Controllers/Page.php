@@ -34,6 +34,14 @@ abstract class Page extends Controller
     }
 
     /** Acción por defecto. */
+    /**
+     * Acciones que puede usar cualquier usuario con la sesión iniciada aunque no tenga permiso en el módulo (ni sea
+     * administrador si es "adminOnly"): la propia acción comprueba quién la usa. P. ej. la vuelta de Google en
+     * Integraciones, que también sirve para la conexión personal de cada usuario.
+     * @var list<string>
+     */
+    public const USER_ACTIONS = [];
+
     abstract public function index(): void;
 
     /**

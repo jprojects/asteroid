@@ -36,5 +36,9 @@
   "cal": {
     "empty": "Nothing on these dates"
   },
-  "google_no_access": "no access"
+  "google_no_access": "no access",
+  "google_who_me": "My calendar",
+  "google_who_all": "Whole team",
+  "google_connect": "Connect my Google Calendar",
+  "google_not_connected": "You haven't connected your Google Calendar yet."
 }

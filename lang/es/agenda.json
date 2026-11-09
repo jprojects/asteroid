@@ -36,5 +36,9 @@
   "cal": {
     "empty": "No hay nada en estas fechas"
   },
-  "google_no_access": "sin acceso"
+  "google_no_access": "sin acceso",
+  "google_who_me": "Mi calendario",
+  "google_who_all": "Todo el equipo",
+  "google_connect": "Conectar mi Google Calendar",
+  "google_not_connected": "Aún no has conectado tu Google Calendar."
 }

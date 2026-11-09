@@ -63,5 +63,13 @@
     "revoke": "Revoca",
     "revoke_confirm": "L'app o el bot que faci servir «{name}» deixarà de funcionar. Vols continuar?",
     "revoked": "Token revocat"
+  },
+  "google": {
+    "title": "Google Calendar",
+    "intro": "Connecta el teu Google Calendar perquè l'Agenda mostri els teus esdeveniments (només lectura). Els companys de l'equip també el podran veure a l'Agenda; els esdeveniments privats, només com a «Ocupat».",
+    "connect": "Connecta el meu Google Calendar",
+    "connected_as": "Connectat amb {email} des del {date}",
+    "disconnect": "Desconnecta",
+    "disconnect_confirm": "L'Agenda deixarà de mostrar el teu calendari. Vols continuar?"
   }
 }

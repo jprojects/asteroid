@@ -20,6 +20,8 @@
     "calendar_ok": "Google Calendar: permís de lectura concedit",
     "calendar_missing": "Google Calendar està activat però el compte no hi ha donat permís: torna a connectar per acceptar-lo.",
     "reconnect": "Torna a connectar amb Google",
-    "setup_calendar": "Per a Google Calendar: activa també la «Google Calendar API» i afegeix l'àmbit calendar.readonly a la pantalla de consentiment. Els calendaris de les altres persones s'han de poder veure des del compte connectat (compartits dins de l'organització)."
+    "setup_calendar": "Per a Google Calendar: activa també la «Google Calendar API» i afegeix l'àmbit calendar.readonly a la pantalla de consentiment. Els calendaris de les altres persones s'han de poder veure des del compte connectat (compartits dins de l'organització).",
+    "mine_connected": "Google Calendar connectat ({email})",
+    "mine_disconnected": "Google Calendar desconnectat"
   }
 }

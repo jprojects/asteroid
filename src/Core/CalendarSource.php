@@ -13,6 +13,11 @@ use DateTimeImmutable;
  *
  * La clase se crea sin argumentos. Un error suyo no rompe la página: se anota en el log y el calendario se muestra
  * sin esos eventos.
+ *
+ * Opcional: un método `notice(App $app, User $user): ?array` que devuelve
+ * `['text' => '…', 'links' => [['label' => '…', 'url' => '…', 'active' => bool], …]]`; se muestra encima del
+ * calendario (p. ej. «Connecta el teu calendari» o un selector «El meu · Tot l'equip»). Se llama antes que legend()
+ * y events().
  */
 interface CalendarSource
 {

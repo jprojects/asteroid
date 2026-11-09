@@ -667,6 +667,8 @@ fecha es `datetime`, de **semana** y de **día** con una rejilla de horas. Se co
   `start` y `end` (`Y-m-d\TH:i`).
 - Solo muestra los registros que el usuario ve en el módulo de origen (`scope`). Se puede crear otro calendario con
   otro nombre de módulo y la misma clase (p. ej. `modules/agenda.json` sobre las citas de un salón).
+- **Aviso de la fuente** (opcional): si la clase de `extra` tiene `notice($app, $user)`, lo que devuelve (`text` y
+  `links` con `label`, `url` y `active`) sale encima del calendario: p. ej. un selector «El meu · Tot l'equip».
 - **Eventos de fuera** (`extra`): una clase propia que implementa `Quasar\Core\CalendarSource` (`events($app, $user,
   $from, $to)` y `legend($app, $user)`) añade eventos que no son del módulo, por ejemplo los de Google Calendar
   (`GoogleClient::calendarEvents()`). Son de solo lectura: no se arrastran ni se estiran y su enlace se abre en otra
@@ -1098,6 +1100,17 @@ en un calendario, una clase `CalendarSource` (opción `extra`, ver «Calendario�
 - El id del calendario principal de una persona es su dirección. La cuenta conectada solo lee los calendarios que
   puede ver: en Google Workspace, los compartidos dentro de la organización. Sin acceso, Google responde 404 o 403
   (`GoogleException::$status`). Si solo se comparte la disponibilidad, los eventos llegan sin título (`busyOnly`).
+- **Cada usuario, su calendario**: con `calendar`, el **perfil** de cada usuario tiene «Conectar mi Google Calendar»
+  (solo lectura; su token, cifrado, en `settings` `google.user.{id}`). Se lee con
+  `calendarEvents('primary', $from, $to, $userId)`, sin compartir calendarios; `userConnection($id)` dice si está
+  conectado y `private` marca los eventos privados (para enseñarlos solo como ocupado a los demás). Usa la misma
+  dirección de retorno que la conexión de la instalación, así que no hay que registrar ninguna otra en Google Cloud.
+
+### Acciones de una página para cualquier usuario
+
+`public const USER_ACTIONS = ['…']` en una página (`Quasar\Controllers\Page`): esas acciones las puede usar cualquier
+usuario con la sesión iniciada aunque no tenga permiso en el módulo (ni sea administrador si es `adminOnly`); la acción
+comprueba ella misma quién la usa. *Integraciones* lo usa para la vuelta de Google de la conexión personal.
 
 ## Exportación a Excel y PDF
 

@@ -63,6 +63,14 @@ $navLabel = ['month' => ['cal.prev_month', 'cal.next_month'], 'week' => ['cal.pr
       </span>
     <?php endif ?>
   </div>
+  <?php if (!empty($notice) && ($notice['text'] !== '' || $notice['links'])): ?>
+    <div class="qs-toolbar qs-cal-notice">
+      <?php if ($notice['text'] !== ''): ?><span class="qs-muted"><?= $this->e($notice['text']) ?></span><?php endif ?>
+      <?php foreach ($notice['links'] as $l): ?>
+        <a class="qs-btn qs-btn-sm<?= !empty($l['active']) ? ' is-active' : '' ?>" href="<?= $this->e((string) $l['url']) ?>"<?= !empty($l['active']) ? ' aria-current="true"' : '' ?>><?= $this->e((string) $l['label']) ?></a>
+      <?php endforeach ?>
+    </div>
+  <?php endif ?>
 
   <?php if ($view === 'month'): ?>
     <div class="qs-cal" role="grid" aria-label="<?= $this->e($label) ?>">

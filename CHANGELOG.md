@@ -2,6 +2,16 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.24.0 — 2026-11-09
+
+- **Google Calendar de cada usuario**: con `google.calendar`, cada usuario conecta el suyo desde su **perfil** (solo
+  lectura, token personal cifrado) y `GoogleClient::calendarEvents(…, $userId)` lo lee sin compartir calendarios
+  (`connectUser`, `userConnection`, `disconnectUser`; los eventos llevan `private`). Misma dirección de retorno de
+  Google que la conexión de la instalación.
+- **`Page::USER_ACTIONS`**: acciones de una página que puede usar cualquier usuario con sesión (la acción comprueba lo
+  suyo). Integraciones las usa para la conexión personal (`mine`, `mineoff`, `callback`).
+- **Calendario**: la fuente `extra` puede mostrar un aviso con enlaces encima del calendario (`notice()`, opcional).
+
 ## 0.23.0 — 2026-11-06
 
 - **Google Calendar (lectura)**: `'calendar' => true` en `google` pide al conectar el permiso `calendar.readonly`;

@@ -20,6 +20,8 @@
     "calendar_ok": "Google Calendar: permiso de lectura concedido",
     "calendar_missing": "Google Calendar está activado pero la cuenta no ha dado el permiso: vuelve a conectar para aceptarlo.",
     "reconnect": "Volver a conectar con Google",
-    "setup_calendar": "Para Google Calendar: activa también la «Google Calendar API» y añade el ámbito calendar.readonly a la pantalla de consentimiento. Los calendarios de las demás personas se tienen que poder ver desde la cuenta conectada (compartidos dentro de la organización)."
+    "setup_calendar": "Para Google Calendar: activa también la «Google Calendar API» y añade el ámbito calendar.readonly a la pantalla de consentimiento. Los calendarios de las demás personas se tienen que poder ver desde la cuenta conectada (compartidos dentro de la organización).",
+    "mine_connected": "Google Calendar conectado ({email})",
+    "mine_disconnected": "Google Calendar desconectado"
   }
 }

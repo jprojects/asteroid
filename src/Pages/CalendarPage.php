@@ -65,6 +65,7 @@ final class CalendarPage extends Page
         };
         $anchor = $anchor->setTime(0, 0);
 
+        $notice = $this->extraNotice($c); // antes que la leyenda y los eventos (puede fijar qué se ve)
         $vars = [
             'heading' => $this->module->title(),
             'view' => $view,
@@ -73,6 +74,7 @@ final class CalendarPage extends Page
             'newUrl' => $this->allowed('create', $source) ? $this->app->url('edit', ['m' => $source->name]) : null,
             'legend' => array_merge($c['color'] instanceof SelectField ? $this->legend($c['color']) : [], $this->extraLegend($c)),
             'maxPerDay' => self::MAX_PER_DAY,
+            'notice' => $notice,
         ];
         $vars += $view === 'month' ? $this->monthView($c, $anchor) : $this->timeView($c, $anchor, $view);
         $this->view($vars, 'pages/calendar'); // la misma plantilla para cualquier módulo de calendario
@@ -504,6 +506,21 @@ final class CalendarPage extends Page
             ];
         }
         return $out;
+    }
+
+    /** @return ?array{text:string,links:list<array{label:string,url:string,active?:bool}>} aviso de la fuente "extra" */
+    private function extraNotice(array $c): ?array
+    {
+        if ($c['extra'] === null || !method_exists($c['extra'], 'notice')) {
+            return null;
+        }
+        try {
+            $n = $c['extra']->notice($this->app, $this->user());
+            return is_array($n) ? ['text' => (string) ($n['text'] ?? ''), 'links' => array_values((array) ($n['links'] ?? []))] : null;
+        } catch (\Throwable $e) {
+            Log::error('{module}: el aviso de los eventos de fuera ha fallado', ['module' => $this->module->name, 'exception' => $e]);
+            return null;
+        }
     }
 
     /** @return list<array{label:string,color:int,tone:?string}> la leyenda de la fuente "extra" */
