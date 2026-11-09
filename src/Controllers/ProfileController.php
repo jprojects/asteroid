@@ -61,7 +61,7 @@ final class ProfileController extends Controller
             'lastLogin' => $row['last_login'],
             'username' => $row['username'],
             // Conexión personal con Google Calendar (si la instalación tiene Google con 'calendar')
-            'google' => ($g = $this->app->google()) !== null && $g->calendarEnabled() ? [
+            'google' => ($g = $this->app->google()) !== null && $g->calendarFor($user) ? [
                 'connection' => $g->userConnection($user->id()),
                 'connectUrl' => $this->app->url('page', ['m' => 'integrations', 'a' => 'mine']),
                 'disconnectUrl' => $this->app->url('page', ['m' => 'integrations', 'a' => 'mineoff']),

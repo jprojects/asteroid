@@ -1105,6 +1105,7 @@ en un calendario, una clase `CalendarSource` (opción `extra`, ver «Calendario�
   `calendarEvents('primary', $from, $to, $userId)`, sin compartir calendarios; `userConnection($id)` dice si está
   conectado y `private` marca los eventos privados (para enseñarlos solo como ocupado a los demás). Usa la misma
   dirección de retorno que la conexión de la instalación, así que no hay que registrar ninguna otra en Google Cloud.
+  Con `'calendar' => ['equip']` (códigos de grupo) solo esos usuarios, y los administradores, lo pueden conectar.
 
 ### Acciones de una página para cualquier usuario
 

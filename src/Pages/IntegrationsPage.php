@@ -47,7 +47,7 @@ final class IntegrationsPage extends Page
     public function actionMine(): void
     {
         $google = $this->google();
-        if (!$google->calendarEnabled()) {
+        if (!$google->calendarFor($this->user())) {
             throw new HttpException(404);
         }
         $state = bin2hex(random_bytes(16));

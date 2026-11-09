@@ -15,7 +15,8 @@ use Quasar\Core\Settings;
  *       'client_secret' => '…',
  *       'meet_access' => 'OPEN',   // OPEN: entra cualquiera con el enlace · TRUSTED: los de la organización
  *                                  // y los invitados · RESTRICTED: solo invitados · null: lo que diga la cuenta
- *       'calendar' => true,        // opcional: permiso de lectura de Google Calendar (calendarEvents())
+ *       'calendar' => true,        // opcional: permiso de lectura de Google Calendar (calendarEvents()); o una lista
+ *                                  // de grupos (['equip']): solo ellos (y los administradores) conectan el suyo
  *   ],
  *
  * Un administrador conecta la cuenta una sola vez (Administración → Integraciones). El token de refresco
@@ -163,6 +164,16 @@ final class GoogleClient
         $this->settings->delete('google.user.' . $userId);
         $this->settings->delete('google.user_token.' . $userId);
         Log::info('Google: el usuario {user} ha desconectado su calendario', ['user' => $userId]);
+    }
+
+    /** ¿Puede este usuario conectar su propio Google Calendar? ('calendar' => true, o es de uno de sus grupos) */
+    public function calendarFor(\Quasar\Core\User $user): bool
+    {
+        $cfg = $this->config['calendar'] ?? null;
+        if (empty($cfg)) {
+            return false;
+        }
+        return !is_array($cfg) || $user->isAdmin() || $user->inGroup(array_map('strval', $cfg));
     }
 
     /** ¿Se pide el permiso de Google Calendar ('calendar' => true en la configuración)? */

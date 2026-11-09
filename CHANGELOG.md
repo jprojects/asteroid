@@ -2,6 +2,11 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.24.1 — 2026-11-09
+
+- `google.calendar` también admite una lista de grupos (`['equip']`): solo esos usuarios (y los administradores) ven en
+  el perfil la conexión personal con Google Calendar (`GoogleClient::calendarFor()`).
+
 ## 0.24.0 — 2026-11-09
 
 - **Google Calendar de cada usuario**: con `google.calendar`, cada usuario conecta el suyo desde su **perfil** (solo

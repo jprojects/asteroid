@@ -229,7 +229,7 @@ abren en Google Calendar; se crean y se cambian allí.
 
 1. Google Cloud Console: activar la **Google Calendar API** y añadir el ámbito `calendar.readonly` a la pantalla de
    consentimiento.
-2. `config.local.php`: `'calendar' => true` dentro de `'google'`.
+2. `config.local.php`: `'calendar' => ['equip']` dentro de `'google'` (solo el equipo y los administradores conectan el suyo).
 3. *Integracions*: **Torna a connectar amb Google** (pide el permiso nuevo).
 4. Cada persona del equipo: *Perfil → Google Calendar → Connecta el meu Google Calendar*.
 
