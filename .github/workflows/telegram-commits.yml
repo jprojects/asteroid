@@ -40,18 +40,20 @@ jobs:
             exit 0
           fi
           # Texto en HTML de Telegram: cabecera y una línea por commit (los 15 últimos), con & < > escapados
+          # «de …»: los autores de los commits (no la cuenta que hace el push); con varios, también en cada línea
           TEXT=$(echo "$COMMITS" | jq -r \
             --arg repo "$REPO" --arg ref "$REF" --arg pusher "$PUSHER" --arg compare "$COMPARE" --arg forced "$FORCED" '
             def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
+            ([.[].author.name // $pusher] | unique) as $authors |
             ( "<b>" + ($repo | esc) + "</b> · " + ($ref | esc)
               + " · " + (length | tostring) + (if length == 1 then " commit" else " commits" end)
-              + " de " + ($pusher | esc)
+              + " de " + ($authors | join(", ") | esc)
               + (if $forced == "true" then " (forzado)" else "" end) ),
             "",
             ( .[-15:][] |
               "• <a href=\"" + .url + "\">" + (.id[0:7]) + "</a> "
               + ((.message | split("\n")[0]) | .[0:200] | esc)
-              + (if (.author.name // "") != $pusher then " — " + (.author.name | esc) else "" end) ),
+              + (if ($authors | length) > 1 then " — " + ((.author.name // "") | esc) else "" end) ),
             (if length > 15 then "… y " + ((length - 15) | tostring) + " más" else empty end),
             "",
             "<a href=\"" + $compare + "\">Ver los cambios</a>"
