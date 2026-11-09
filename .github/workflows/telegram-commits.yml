@@ -1,0 +1,69 @@
+# Envía los commits de cada push al grupo de Telegram del equipo (tema «Commits»), con el bot de Asteroid.
+#
+# Configuración (GitHub → Settings → Secrets and variables → Actions):
+#   - Secret   TELEGRAM_BOT_TOKEN   el token del bot (el mismo de config.local.php → telegram.token)
+#   - Variable TELEGRAM_CHAT_ID     opcional; por defecto el grupo del equipo (-1004290413549)
+#   - Variable TELEGRAM_THREAD_ID   opcional; por defecto el tema 360
+# Sin el secret, el workflow no falla: solo lo avisa en el registro.
+name: Commits a Telegram
+
+on:
+  push:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar los commits al tema de Telegram
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '-1004290413549' }}
+          THREAD_ID: ${{ vars.TELEGRAM_THREAD_ID || '360' }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref_name }}
+          PUSHER: ${{ github.event.pusher.name }}
+          COMPARE: ${{ github.event.compare }}
+          FORCED: ${{ github.event.forced }}
+          COMMITS: ${{ toJSON(github.event.commits) }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::Falta el secret TELEGRAM_BOT_TOKEN: no se envía nada a Telegram"
+            exit 0
+          fi
+          COUNT=$(echo "$COMMITS" | jq 'length')
+          if [ "$COUNT" -eq 0 ]; then
+            echo "Push sin commits nuevos (rama creada o borrada): no se envía nada"
+            exit 0
+          fi
+          # Texto en HTML de Telegram: cabecera y una línea por commit (los 15 últimos), con & < > escapados
+          TEXT=$(echo "$COMMITS" | jq -r \
+            --arg repo "$REPO" --arg ref "$REF" --arg pusher "$PUSHER" --arg compare "$COMPARE" --arg forced "$FORCED" '
+            def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
+            ( "<b>" + ($repo | esc) + "</b> · " + ($ref | esc)
+              + " · " + (length | tostring) + (if length == 1 then " commit" else " commits" end)
+              + " de " + ($pusher | esc)
+              + (if $forced == "true" then " (forzado)" else "" end) ),
+            "",
+            ( .[-15:][] |
+              "• <a href=\"" + .url + "\">" + (.id[0:7]) + "</a> "
+              + ((.message | split("\n")[0]) | .[0:200] | esc)
+              + (if (.author.name // "") != $pusher then " — " + (.author.name | esc) else "" end) ),
+            (if length > 15 then "… y " + ((length - 15) | tostring) + " más" else empty end),
+            "",
+            "<a href=\"" + $compare + "\">Ver los cambios</a>"
+          ')
+          RESPONSE=$(curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "message_thread_id=${THREAD_ID}" \
+            --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=${TEXT}")
+          if [ "$(echo "$RESPONSE" | jq -r '.ok')" != "true" ]; then
+            echo "::error::Telegram no ha aceptado el mensaje: $(echo "$RESPONSE" | jq -r '.description')"
+            exit 1
+          fi
+          echo "Enviado al tema $THREAD_ID ($COUNT commits)"
