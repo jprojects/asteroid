@@ -288,7 +288,7 @@ Cron diario (de noche; analiza los que tocan): `30 3 * * * /opt/alt/php82/usr/bi
 A mano: `php tools/web-audit.php --all` o `--project=N`. La web se envía a Pulsar sin `https://` (el tallafoc de
 Webempresa bloquea URL en los parámetros). Los textos de los problemas vienen de Pulsar, en catalán.
 
-## Claude Code (MCP): Claude lee y trabaja las incidencias
+## Claude Code (MCP): Claude lee y trabaja las incidencias y la wiki
 
 `tools/mcp.php` es un servidor MCP local (stdio, sin dependencias; PHP con `curl`) que Claude Code arranca en el
 ordenador de cada uno. Usa la API de Asteroid con el **token personal** (Perfil → API): ve y hace lo mismo que ese
@@ -302,6 +302,8 @@ usuario. Herramientas:
 | `asteroid_respon` | escribir en la conversación (lo recibe el cliente si la incidencia es visible para él) |
 | `asteroid_imputa` | imputar horas (`1:30`, `45m`…) con comentario |
 | `asteroid_estat` | pendent · en_curs · resolta · descartada |
+| `asteroid_wiki` | la wiki: las páginas (de un proyecto, con un texto a buscar) por secciones, o una entera con su HTML |
+| `asteroid_wiki_desa` | crear o actualizar una página de la wiki (si ya hay una con el mismo título en el proyecto, la actualiza): título, contenido en HTML, sección, orden y audiencia (`equip` por defecto, o `client`) |
 
 Las de escritura piden confirmación (Claude Code pregunta antes de usar una herramienta, y el servidor le indica que
 enseñe el texto antes). Alta, una vez por usuario (queda en `~/.claude.json`; `claude` también está dentro de la extensión de VS Code, en
@@ -319,7 +321,9 @@ El token va en un fichero privado (no en la configuración ni en git):
 mkdir -p ~/.config/asteroid-mcp && nano ~/.config/asteroid-mcp/token && chmod 600 ~/.config/asteroid-mcp/token
 ```
 
-Uso: en VS Code, con el repositorio del cliente abierto, «*mira la incidència 4014 i proposa com arreglar-la*».
+Uso: en VS Code, con el repositorio del cliente abierto, «*mira la incidència 4014 i proposa com arreglar-la*». Para la documentación: «*documenta a la wiki de NEUTRON com es publica una versió*» (en catalán, HTML sencillo, nunca
+contraseñas ni tokens; lo dicen la herramienta y las instrucciones del servidor). Tras actualizar `tools/mcp.php`, Claude
+Code carga las herramientas nuevas en una conversación nueva (o con `/mcp` → reconectar).
 
 ## API antigua (enlace con Factusol)
 

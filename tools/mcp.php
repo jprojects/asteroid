@@ -2,7 +2,8 @@
 <?php
 /**
  * Asteroid · servidor MCP para Claude Code (local, stdio, sin dependencias): Claude lee las incidencias de Asteroid
- * (ficha, conversación, adjuntos y horas) y, con tu confirmación, responde, imputa horas o cambia el estado.
+ * (ficha, conversación, adjuntos y horas) y, con tu confirmación, responde, imputa horas o cambia el estado; también lee
+ * y escribe la wiki (documentación de los proyectos).
  * Usa la API de Asteroid con TU token personal (Perfil → API): ve y hace lo mismo que tú, nada más.
  *
  * Alta en Claude Code (una vez; disponible en todos los proyectos):
@@ -170,6 +171,36 @@ final class Tools
                     'estat' => ['type' => 'string', 'enum' => array_keys(STATUSES)],
                 ], 'required' => ['id', 'estat']],
             ],
+            [
+                'name' => 'asteroid_wiki',
+                'description' => "Wiki d'Asteroid (documentació dels projectes). Sense «pagina»: la llista de pàgines (d'un projecte, si es diu, "
+                    . "i amb un text a cercar), per seccions i amb el número de cada una. Amb «pagina»: la pàgina sencera amb el seu HTML "
+                    . "(per editar-la amb asteroid_wiki_desa).",
+                'inputSchema' => ['type' => 'object', 'properties' => [
+                    'projecte' => ['type' => 'string', 'description' => 'Nom o número del projecte (p. ex. NEUTRON o 268)'],
+                    'cerca' => ['type' => 'string', 'description' => 'Text a cercar al títol, la secció o el contingut'],
+                    'pagina' => ['type' => 'integer', 'description' => 'Número de la pàgina per llegir-la sencera'],
+                ]],
+                'annotations' => ['readOnlyHint' => true],
+            ],
+            [
+                'name' => 'asteroid_wiki_desa',
+                'description' => "Crea o actualitza una pàgina de la wiki d'Asteroid (amb «pagina», aquesta; si no, la del mateix títol al "
+                    . "projecte, o una de nova). Escriu en català, en HTML senzill (p, h3, ul, ol, li, strong, em, code, a, table), "
+                    . "amb frases curtes i passos numerats; el títol, un nom (no una frase). Mai contrasenyes, tokens ni claus: només on "
+                    . "són. «audiencia» equip (per defecte: només l'equip d'AFI) o client (la veu el client del projecte: manuals d'ús). "
+                    . "Ensenya a l'usuari el títol, el projecte, l'audiència i un resum del contingut i demana-li confirmació abans.",
+                'inputSchema' => ['type' => 'object', 'properties' => [
+                    'projecte' => ['type' => 'string', 'description' => 'Nom o número del projecte'],
+                    'titol' => ['type' => 'string'],
+                    'cos' => ['type' => 'string', 'description' => 'Contingut en HTML'],
+                    'seccio' => ['type' => 'string', 'description' => 'Secció del menú de la wiki (agrupa pàgines)'],
+                    'ordre' => ['type' => 'integer', 'description' => 'Ordre dins de la secció'],
+                    'audiencia' => ['type' => 'string', 'enum' => ['equip', 'client']],
+                    'pagina' => ['type' => 'integer', 'description' => 'Número de la pàgina, per actualitzar-ne una de concreta'],
+                ], 'required' => ['titol', 'cos']],
+                'annotations' => ['destructiveHint' => false],
+            ],
         ];
     }
 
@@ -183,6 +214,8 @@ final class Tools
             'asteroid_respon' => $this->reply(self::id($args), (string) ($args['text'] ?? '')),
             'asteroid_imputa' => $this->logHours(self::id($args), (string) ($args['temps'] ?? ''), (string) ($args['comentari'] ?? ''), (string) ($args['data'] ?? '')),
             'asteroid_estat' => $this->setStatus(self::id($args), (string) ($args['estat'] ?? '')),
+            'asteroid_wiki' => $this->wiki($args),
+            'asteroid_wiki_desa' => $this->wikiSave($args),
             default => throw new InvalidArgumentException("Eina desconeguda: $name"),
         };
     }
@@ -332,6 +365,110 @@ final class Tools
         return self::text_("#$id ara està: " . ($i['_display']['status'] ?? $status) . '.');
     }
 
+    /** Número de un projecte pel nom (el que coincideix, o l'únic que surt) o pel número */
+    private function projectId(string $project): int
+    {
+        $project = trim($project);
+        if (preg_match('/^\d+$/', $project)) {
+            return (int) $project;
+        }
+        $rows = (array) ($this->api->call('GET', 'projects', ['q' => $project, 'per_page' => 20, 'fields' => 'id,title'])['data'] ?? []);
+        foreach ($rows as $r) {
+            if (mb_strtolower((string) $r['title']) === mb_strtolower($project)) {
+                return (int) $r['id'];
+            }
+        }
+        if (count($rows) === 1) {
+            return (int) $rows[0]['id'];
+        }
+        throw new InvalidArgumentException($rows ? "Hi ha diversos projectes per «{$project}»: "
+            . implode(', ', array_map(static fn ($r) => $r['title'] . ' (' . $r['id'] . ')', $rows)) : "No hi ha cap projecte «{$project}»");
+    }
+
+    private function wikiUrl(int $id): string
+    {
+        return preg_replace('#/index\.php\?r=api.*$#', '', $this->api->url('x')) . '/index.php?r=page&m=wiki&page=' . $id;
+    }
+
+    private function wiki(array $args): array
+    {
+        if (!empty($args['pagina'])) {
+            $p = $this->api->call('GET', 'wiki_pages/' . (int) $args['pagina'], ['lang' => 'ca']);
+            $d = $p['_display'] ?? [];
+            return self::text_(implode("\n", [
+                '# ' . ($p['title'] ?? ''), '',
+                '- **Projecte:** ' . ($d['project_id'] ?? $p['project_id'] ?? '—') . ' · **Secció:** ' . (($p['section'] ?? '') ?: '—')
+                    . ' · **Ordre:** ' . ($p['ordering'] ?? 0) . ' · **Per a:** ' . ($d['audience'] ?? $p['audience'] ?? ''),
+                '- **Actualitzada:** ' . ($d['updated_at'] ?? $p['updated_at'] ?? '') . ' · ' . $this->wikiUrl((int) $p['id']), '',
+                '## HTML', '', (string) ($p['body'] ?? ''),
+            ]));
+        }
+        $query = ['sort' => 'ordering', 'dir' => 'asc', 'per_page' => 200, 'fields' => 'id,title,project_id,section,ordering,audience'];
+        if (!empty($args['projecte'])) {
+            $query['f'] = ['project_id' => $this->projectId((string) $args['projecte'])];
+        }
+        if (!empty($args['cerca'])) {
+            $query['q'] = (string) $args['cerca'];
+        }
+        $rows = (array) ($this->api->call('GET', 'wiki_pages', $query)['data'] ?? []);
+        if (!$rows) {
+            return self::text_('Cap pàgina.');
+        }
+        $groups = [];
+        foreach ($rows as $r) {
+            $d = $r['_display'] ?? [];
+            $groups[($d['project_id'] ?? $r['project_id']) . ' › ' . (($r['section'] ?? '') ?: 'Sense secció')][] =
+                '- ' . $r['id'] . ': ' . $r['title'] . ($r['audience'] === 'client' ? ' (client)' : '');
+        }
+        $out = ['Pàgines de la wiki (' . count($rows) . '):'];
+        foreach ($groups as $g => $lines) {
+            $out[] = "\n**$g**";
+            array_push($out, ...$lines);
+        }
+        return self::text_(implode("\n", $out));
+    }
+
+    private function wikiSave(array $args): array
+    {
+        $title = trim((string) ($args['titol'] ?? ''));
+        $body = trim((string) ($args['cos'] ?? ''));
+        if ($title === '' || $body === '') {
+            throw new InvalidArgumentException('Falten el títol o el contingut');
+        }
+        $data = ['title' => $title, 'body' => $body];
+        foreach (['seccio' => 'section', 'ordre' => 'ordering'] as $in => $field) {
+            if (array_key_exists($in, $args)) {
+                $data[$field] = $args[$in];
+            }
+        }
+        if (!empty($args['audiencia'])) {
+            $data['audience'] = $args['audiencia'] === 'client' ? 'client' : 'team';
+        }
+        $id = (int) ($args['pagina'] ?? 0);
+        $projectId = !empty($args['projecte']) ? $this->projectId((string) $args['projecte']) : 0;
+        if ($id === 0 && $projectId > 0) {
+            // La mateixa pàgina (mateix títol al projecte): s'actualitza en lloc de duplicar-la
+            foreach ((array) ($this->api->call('GET', 'wiki_pages', ['f' => ['project_id' => $projectId], 'per_page' => 200, 'fields' => 'id,title'])['data'] ?? []) as $r) {
+                if (mb_strtolower(trim((string) $r['title'])) === mb_strtolower($title)) {
+                    $id = (int) $r['id'];
+                    break;
+                }
+            }
+        }
+        if ($id > 0) {
+            if ($projectId > 0) {
+                $data['project_id'] = $projectId;
+            }
+            $p = $this->api->call('PATCH', 'wiki_pages/' . $id, [], $data);
+            return self::text_("Pàgina actualitzada: «{$p['title']}» · " . $this->wikiUrl($id));
+        }
+        if ($projectId === 0) {
+            throw new InvalidArgumentException('Per crear una pàgina cal el projecte');
+        }
+        $p = $this->api->call('POST', 'wiki_pages', [], $data + ['project_id' => $projectId, 'audience' => $data['audience'] ?? 'team']);
+        return self::text_("Pàgina creada: «{$p['title']}» (número {$p['id']}) · " . $this->wikiUrl((int) $p['id']));
+    }
+
     private function me(): array
     {
         return $this->me ??= $this->api->call('GET', 'me');
@@ -417,9 +554,11 @@ while (($line = fgets(STDIN)) !== false) {
             'initialize' => [
                 'protocolVersion' => (string) ($msg['params']['protocolVersion'] ?? MCP_VERSION),
                 'capabilities' => ['tools' => new stdClass()],
-                'serverInfo' => ['name' => 'asteroid', 'version' => '1.0.0'],
+                'serverInfo' => ['name' => 'asteroid', 'version' => '1.1.0'],
                 'instructions' => "Asteroid és el gestor d'incidències d'AFI. Llegeix una incidència amb asteroid_incidencia abans de "
-                    . "treballar-hi. No responguis, imputis hores ni canviïs l'estat sense que l'usuari ho hagi confirmat.",
+                    . "treballar-hi. No responguis, imputis hores ni canviïs l'estat sense que l'usuari ho hagi confirmat. "
+                    . "La wiki (asteroid_wiki, asteroid_wiki_desa) és la documentació dels projectes: abans d'escriure-hi, mira què "
+                    . "hi ha al projecte per no repetir pàgines i segueix l'estil de les que ja hi són; demana confirmació abans de desar.",
             ],
             'ping' => new stdClass(),
             'tools/list' => ['tools' => Tools::definitions()],
