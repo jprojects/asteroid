@@ -52,9 +52,13 @@ final class DataQuery
             $cells = [];
             $badges = [];
             $tags = [];
+            $toggles = [];
             foreach ($columns as $c) {
                 $f = $c['field'];
                 $value = $row[$f->name] ?? null;
+                if (!empty($c['toggle'])) {
+                    $toggles[$f->name] = (int) $value === 1 ? 1 : 0; // el interruptor de la tabla
+                }
                 // En columnas "wrap" el texto va entero; en "ellipsis" lo recorta el navegador
                 $cells[$f->name] = $c['overflow'] === 'wrap' ? $f->fullText($value) : $f->format($value);
                 if (($list = $f->cellTags($value)) !== null) {
@@ -86,6 +90,7 @@ final class DataQuery
             $rows[] = ['id' => (string) $row['__pk'], 'cells' => $cells]
                 + ($badges ? ['badges' => $badges] : [])
                 + ($tags ? ['tags' => $tags] : [])
+                + ($toggles ? ['toggles' => $toggles] : [])
                 + ($details ? ['details' => $details] : [])
                 + ($hide ? ['hide' => $hide] : []);
         }

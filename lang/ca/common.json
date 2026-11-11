@@ -63,7 +63,8 @@
     "collapse": "Plega",
     "expand_all": "Desplega-ho tot",
     "collapse_all": "Plega-ho tot",
-    "total": "Total"
+    "total": "Total",
+    "toggle_error": "No s'ha pogut desar el canvi"
   },
   "filter": {
     "all": "— Tots —",

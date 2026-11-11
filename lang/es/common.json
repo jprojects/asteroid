@@ -63,7 +63,8 @@
     "collapse": "Plegar",
     "expand_all": "Desplegar todo",
     "collapse_all": "Plegar todo",
-    "total": "Total"
+    "total": "Total",
+    "toggle_error": "No se ha podido guardar el cambio"
   },
   "filter": {
     "all": "— Todos —",

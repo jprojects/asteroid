@@ -34,8 +34,12 @@ final class ModuleController extends Controller
             'canEdit' => $this->can($m, 'edit'),
             'chat' => $m->chatAllows(),
             'canDelete' => $this->can($m, 'delete'),
-            'columns' => array_map(static fn ($c) => array_filter([
+            'toggleUrl' => $this->app->url('toggle', ['m' => $m->name]),
+            'columns' => array_map(fn ($c) => array_filter([
                 'field' => $c['field']->name,
+                'label' => $c['label'],
+                // Interruptor: solo si puede editar el módulo y el campo (editAccess, readonly)
+                'toggle' => $c['toggle'] && $this->can($m, 'edit') && $c['field']->canEdit() && !$c['field']->isReadonly() ? true : null,
                 'align' => $c['align'],
                 'overflow' => $c['overflow'],
                 'lines' => $c['lines'],
@@ -70,6 +74,7 @@ final class ModuleController extends Controller
                 'total' => $this->t('table.total'),
                 'chat' => $this->t('chat.messages_count'),
                 'chatUnread' => $this->t('chat.unread_count'),
+                'toggleError' => $this->t('table.toggle_error'),
             ],
         ];
 
@@ -193,6 +198,41 @@ final class ModuleController extends Controller
         $this->app->redirect(isset($_POST['_close'])
             ? $this->app->url('list', ['m' => $m->name])
             : $this->app->url('edit', ['m' => $m->name, 'id' => $result['id']]));
+    }
+
+    /**
+     * POST r=toggle&m=…&id=… (field, value): el interruptor de una columna "toggle" de la tabla. Guarda solo ese campo
+     * por el mismo camino que la ficha (permiso de editar, editAccess, scope, validación y hooks). JSON.
+     */
+    public function toggle(): void
+    {
+        $this->requirePost();
+        $m = $this->module('view');
+        $this->authorize($m, 'edit');
+        $id = $this->idParam() ?? throw new HttpException(404);
+        $name = (string) ($_POST['field'] ?? '');
+        $column = null;
+        foreach ($m->listColumns() as $c) {
+            if ($c['toggle'] && $c['field']->name === $name) {
+                $column = $c;
+            }
+        }
+        if ($column === null || !$column['field']->canEdit() || $column['field']->isReadonly()) {
+            $this->app->json(['error' => $this->t('errors.403')], 403);
+            return;
+        }
+        $form = new FormHandler($m, $this->app->db);
+        if ($form->load($id) === null) {
+            throw new HttpException(404); // no existe o queda fuera de su "scope"
+        }
+        $value = in_array((string) ($_POST['value'] ?? '0'), ['1', 'on', 'true'], true) ? '1' : '0';
+        $result = $form->process([$name => $value], $id, $this->user(), true);
+        if (!$result['ok']) {
+            $this->app->json(['error' => implode(' · ', $result['errors']) ?: $this->t('table.toggle_error')], 422);
+            return;
+        }
+        Log::info('{module}: registro {id}, {field} = {value} desde la tabla', ['module' => $m->name, 'id' => $id, 'field' => $name, 'value' => $value]);
+        $this->app->json(['ok' => true, 'value' => (int) $value, 'text' => $column['field']->format((int) $value)]);
     }
 
     public function delete(): void

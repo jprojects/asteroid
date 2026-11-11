@@ -63,7 +63,8 @@
     "collapse": "Collapse",
     "expand_all": "Expand all",
     "collapse_all": "Collapse all",
-    "total": "Total"
+    "total": "Total",
+    "toggle_error": "The change could not be saved"
   },
   "filter": {
     "all": "— All —",

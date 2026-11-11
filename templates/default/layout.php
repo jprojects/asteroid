@@ -64,7 +64,7 @@ $pageTitle = ($title ?? '') !== '' ? $title . ' · ' . $this->appName() : $this-
     <button type="button" class="qs-icon-btn qs-sidebar-toggle" data-sidebar-toggle aria-controls="qs-sidebar"
             aria-expanded="<?= $this->sidebarCollapsed() ? 'false' : 'true' ?>"
             title="<?= $this->e($this->t('nav.toggle')) ?> (Ctrl+B)" aria-label="<?= $this->e($this->t('nav.toggle')) ?>">
-      <?= $this->icon('panel-left') ?>
+      <?= $this->icon('panel-left', 'qs-only-desktop') ?><?= $this->icon('menu', 'qs-only-mobile') ?>
     </button>
     <nav class="qs-breadcrumbs" aria-label="<?= $this->e($this->t('page.breadcrumbs')) ?>">
       <ol>

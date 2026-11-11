@@ -559,7 +559,8 @@ final class Module
      *   "overflow": "ellipsis"   una línea recortada con "…" (por defecto; "list.overflow" cambia el del módulo)
      *   "overflow": "wrap"       texto entero en varias líneas;  "lines": 3  como máximo 3 líneas y "…"
      *   "minWidth" / "maxWidth"  límites de ancho de la columna (CSS: "200px", "20em")
-     * @return list<array{field:Field,label:string,sortable:bool,width:?string,align:string,overflow:string,lines:?int,minWidth:?string,maxWidth:?string}>
+     *   "toggle": true           (solo checkbox) un interruptor que lo cambia desde la tabla, para quien puede editar
+     * @return list<array{field:Field,label:string,sortable:bool,width:?string,align:string,overflow:string,lines:?int,minWidth:?string,maxWidth:?string,toggle:bool}>
      */
     private function parseColumns(array $defs): array
     {
@@ -571,6 +572,10 @@ final class Module
             $overflow = (string) ($c['overflow'] ?? $defaultOverflow);
             if (!in_array($overflow, self::OVERFLOW, true)) {
                 throw new \RuntimeException("Módulo '{$this->name}': \"overflow\" de la columna '{$field->name}' debe ser " . implode(' o ', self::OVERFLOW));
+            }
+            $toggle = !empty($c['toggle']);
+            if ($toggle && $field->type() !== 'checkbox') {
+                throw new \RuntimeException("Módulo '{$this->name}': \"toggle\" de la columna '{$field->name}' solo vale para campos checkbox");
             }
             if (!$field->canView()) {
                 continue;
@@ -586,6 +591,7 @@ final class Module
                 'lines' => $overflow === 'wrap' ? $lines : null,
                 'minWidth' => isset($c['minWidth']) ? (string) $c['minWidth'] : null,
                 'maxWidth' => isset($c['maxWidth']) ? (string) $c['maxWidth'] : null,
+                'toggle' => $toggle,
             ];
         }
         return $cols;

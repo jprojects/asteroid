@@ -2,6 +2,18 @@
 
 Formato: una sección por versión, la más reciente arriba. Cada versión se etiqueta en git como `vX.Y.Z`.
 
+## 0.25.0 — 2026-11-11
+
+- **Interruptores sí/no en las tablas**: una columna de un campo `checkbox` con `"toggle": true` se cambia desde la
+  tabla con un interruptor (nueva ruta `r=toggle`), solo para quien puede editar el módulo y el campo; guarda por el
+  mismo camino que la ficha (permisos, `scope`, validación, hooks) y, si falla, vuelve atrás y muestra el error.
+
+## 0.24.2 — 2026-11-10
+
+- **Menú en el móvil**: en pantallas de 760 px o menos el menú lateral ya no se pinta como un bloque de módulos encima
+  del contenido; el botón de la barra superior lo abre como un panel lateral (se cierra al elegir una sección, al
+  pulsar fuera o con Esc). El menú reducido a iconos queda solo para escritorio.
+
 ## 0.24.1 — 2026-11-09
 
 - `google.calendar` también admite una lista de grupos (`['equip']`): solo esos usuarios (y los administradores) ven en

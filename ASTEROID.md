@@ -194,6 +194,12 @@ cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
 
+## Visibilidad para el cliente desde la tabla
+
+En *Incidències*, la columna **Visible pel client** es un interruptor (`"toggle": true` en `modules/issues.json`,
+Quasar 0.25.0): el equipo la cambia sin abrir la ficha. Los clientes no ven la columna (`access: ["equip"]`) y el
+servidor rechaza el cambio si no pueden editar el campo.
+
 ## Incidencia desde un correo
 
 Botón **Des d'un correu** en la barra de *Incidències* (solo el equipo; página `IssueFromMailPage`, fuera del menú).

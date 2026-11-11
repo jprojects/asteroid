@@ -978,7 +978,7 @@
       // Doble clic / Enter abre el registro; flechas navegan (→ ← despliegan); Supr borra
       this.tbody.addEventListener('dblclick', (e) => {
         const tr = e.target.closest('tr[data-id]');
-        if (tr && !e.target.closest('a, button')) this.open(tr.dataset.id);
+        if (tr && !e.target.closest('a, button, .qs-switch')) this.open(tr.dataset.id);
       });
       this.tbody.addEventListener('click', (e) => {
         const del = e.target.closest('[data-action="delete"]');
@@ -1228,6 +1228,38 @@
       });
     }
 
+    // Interruptor de una columna "toggle": guarda ese campo al momento; si falla, vuelve atrás y lo dice
+    toggleSwitch(row, col, text) {
+      const sw = document.createElement('label');
+      sw.className = 'qs-switch';
+      sw.title = text;
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.setAttribute('role', 'switch');
+      input.checked = row.toggles[col.field] === 1;
+      input.setAttribute('aria-label', `${col.label || col.field} · #${row.id}`);
+      const track = document.createElement('span');
+      track.className = 'qs-switch-track';
+      track.setAttribute('aria-hidden', 'true');
+      input.addEventListener('change', async () => {
+        input.disabled = true;
+        try {
+          const res = await request(`${this.cfg.toggleUrl}&id=${encodeURIComponent(row.id)}`, {
+            method: 'POST', data: { field: col.field, value: input.checked ? '1' : '0' },
+          });
+          row.toggles[col.field] = res.value;
+          if (res.text) sw.title = res.text;
+        } catch (err) {
+          input.checked = !input.checked;
+          Toast.show(err.message || this.i18n.toggleError, 'error');
+        } finally {
+          input.disabled = false;
+        }
+      });
+      sw.append(input, track);
+      return sw;
+    }
+
     renderRow(row) {
       const tr = document.createElement('tr');
       tr.dataset.id = row.id;
@@ -1267,7 +1299,9 @@
           box.style.setProperty('--lines', String(col.lines));
           td.append(box);
         }
-        if (many) {
+        if (col.toggle && row.toggles && col.field in row.toggles) {
+          box.append(this.toggleSwitch(row, col, text));
+        } else if (many) {
           td.classList.add('qs-cell-tags');
           many.forEach(([t, c]) => box.append(tag(t, c)));
         } else if (tone && text !== '') box.append(tag(text, tone));
@@ -3646,13 +3680,50 @@
 
   // ------------------------------------------------------------------ barra lateral plegable
 
-  // El estado va en una cookie para que el servidor pinte la página ya plegada (sin parpadeo)
+  // Escritorio: el menú se reduce a iconos; el estado va en una cookie para que el servidor pinte la página ya
+  // plegada (sin parpadeo). Móvil: el menú es un panel que se abre por encima del contenido y no se recuerda.
+  const mobileNav = window.matchMedia('(max-width: 760px)');
+  const sidebar = $('#qs-sidebar');
+  let backdrop = null;
+  const setToggleState = (expanded) => $$('[data-sidebar-toggle]').forEach((btn) => btn.setAttribute('aria-expanded', String(expanded)));
+  const openNav = (open) => {
+    if (!sidebar || document.body.classList.contains('is-nav-open') === open) return;
+    document.body.classList.toggle('is-nav-open', open);
+    setToggleState(open);
+    if (open) {
+      backdrop = document.createElement('div');
+      backdrop.className = 'qs-nav-backdrop';
+      backdrop.addEventListener('click', () => openNav(false));
+      document.body.append(backdrop);
+      ($('.qs-nav-item.is-active', sidebar) || $('.qs-nav-item', sidebar))?.focus({ preventScroll: true });
+    } else if (backdrop) {
+      backdrop.remove();
+      backdrop = null;
+    }
+  };
   const toggleSidebar = () => {
+    if (mobileNav.matches) {
+      openNav(!document.body.classList.contains('is-nav-open'));
+      return;
+    }
     const collapsed = document.body.classList.toggle('is-sidebar-collapsed');
     document.cookie = `qs_sidebar=${collapsed ? 'collapsed' : 'expanded'}; path=/; max-age=31536000; SameSite=Lax`;
-    $$('[data-sidebar-toggle]').forEach((btn) => btn.setAttribute('aria-expanded', String(!collapsed)));
+    setToggleState(!collapsed);
   };
   $$('[data-sidebar-toggle]').forEach((btn) => btn.addEventListener('click', toggleSidebar));
+  if (mobileNav.matches) setToggleState(false);
+  // Al pasar de móvil a escritorio (girar la tableta, agrandar la ventana) el panel se cierra
+  mobileNav.addEventListener('change', () => {
+    openNav(false);
+    setToggleState(mobileNav.matches ? false : !document.body.classList.contains('is-sidebar-collapsed'));
+  });
+  sidebar?.addEventListener('click', (e) => { if (e.target.closest('.qs-nav-item')) openNav(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('is-nav-open')) {
+      openNav(false);
+      $('[data-sidebar-toggle]')?.focus();
+    }
+  });
 
   // Grupos del menú plegables; los plegados van en la cookie qs_nav para pintarlos ya plegados
   $$('[data-nav-group]').forEach((section) => {

@@ -327,6 +327,21 @@ pasar el ratón). Por columna:
 - `minWidth` / `maxWidth` / `width` admiten cualquier medida CSS (`"200px"`, `"20em"`).
 - Las exportaciones a Excel incluyen siempre el texto entero; en PDF va en una línea.
 
+### Interruptores sí/no en la tabla
+
+Una columna de un campo `checkbox` con `"toggle": true` se muestra como un interruptor que guarda el valor al momento,
+sin abrir la ficha:
+
+```jsonc
+{ "field": "client_visible", "toggle": true }
+```
+
+- Solo es interruptor para quien puede **editar** el módulo y el campo (`editAccess`, no `readonly`); los demás ven el
+  texto de siempre (Sí / No).
+- Se guarda por `r=toggle` (POST `field`, `value`) por el mismo camino que la ficha: permisos, `scope`, validación y
+  hooks (`beforeSave` / `afterSave`). Si falla, el interruptor vuelve atrás y sale el error.
+- En un campo que no es `checkbox`, el módulo falla al cargar.
+
 ### Filas desplegables
 
 Una flecha al principio de la fila despliega debajo los campos indicados, con su etiqueta y el texto entero
@@ -1494,6 +1509,9 @@ que no existe se ignora y queda en el log.
 
 - El botón de menú de la barra superior (o **Ctrl+B**) reduce el menú lateral a una franja de iconos; se recuerda
   en una cookie (`qs_sidebar`), así que la página ya se pinta plegada.
+- **En el móvil** (760 px o menos) el menú no ocupa sitio: el mismo botón (con el icono de menú) lo abre como un panel
+  que entra por la izquierda, por encima del contenido, con sus grupos y nombres completos. Se cierra al elegir una
+  sección, al pulsar fuera o con Esc, y no se recuerda.
 - Los **títulos de los grupos** del menú pliegan y despliegan sus módulos. Los plegados se recuerdan en una cookie
   (`qs_nav`); el grupo del módulo abierto se muestra siempre desplegado. En la franja de iconos y en el móvil se ven
   todos los módulos.

@@ -635,11 +635,7 @@ textarea.qs-input { height: auto; padding: 6px 8px; resize: vertical; min-height
 .qs-shortcuts { color: var(--text-muted); font-size: 11px; }
 
 @media (max-width: 760px) {
-  .qs-app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; min-height: 100vh; overflow: visible; }
-  .qs-sidebar { flex-direction: row; overflow-x: auto; }
-  .qs-nav { display: flex; padding: 6px; gap: 4px; }
-  .qs-nav-group, .qs-sidebar-foot { display: none; }
-  .qs-nav-section, .qs-nav-section.is-closed .qs-nav-items { display: contents; }   /* en fila: todos los módulos */
+  .qs-app { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow: visible; }
   .qs-main { overflow: visible; }
   .qs-content { overflow: visible; padding: 12px 16px; }
   .qs-grid > .qs-field { grid-column: span 12; }
@@ -1006,27 +1002,30 @@ textarea.qs-input { height: auto; padding: 6px 8px; resize: vertical; min-height
 .qs-sidebar-toggle { width: 30px; height: 30px; margin-left: -8px; color: var(--text-muted); }
 .qs-sidebar-toggle:hover { color: var(--text); }
 
-.is-sidebar-collapsed .qs-brand { justify-content: center; padding: 14px 0; }
-.is-sidebar-collapsed .qs-brand-name,
-.is-sidebar-collapsed .qs-nav-label { display: none; }
-.is-sidebar-collapsed .qs-brand-logo { width: 42px; height: 42px; padding: 4px; }
-.is-sidebar-collapsed .qs-nav { padding: 4px 8px 16px; }
-.is-sidebar-collapsed .qs-nav-group {
-  height: 1px;
-  margin: 10px 6px;
-  padding: 0;
-  font-size: 0;
-  background: rgb(255 255 255 / .12);
+/* Menú reducido a iconos: solo en escritorio (en el móvil el menú es un panel lateral) */
+@media (min-width: 761px) {
+  .is-sidebar-collapsed .qs-brand { justify-content: center; padding: 14px 0; }
+  .is-sidebar-collapsed .qs-brand-name,
+  .is-sidebar-collapsed .qs-nav-label { display: none; }
+  .is-sidebar-collapsed .qs-brand-logo { width: 42px; height: 42px; padding: 4px; }
+  .is-sidebar-collapsed .qs-nav { padding: 4px 8px 16px; }
+  .is-sidebar-collapsed .qs-nav-group {
+    height: 1px;
+    margin: 10px 6px;
+    padding: 0;
+    font-size: 0;
+    background: rgb(255 255 255 / .12);
+  }
+  .is-sidebar-collapsed .qs-nav-group { pointer-events: none; }
+  .is-sidebar-collapsed .qs-nav-chevron { display: none; }
+  .is-sidebar-collapsed .qs-nav-section.is-closed .qs-nav-items { display: block; }   /* en iconos se ven todos */
+  .is-sidebar-collapsed .qs-nav-item { justify-content: center; padding: 9px 0; }
+  .is-sidebar-collapsed .qs-sidebar-foot { padding: 10px 0; text-align: center; font-size: 10px; }
+  .is-sidebar-collapsed .qs-nav-icon { width: 20px; height: 20px; }
 }
-.is-sidebar-collapsed .qs-nav-group { pointer-events: none; }
-.is-sidebar-collapsed .qs-nav-chevron { display: none; }
-.is-sidebar-collapsed .qs-nav-section.is-closed .qs-nav-items { display: block; }   /* en iconos se ven todos */
-.is-sidebar-collapsed .qs-nav-item { justify-content: center; padding: 9px 0; }
-.is-sidebar-collapsed .qs-sidebar-foot { padding: 10px 0; text-align: center; font-size: 10px; }
-.is-sidebar-collapsed .qs-nav-icon { width: 20px; height: 20px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .qs-app { transition: none; }
+  .qs-app, .qs-sidebar { transition: none !important; }
 }
 
 /* ------------------------------------------------------------------ buscador y filtros plegables */
@@ -1051,9 +1050,25 @@ textarea.qs-input { height: auto; padding: 6px 8px; resize: vertical; min-height
 
 @media (max-width: 760px) {
   .qs-app, .qs-app.is-sidebar-collapsed { grid-template-columns: 1fr; }
-  .qs-app.is-sidebar-collapsed .qs-sidebar { display: none; }
   .qs-toolbar-search { width: 100%; order: 10; }
+
+  /* Menú: panel que entra desde la izquierda por encima del contenido (botón de la barra superior) */
+  .qs-sidebar {
+    position: fixed; inset: 0 auto 0 0; z-index: 60; width: min(290px, 86vw);
+    transform: translateX(-100%); visibility: hidden;
+    transition: transform .2s ease, visibility 0s linear .2s;
+    box-shadow: 0 0 32px rgb(0 0 0 / .3);
+  }
+  .is-nav-open .qs-sidebar { transform: none; visibility: visible; transition: transform .2s ease; }
+  .qs-nav-backdrop { position: fixed; inset: 0; z-index: 59; background: rgb(15 20 30 / .45); animation: qs-fade .15s ease-out; }
+  .is-nav-open { overflow: hidden; }   /* la página no se desplaza por detrás */
 }
+.qs-only-mobile { display: none; }
+@media (max-width: 760px) {
+  .qs-only-mobile { display: inline-block; }
+  .qs-only-desktop { display: none; }
+}
+@media (min-width: 761px) { .qs-nav-backdrop { display: none; } }
 
 /* ------------------------------------------------------------------ iconos en componentes */
 
@@ -1263,6 +1278,17 @@ a.qs-cal-num:hover { background: var(--surface-alt); }
 .qs-tone-pink { --t: var(--tone-pink); }
 .qs-tone-cyan { --t: var(--tone-cyan); }
 .qs-tone-teal { --t: var(--tone-teal); }
+
+/* Interruptor sí/no de una columna "toggle" de la tabla */
+.qs-switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; vertical-align: middle; }
+.qs-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.qs-switch-track { position: relative; width: 34px; height: 20px; border-radius: 10px; background: var(--border-strong); transition: background .15s; }
+.qs-switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .15s; }
+.qs-switch input:checked + .qs-switch-track { background: var(--primary); }
+.qs-switch input:checked + .qs-switch-track::after { transform: translateX(14px); }
+.qs-switch input:focus-visible + .qs-switch-track { outline: 2px solid var(--primary); outline-offset: 2px; }
+.qs-switch input:disabled + .qs-switch-track { opacity: .6; }
 
 .qs-tag {
   display: inline-flex;

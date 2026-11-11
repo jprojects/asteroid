@@ -38,6 +38,7 @@ final class App
         'edit' => [ModuleController::class, 'edit', true],
         'save' => [ModuleController::class, 'save', true],
         'delete' => [ModuleController::class, 'delete', true],
+        'toggle' => [ModuleController::class, 'toggle', true],
         'action' => [ActionController::class, 'run', true],
         'ask' => [AiController::class, 'ask', true],
         'write' => [AiController::class, 'write', true],

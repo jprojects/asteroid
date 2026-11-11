@@ -65,7 +65,7 @@
       { "field": "status", "width": "110px" },
       { "field": "priority", "width": "90px" },
       { "field": "worker_id", "width": "110px" },
-      { "field": "client_visible", "width": "70px", "label": "columns.visible" }
+      { "field": "client_visible", "width": "70px", "label": "columns.visible", "toggle": true }
     ],
     "expand": ["description"],
     "defaultSort": { "field": "id", "dir": "desc" },
