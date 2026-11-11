@@ -27,6 +27,7 @@ const MAX_MESSAGES = 200;
 const MAX_INLINE_IMAGES = 4;
 const MAX_INLINE_BYTES = 1_500_000;
 const STATUSES = ['pendent' => 1, 'en_curs' => 2, 'resolta' => 3, 'descartada' => 4];
+const PRIORITIES = ['normal' => 0, 'urgent' => 1, 'panic' => 2];
 
 $base = rtrim((string) getenv('ASTEROID_URL'), '/');
 // Carpeta del usuario: HOME en Linux/macOS, USERPROFILE en Windows (allí HOME no suele existir).
@@ -172,6 +173,22 @@ final class Tools
                 ], 'required' => ['id', 'estat']],
             ],
             [
+                'name' => 'asteroid_crea',
+                'description' => "Crea una incidència a Asteroid (amb l'usuari del token; surt l'avís de sempre al grup). Si el projecte o el "
+                    . "tècnic no són clars, l'eina torna els candidats: pregunta a l'usuari quin és, no en triïs cap tu. Escriu el títol "
+                    . "curt i en català. Ensenya a l'usuari el títol, el projecte, el tècnic, la prioritat i si és visible per al client, "
+                    . "i demana-li confirmació abans.",
+                'inputSchema' => ['type' => 'object', 'properties' => [
+                    'titol' => ['type' => 'string', 'description' => 'Màxim 150 caràcters'],
+                    'projecte' => ['type' => 'string', 'description' => 'Nom (o part) o número del projecte'],
+                    'descripcio' => ['type' => 'string', 'description' => 'Text pla (els salts de línia es mantenen)'],
+                    'tecnic' => ['type' => 'string', 'description' => "«jo», el nom (o part) o el número d'un usuari de l'equip; buit, sense assignar"],
+                    'prioritat' => ['type' => 'string', 'enum' => array_keys(PRIORITIES)],
+                    'visible_client' => ['type' => 'boolean', 'description' => 'El client la veu i rep els avisos (per defecte, no)'],
+                ], 'required' => ['titol', 'projecte']],
+                'annotations' => ['destructiveHint' => false],
+            ],
+            [
                 'name' => 'asteroid_wiki',
                 'description' => "Wiki d'Asteroid (documentació dels projectes). Sense «pagina»: la llista de pàgines (d'un projecte, si es diu, "
                     . "i amb un text a cercar), per seccions i amb el número de cada una. Amb «pagina»: la pàgina sencera amb el seu HTML "
@@ -214,6 +231,7 @@ final class Tools
             'asteroid_respon' => $this->reply(self::id($args), (string) ($args['text'] ?? '')),
             'asteroid_imputa' => $this->logHours(self::id($args), (string) ($args['temps'] ?? ''), (string) ($args['comentari'] ?? ''), (string) ($args['data'] ?? '')),
             'asteroid_estat' => $this->setStatus(self::id($args), (string) ($args['estat'] ?? '')),
+            'asteroid_crea' => $this->create($args),
             'asteroid_wiki' => $this->wiki($args),
             'asteroid_wiki_desa' => $this->wikiSave($args),
             default => throw new InvalidArgumentException("Eina desconeguda: $name"),
@@ -365,6 +383,70 @@ final class Tools
         return self::text_("#$id ara està: " . ($i['_display']['status'] ?? $status) . '.');
     }
 
+    private function create(array $args): array
+    {
+        $title = trim((string) ($args['titol'] ?? ''));
+        if ($title === '' || trim((string) ($args['projecte'] ?? '')) === '') {
+            throw new InvalidArgumentException('Falten el títol o el projecte');
+        }
+        $priority = (string) ($args['prioritat'] ?? 'normal');
+        if (!isset(PRIORITIES[$priority])) {
+            throw new InvalidArgumentException('Prioritat no vàlida: ' . implode(', ', array_keys(PRIORITIES)));
+        }
+        $data = [
+            'title' => mb_substr($title, 0, 150),
+            'project_id' => $this->projectId((string) $args['projecte']),
+            'priority' => PRIORITIES[$priority],
+        ];
+        if (($args['visible_client'] ?? false) === true) {
+            $data['client_visible'] = true; // només si cal: qui no té accés al camp no l'ha d'enviar
+        }
+        $worker = $this->workerId((string) ($args['tecnic'] ?? ''));
+        if ($worker !== null) {
+            $data['worker_id'] = $worker;
+        }
+        $text = trim((string) ($args['descripcio'] ?? ''));
+        if ($text !== '') {
+            // Text pla → paràgrafs HTML (el camp és richtext)
+            $data['description'] = implode('', array_map(
+                static fn (string $p) => '<p>' . nl2br(htmlspecialchars(trim($p), ENT_QUOTES, 'UTF-8'), false) . '</p>',
+                preg_split("/\n\s*\n/", $text) ?: [$text]
+            ));
+        }
+        $i = $this->api->call('POST', 'issues', [], $data);
+        $d = $i['_display'] ?? [];
+        return self::text_('Incidència creada: #' . $i['id'] . ' ' . $i['title'] . ' · ' . implode(' · ', array_filter([
+            $d['project_id'] ?? null, $d['client_id'] ?? null, $d['worker_id'] ?? 'sense assignar', $d['priority'] ?? null,
+            !empty($data['client_visible']) ? 'visible per al client' : 'només equip',
+        ])) . ' · ' . $this->webUrl((int) $i['id']));
+    }
+
+    /** Tècnic: «jo», número o nom (el que coincideix, o l'únic que surt entre els que es poden assignar); buit, ningú */
+    private function workerId(string $worker): ?int
+    {
+        $worker = trim($worker);
+        if ($worker === '' || in_array(mb_strtolower($worker), ['ningu', 'ningú', 'sense', 'cap'], true)) {
+            return null;
+        }
+        if (in_array(mb_strtolower($worker), ['jo', 'yo', 'me', 'i'], true)) {
+            return (int) $this->me()['id'];
+        }
+        if (preg_match('/^\d+$/', $worker)) {
+            return (int) $worker;
+        }
+        $rows = (array) ($this->api->call('GET', 'issues/options/worker_id', ['q' => $worker])['results'] ?? []);
+        foreach ($rows as $r) {
+            if (mb_strtolower((string) $r['label']) === mb_strtolower($worker)) {
+                return (int) $r['value'];
+            }
+        }
+        if (count($rows) === 1) {
+            return (int) $rows[0]['value'];
+        }
+        throw new InvalidArgumentException($rows ? "Hi ha diversos tècnics per «{$worker}»: "
+            . implode(', ', array_map(static fn ($r) => $r['label'] . ' (' . $r['value'] . ')', $rows)) : "No hi ha cap tècnic «{$worker}» a l'equip");
+    }
+
     /** Número de un projecte pel nom (el que coincideix, o l'únic que surt) o pel número */
     private function projectId(string $project): int
     {
@@ -381,8 +463,56 @@ final class Tools
         if (count($rows) === 1) {
             return (int) $rows[0]['id'];
         }
-        throw new InvalidArgumentException($rows ? "Hi ha diversos projectes per «{$project}»: "
-            . implode(', ', array_map(static fn ($r) => $r['title'] . ' (' . $r['id'] . ')', $rows)) : "No hi ha cap projecte «{$project}»");
+        if ($rows) {
+            throw new InvalidArgumentException("Hi ha diversos projectes per «{$project}»: "
+                . implode(', ', array_map(static fn ($r) => $r['title'] . ' (' . $r['id'] . ')', $rows)));
+        }
+        // Cap coincidència: potser està mal escrit → els més semblants (pel projecte o pel client), mai un de sol triat
+        $similar = $this->similarProjects($project);
+        throw new InvalidArgumentException("No hi ha cap projecte «{$project}»" . ($similar ? '. Potser vols dir: '
+            . implode(', ', array_map(static fn ($r) => $r['label'] . ' (' . $r['id'] . ')', $similar)) . '. Pregunta-ho a l\'usuari.' : ''));
+    }
+
+    /**
+     * Projectes amb un nom semblant (errors d'escriptura): cada paraula buscada, a poques lletres d'alguna paraula del
+     * projecte o del client. Els 8 millors.
+     * @return list<array{id:int,label:string}>
+     */
+    private function similarProjects(string $text): array
+    {
+        $words = self::words($text);
+        if (!$words) {
+            return [];
+        }
+        $rows = (array) ($this->api->call('GET', 'projects', ['f' => ['active' => 1], 'per_page' => 200, 'fields' => 'id,title,client_id'])['data'] ?? []);
+        $scored = [];
+        foreach ($rows as $r) {
+            $client = (string) ($r['_display']['client_id'] ?? '');
+            $candidates = self::words($r['title'] . ' ' . $client);
+            $total = 0;
+            foreach ($words as $w) {
+                $best = PHP_INT_MAX;
+                foreach ($candidates as $c) {
+                    // Prefix: «fund» → «fundacio»; si no, distància d'edició amb el principi de la paraula
+                    $best = min($best, str_starts_with($c, $w) ? 0 : levenshtein($w, substr($c, 0, strlen($w) + 1)));
+                }
+                if ($best > max(1, intdiv(strlen($w), 3))) {
+                    continue 2; // aquesta paraula no s'hi assembla: fora
+                }
+                $total += $best;
+            }
+            $scored[] = ['id' => (int) $r['id'], 'label' => $r['title'] . ($client !== '' ? ' · ' . $client : ''), 'score' => $total];
+        }
+        usort($scored, static fn ($a, $b) => $a['score'] <=> $b['score']);
+        return array_map(static fn ($r) => ['id' => $r['id'], 'label' => $r['label']], array_slice($scored, 0, 8));
+    }
+
+    /** Paraules d'un nom, en minúscules i sense accents ni signes (per comparar-les) */
+    private static function words(string $text): array
+    {
+        $text = strtr(mb_strtolower($text), ['à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'í' => 'i', 'ï' => 'i', 'ò' => 'o',
+            'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ç' => 'c', 'ñ' => 'n', 'l·l' => 'll', "'" => '', '’' => '']);
+        return array_values(array_filter(preg_split('/[^a-z0-9]+/', $text) ?: [], static fn ($w) => strlen($w) >= 2));
     }
 
     private function wikiUrl(int $id): string
@@ -554,9 +684,10 @@ while (($line = fgets(STDIN)) !== false) {
             'initialize' => [
                 'protocolVersion' => (string) ($msg['params']['protocolVersion'] ?? MCP_VERSION),
                 'capabilities' => ['tools' => new stdClass()],
-                'serverInfo' => ['name' => 'asteroid', 'version' => '1.1.0'],
+                'serverInfo' => ['name' => 'asteroid', 'version' => '1.2.0'],
                 'instructions' => "Asteroid és el gestor d'incidències d'AFI. Llegeix una incidència amb asteroid_incidencia abans de "
-                    . "treballar-hi. No responguis, imputis hores ni canviïs l'estat sense que l'usuari ho hagi confirmat. "
+                    . "treballar-hi. No creïs incidències, no responguis, no imputis hores ni canviïs l'estat sense que l'usuari ho hagi "
+                    . "confirmat; si el projecte o el tècnic no són clars, pregunta-li quin és entre els candidats. "
                     . "La wiki (asteroid_wiki, asteroid_wiki_desa) és la documentació dels projectes: abans d'escriure-hi, mira què "
                     . "hi ha al projecte per no repetir pàgines i segueix l'estil de les que ja hi són; demana confirmació abans de desar.",
             ],

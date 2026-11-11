@@ -308,6 +308,7 @@ usuario. Herramientas:
 | `asteroid_respon` | escribir en la conversación (lo recibe el cliente si la incidencia es visible para él) |
 | `asteroid_imputa` | imputar horas (`1:30`, `45m`…) con comentario |
 | `asteroid_estat` | pendent · en_curs · resolta · descartada |
+| `asteroid_crea` | crear una incidencia: título, proyecto (nombre, parte o número), descripción (texto), técnico (`jo`, nombre o número; vacío, sin asignar), prioridad (`normal`, `urgent`, `panic`) y si la ve el cliente (por defecto, no). Nunca elige sola: si hay varios proyectos o técnicos, o el nombre está mal escrito, devuelve los candidatos (los parecidos, por el proyecto o el cliente) y Claude pregunta cuál |
 | `asteroid_wiki` | la wiki: las páginas (de un proyecto, con un texto a buscar) por secciones, o una entera con su HTML |
 | `asteroid_wiki_desa` | crear o actualizar una página de la wiki (si ya hay una con el mismo título en el proyecto, la actualiza): título, contenido en HTML, sección, orden y audiencia (`equip` por defecto, o `client`) |
 
