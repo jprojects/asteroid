@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS projects (
   active       TINYINT(1)    NOT NULL DEFAULT 1,
   budget       DECIMAL(10,2) NULL COMMENT 'Presupuesto cerrado (sin presupuesto = por horas)',
   hourly_rate  DECIMAL(10,2) NULL COMMENT 'Precio por hora al facturar',
+  notify_user_id INT UNSIGNED NULL COMMENT 'Usuario del cliente que recibe los avisos de las incidencias (vacío: los de siempre)',
   created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY ix_projects_client (client_id),

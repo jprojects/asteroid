@@ -16,7 +16,8 @@
     "worked": "Hores",
     "unbilled": "Per facturar",
     "website": "Web",
-    "web_audit": "Informe SEO/GEO"
+    "web_audit": "Informe SEO/GEO",
+    "notify_user_id": "Contacte per als avisos"
   },
   "modality": {
     "hours": "Per hores",
@@ -27,7 +28,8 @@
     "hourly_rate": "Preu de les ordres de facturació que es creen des de les hores.",
     "api_key": "Per crear i consultar incidències des d'una altra aplicació.",
     "website": "Domini de la web del projecte, sense https:// (p. ex. www.client.cat). L'analitza Pulsar.",
-    "web_audit": "Analitza la web cada setmana i mostra al client un resum SEO i de visibilitat a les IA."
+    "web_audit": "Analitza la web cada setmana i mostra al client un resum SEO i de visibilitat a les IA.",
+    "notify_user_id": "Usuari del client que rep els avisos de les incidències visibles (canvis, missatges, enquesta). Buit: qui l'ha oberta o, si l'ha oberta l'equip, tots els usuaris del client."
   },
   "sections": {
     "general": "Projecte",

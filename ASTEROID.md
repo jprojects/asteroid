@@ -78,8 +78,8 @@ En la ficha de una incidencia, al ponerla en **Resolta** aparece la casilla **En
 (desmarcada; solo la ve el equipo). También en *Imputar hores* cuando «Estat de la incidència» es «Resolta».
 
 - Al guardar, cada destinatario recibe un aviso (campana y correo, en su idioma) con **su propio enlace**: vale una vez y
-  caduca a los 30 días (`Survey::DAYS`). Destinatarios: quien abrió la incidencia si es del cliente; si la abrió el
-  equipo, todos los usuarios activos del cliente con correo. Si no hay ninguno, queda anotado en la conversación.
+  caduca a los 30 días (`Survey::DAYS`). Destinatarios (con correo): los de los avisos del cliente (ver «Avisos»: el contacto del
+  proyecto, quien la abrió o todos). Si no hay ninguno, queda anotado en la conversación.
 - La encuesta (página pública `survey`, sin login): satisfacción general, tiempo de respuesta y calidad de la solución,
   de 1 a 5 estrellas, y un comentario opcional.
 - Al responder: apunte en la conversación («… ha valorat l'atenció: ★★★★☆») y aviso al técnico (o al equipo si no hay).
@@ -412,6 +412,13 @@ Cada token actúa como su usuario, así que un cliente solo ve y crea sus incide
 | Cambia el estado (también al imputar horas con «Estat de la incidència») | al técnico y al cliente que la abrió (o a todos los usuarios del cliente si la abrió el equipo) |
 | Se hace visible para el cliente | a sus usuarios |
 | Mensaje en la conversación | técnico, quien ya ha escrito, mencionados y el cliente si es visible |
+
+**El cliente** recibe los avisos de sus incidencias visibles (campana, correo, Telegram, encuesta) según
+`Asteroid::contactIds()`: si el proyecto tiene **Contacte per als avisos** (*Projectes → ficha*, un usuario activo del
+cliente del proyecto; solo lo ve el equipo), ese usuario y, si la abrió otro usuario del cliente, también quien la abrió;
+si no lo tiene, quien la abrió o, si la abrió el equipo, todos los usuarios del cliente. En la conversación, además,
+siempre se avisa a quien ya ha escrito en ella y a los mencionados (núcleo de Quasar). Columna `projects.notify_user_id`
+(`tools/asteroid-migrate.php`; en phpMyAdmin: `ALTER TABLE projects ADD COLUMN notify_user_id INT UNSIGNED NULL AFTER hourly_rate;`).
 | Videotrucada | a todos los participantes, por correo siempre |
 
 ## Instalación

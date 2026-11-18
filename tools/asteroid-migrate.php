@@ -111,10 +111,12 @@ try {
         }
     }
 
-    // Informes SEO/GEO (Pulsar): la web del proyecto y si se analiza
+    // Informes SEO/GEO (Pulsar): la web del proyecto y si se analiza; contacto para los avisos
     foreach ([
         'website' => "ALTER TABLE projects ADD COLUMN website VARCHAR(255) NULL AFTER api_key",
         'web_audit' => "ALTER TABLE projects ADD COLUMN web_audit TINYINT(1) NOT NULL DEFAULT 0 AFTER website",
+        // Contacto del cliente para los avisos de las incidencias del proyecto
+        'notify_user_id' => "ALTER TABLE projects ADD COLUMN notify_user_id INT UNSIGNED NULL AFTER hourly_rate",
     ] as $column => $ddl) {
         $exists = (int) $db->fetchValue(
             "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'projects' AND COLUMN_NAME = ?",

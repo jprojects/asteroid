@@ -56,8 +56,8 @@ final class Survey
     }
 
     /**
-     * Usuarios del cliente con correo: quien abrió la incidencia, si es del cliente; si la abrió el equipo,
-     * todos los usuarios activos del cliente.
+     * Usuarios activos del cliente con correo que reciben los avisos de la incidencia (Asteroid::contactIds():
+     * el contacto del proyecto, quien la abrió o todos).
      * @return list<array{id:int|string,name:string,username:string}>
      */
     private static function recipients(Database $db, array $issue): array
@@ -69,13 +69,8 @@ final class Survey
             "SELECT id, name, username FROM users WHERE client_id = ? AND active = 1 AND email IS NOT NULL AND email <> '' ORDER BY name",
             [(int) $issue['client_id']]
         );
-        $creator = (int) ($issue['created_by'] ?? 0);
-        foreach ($users as $u) {
-            if ((int) $u['id'] === $creator) {
-                return [$u];
-            }
-        }
-        return $users;
+        $ids = Asteroid::contactIds($db, $issue, array_map('intval', array_column($users, 'id')));
+        return array_values(array_filter($users, static fn ($u) => in_array((int) $u['id'], $ids, true)));
     }
 
     /** "★★★★☆" */

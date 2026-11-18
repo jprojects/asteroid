@@ -108,6 +108,24 @@
         "1": "teal"
       }
     },
+    "notify_user_id": {
+      "type": "select",
+      "width": "half",
+      "access": [
+        "equip"
+      ],
+      "help": "help.notify_user_id",
+      "source": {
+        "table": "users",
+        "value": "id",
+        "label": "name",
+        "where": "users.active = 1 AND users.client_id IS NOT NULL"
+      },
+      "dependsOn": {
+        "field": "client_id",
+        "column": "client_id"
+      }
+    },
     "notes": {
       "type": "textarea",
       "rows": 3
@@ -225,6 +243,7 @@
           "modality",
           "budget",
           "hourly_rate",
+          "notify_user_id",
           "notes"
         ]
       },

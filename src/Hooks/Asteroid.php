@@ -46,8 +46,8 @@ final class Asteroid
     }
 
     /**
-     * Usuarios del cliente a los que avisar de una incidencia visible: quien la abrió, si es del cliente;
-     * si la abrió el equipo, todos los usuarios del cliente.
+     * Usuarios del cliente a los que avisar de una incidencia visible (campana, correo, Telegram y mensajes
+     * de la conversación). Ver contactIds().
      * @return list<int>
      */
     public static function clientRecipients(Database $db, array $issue): array
@@ -55,9 +55,26 @@ final class Asteroid
         if ((int) $issue['client_visible'] !== 1) {
             return [];
         }
-        $users = self::clientUserIds($db, $issue['client_id']);
+        return self::contactIds($db, $issue, self::clientUserIds($db, $issue['client_id']));
+    }
+
+    /**
+     * De los usuarios del cliente ($users), los que reciben los avisos de una incidencia:
+     * - si el proyecto tiene «Contacte per als avisos» (un usuario activo del cliente), ese y, si la abrió otro
+     *   usuario del cliente, también quien la abrió (para que sepa que le han respondido);
+     * - si no, quien la abrió, si es del cliente; si la abrió el equipo, todos.
+     * @param list<int> $users
+     * @return list<int>
+     */
+    public static function contactIds(Database $db, array $issue, array $users): array
+    {
         $creator = (int) ($issue['created_by'] ?? 0);
-        return in_array($creator, $users, true) ? [$creator] : $users;
+        $creator = in_array($creator, $users, true) ? $creator : 0;
+        $contact = (int) $db->fetchValue('SELECT notify_user_id FROM projects WHERE id = ?', [(int) ($issue['project_id'] ?? 0)]);
+        if ($contact > 0 && in_array($contact, $users, true)) {
+            return array_values(array_unique(array_filter([$contact, $creator])));
+        }
+        return $creator > 0 ? [$creator] : $users;
     }
 
     /** [clave de idioma] del estado, para textos que se traducen al idioma de cada destinatario. */

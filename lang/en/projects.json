@@ -16,7 +16,8 @@
     "worked": "Hours",
     "unbilled": "Unbilled",
     "website": "Website",
-    "web_audit": "SEO/GEO report"
+    "web_audit": "SEO/GEO report",
+    "notify_user_id": "Notifications contact"
   },
   "modality": {
     "hours": "By the hour",
@@ -27,7 +28,8 @@
     "hourly_rate": "Price of the billing orders created from the hours.",
     "api_key": "To create and read issues from another application.",
     "website": "Domain of the project website, without https:// (e.g. www.client.com). Pulsar analyses it.",
-    "web_audit": "Analyses the website every week and shows the client an SEO and AI visibility summary."
+    "web_audit": "Analyses the website every week and shows the client an SEO and AI visibility summary.",
+    "notify_user_id": "Client user who receives the notifications of visible issues (changes, messages, survey). Empty: whoever opened it or, if the team opened it, all the client's users."
   },
   "sections": {
     "general": "Project",
