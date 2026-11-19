@@ -21,7 +21,8 @@
     "created_at": "Created",
     "resolved_at": "Resolved",
     "send_survey": "Send the satisfaction survey",
-    "survey_rating": "Client rating"
+    "survey_rating": "Client rating",
+    "notify_users": "Client notifications"
   },
   "status": {
     "pending": "Pending",
@@ -39,7 +40,8 @@
   },
   "help": {
     "client_visible": "The client sees it, gets the notifications and can write in the conversation.",
-    "send_survey": "When saved as resolved, the client gets a link to rate the support (one per user, expires after 30 days)."
+    "send_survey": "When saved as resolved, the client gets a link to rate the support (one per user, expires after 30 days).",
+    "notify_users": "Client users who receive this issue's notifications. If empty, saving the issue (new or moved to another project) fills it with the project's contacts. Whoever opened it, if a client user, also receives them."
   },
   "columns": {
     "visible": "Client"

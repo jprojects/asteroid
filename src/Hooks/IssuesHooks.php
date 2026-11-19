@@ -27,6 +27,7 @@ final class IssuesHooks extends ModuleHooks
         if (!empty($data['project_id'])) {
             $data['client_id'] = $this->db->fetchValue('SELECT client_id FROM projects WHERE id = ?', [(int) $data['project_id']]);
         }
+        $this->notifyUsers($data, $id, $existing);
         if ($id === null) {
             $data['created_by'] = $user->id();
             $data['created_by_client'] = Asteroid::isClient($user) ? 1 : 0;
@@ -90,6 +91,27 @@ final class IssuesHooks extends ModuleHooks
             $this->notifyClient($issue, $user, 'opened');
         }
         $this->maybeSurvey($issue, $user);
+    }
+
+    /**
+     * «Avisos al client»: al crearla o cambiarla de proyecto, los contactos del proyecto (si el equipo no ha
+     * elegido otros); y siempre, solo usuarios activos del cliente del proyecto.
+     */
+    private function notifyUsers(array &$data, ?string $id, ?array $existing): void
+    {
+        $projectId = $data['project_id'] ?? ($existing['project_id'] ?? null);
+        $clientId = $data['client_id'] ?? ($existing['client_id'] ?? null);
+        $moved = $id !== null && array_key_exists('project_id', $data) && (string) $data['project_id'] !== (string) ($existing['project_id'] ?? '');
+        $chosen = Asteroid::idList($data['notify_users'] ?? null);
+        $untouched = $id === null
+            ? $chosen === []
+            : (!array_key_exists('notify_users', $data) || $chosen === Asteroid::idList($existing['notify_users'] ?? null));
+        if (($id === null || $moved) && $untouched) {
+            $data['notify_users'] = json_encode(array_map('strval', Asteroid::projectContacts($this->db, $projectId)), JSON_THROW_ON_ERROR);
+        }
+        if (array_key_exists('notify_users', $data)) {
+            $data['notify_users'] = Asteroid::onlyClientUsers($this->db, $data['notify_users'], $clientId);
+        }
     }
 
     /** Casilla "send_survey" (virtual, solo del equipo) marcada con la incidencia resuelta. */

@@ -18,6 +18,12 @@ $config = require dirname(__DIR__) . '/src/bootstrap.php';
 use Quasar\Core\App;
 use Quasar\Core\Migrator;
 
+/** Usuarios activos de cada cliente con cada proyecto del cliente (opciones de issues.notify_users). */
+const PROJECT_CONTACTS_VIEW = "CREATE OR REPLACE VIEW project_contacts AS
+    SELECT u.id, COALESCE(NULLIF(u.name, ''), u.username) AS name, p.id AS project_id
+    FROM users u JOIN projects p ON p.client_id = u.client_id
+    WHERE u.active = 1 AND u.client_id IS NOT NULL";
+
 /** Permisos de cada grupo: módulo => acciones */
 const GROUP_PERMISSIONS = [
     'equip' => [
@@ -115,8 +121,8 @@ try {
     foreach ([
         'website' => "ALTER TABLE projects ADD COLUMN website VARCHAR(255) NULL AFTER api_key",
         'web_audit' => "ALTER TABLE projects ADD COLUMN web_audit TINYINT(1) NOT NULL DEFAULT 0 AFTER website",
-        // Contacto del cliente para los avisos de las incidencias del proyecto
-        'notify_user_id' => "ALTER TABLE projects ADD COLUMN notify_user_id INT UNSIGNED NULL AFTER hourly_rate",
+        // Contactos del cliente para los avisos de las incidencias del proyecto
+        'notify_users' => "ALTER TABLE projects ADD COLUMN notify_users JSON NULL AFTER hourly_rate",
     ] as $column => $ddl) {
         $exists = (int) $db->fetchValue(
             "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'projects' AND COLUMN_NAME = ?",
@@ -127,6 +133,29 @@ try {
             echo "  ✓ columna projects.$column\n";
         }
     }
+
+    // Antes un solo contacto (projects.notify_user_id): pasa a la lista
+    if ((int) $db->fetchValue(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'projects' AND COLUMN_NAME = 'notify_user_id'",
+        [$schema]
+    )) {
+        $db->pdo()->exec("UPDATE projects SET notify_users = JSON_ARRAY(CAST(notify_user_id AS CHAR)) WHERE notify_user_id IS NOT NULL AND notify_users IS NULL");
+        $db->pdo()->exec('ALTER TABLE projects DROP COLUMN notify_user_id');
+        echo "  ✓ projects.notify_user_id → projects.notify_users\n";
+    }
+
+    // Usuarios a los que avisar de cada incidencia (los del proyecto al crearla; el equipo los cambia)
+    if (!(int) $db->fetchValue(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'issues' AND COLUMN_NAME = 'notify_users'",
+        [$schema]
+    )) {
+        $db->pdo()->exec('ALTER TABLE issues ADD COLUMN notify_users JSON NULL AFTER attachments');
+        echo "  ✓ columna issues.notify_users\n";
+    }
+
+    // Opciones de «Avisos al client» de la incidencia: los usuarios del cliente de cada proyecto
+    $db->pdo()->exec(PROJECT_CONTACTS_VIEW);
+    echo "  ✓ vista project_contacts\n";
 
     $groups = [
         'equip' => ['Equip AFI', 'Treballadors: gestionen incidències, hores, clients i facturació'],

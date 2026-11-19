@@ -60,9 +60,11 @@ final class Asteroid
 
     /**
      * De los usuarios del cliente ($users), los que reciben los avisos de una incidencia:
-     * - si el proyecto tiene «Contacte per als avisos» (un usuario activo del cliente), ese y, si la abrió otro
-     *   usuario del cliente, también quien la abrió (para que sepa que le han respondido);
-     * - si no, quien la abrió, si es del cliente; si la abrió el equipo, todos.
+     * - los de «Avisos al client» de la incidencia (issues.notify_users) o, si está vacío, los «Contactes per als
+     *   avisos» del proyecto (projects.notify_users); y, si la abrió otro usuario del cliente, también quien la
+     *   abrió (para que sepa que le han respondido);
+     * - si ninguna de las dos listas tiene usuarios activos del cliente: quien la abrió, si es del cliente; si la
+     *   abrió el equipo, todos.
      * @param list<int> $users
      * @return list<int>
      */
@@ -70,11 +72,50 @@ final class Asteroid
     {
         $creator = (int) ($issue['created_by'] ?? 0);
         $creator = in_array($creator, $users, true) ? $creator : 0;
-        $contact = (int) $db->fetchValue('SELECT notify_user_id FROM projects WHERE id = ?', [(int) ($issue['project_id'] ?? 0)]);
-        if ($contact > 0 && in_array($contact, $users, true)) {
-            return array_values(array_unique(array_filter([$contact, $creator])));
+        $list = array_key_exists('notify_users', $issue)
+            ? self::idList($issue['notify_users'])
+            : self::idList($db->fetchValue('SELECT notify_users FROM issues WHERE id = ?', [(int) ($issue['id'] ?? 0)]));
+        $list = array_values(array_intersect($list, $users));
+        if (!$list) {
+            $list = array_values(array_intersect(self::projectContacts($db, $issue['project_id'] ?? null), $users));
+        }
+        if ($list) {
+            return array_values(array_unique(array_filter([...$list, $creator])));
         }
         return $creator > 0 ? [$creator] : $users;
+    }
+
+    /** @return list<int> «Contactes per als avisos» del proyecto (sin comprobar si siguen activos) */
+    public static function projectContacts(Database $db, mixed $projectId): array
+    {
+        if ($projectId === null || $projectId === '') {
+            return [];
+        }
+        return self::idList($db->fetchValue('SELECT notify_users FROM projects WHERE id = ?', [(int) $projectId]));
+    }
+
+    /**
+     * Lista de ids de una columna de select múltiple (JSON `["1","4"]`; también admite `1,4`).
+     * @return list<int>
+     */
+    public static function idList(mixed $value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = is_array($decoded) ? $decoded : explode(',', $value);
+        }
+        $ids = array_map('intval', array_filter((array) $value, 'is_numeric'));
+        return array_values(array_unique(array_filter($ids, static fn (int $id) => $id > 0)));
+    }
+
+    /**
+     * Deja en un valor de select múltiple solo usuarios activos del cliente (en JSON, como lo guarda el campo).
+     * Los permisos van en el servidor: el núcleo no valida los selects múltiples dependientes.
+     */
+    public static function onlyClientUsers(Database $db, mixed $value, mixed $clientId): string
+    {
+        $ids = array_values(array_intersect(self::idList($value), self::clientUserIds($db, $clientId)));
+        return json_encode(array_map('strval', $ids), JSON_THROW_ON_ERROR);
     }
 
     /** [clave de idioma] del estado, para textos que se traducen al idioma de cada destinatario. */

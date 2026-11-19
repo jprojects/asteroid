@@ -21,7 +21,8 @@
     "created_at": "Data de creació",
     "resolved_at": "Data de resolució",
     "send_survey": "Envia l'enquesta de satisfacció",
-    "survey_rating": "Valoració del client"
+    "survey_rating": "Valoració del client",
+    "notify_users": "Avisos al client"
   },
   "status": {
     "pending": "Pendent",
@@ -39,7 +40,8 @@
   },
   "help": {
     "client_visible": "El client la veu, rep els avisos i pot escriure a la conversa.",
-    "send_survey": "En guardar-la resolta, el client rep un enllaç per valorar l'atenció (un per usuari, caduca als 30 dies)."
+    "send_survey": "En guardar-la resolta, el client rep un enllaç per valorar l'atenció (un per usuari, caduca als 30 dies).",
+    "notify_users": "Usuaris del client que reben els avisos d'aquesta incidència. Si està buit, en desar la incidència (nova o canviada de projecte) s'omple amb els contactes del projecte. Qui l'ha oberta, si és del client, també els rep."
   },
   "columns": {
     "visible": "Client"

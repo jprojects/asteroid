@@ -15,7 +15,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
 | `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
 | `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
-| `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
+| `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `ProjectsHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
 | `tools/check-core.php`, `tools/update-core.php` | comprobar que el núcleo no se ha tocado y traer el de una versión de Quasar |
@@ -414,12 +414,29 @@ Cada token actúa como su usuario, así que un cliente solo ve y crea sus incide
 | Mensaje en la conversación | técnico, quien ya ha escrito, mencionados y el cliente si es visible |
 
 **El cliente** recibe los avisos de sus incidencias visibles (campana, correo, Telegram, encuesta) según
-`Asteroid::contactIds()`: si el proyecto tiene **Contacte per als avisos** (*Projectes → ficha*, un usuario activo del
-cliente del proyecto; solo lo ve el equipo), ese usuario y, si la abrió otro usuario del cliente, también quien la abrió;
-si no lo tiene, quien la abrió o, si la abrió el equipo, todos los usuarios del cliente. En la conversación, además,
-siempre se avisa a quien ya ha escrito en ella y a los mencionados (núcleo de Quasar). Columna `projects.notify_user_id`
-(`tools/asteroid-migrate.php`; en phpMyAdmin: `ALTER TABLE projects ADD COLUMN notify_user_id INT UNSIGNED NULL AFTER hourly_rate;`).
-| Videotrucada | a todos los participantes, por correo siempre |
+`Asteroid::contactIds()`:
+
+- **Contactes per als avisos** del proyecto (*Projectes → ficha*, varios usuarios activos del cliente del proyecto;
+  solo el equipo): al crear una incidencia (o cambiarla de proyecto) se copian a su campo **Avisos al client**
+  (junto al técnico, solo el equipo), que el equipo puede cambiar en cada incidencia.
+- Reciben los avisos los de la incidencia (si está vacío, los del proyecto) y, si la abrió otro usuario del cliente,
+  también quien la abrió (para que sepa que le han respondido).
+- Sin ninguno: quien la abrió o, si la abrió el equipo, todos los usuarios del cliente (como antes).
+- En la conversación, además, siempre se avisa a quien ya ha escrito en ella y a los mencionados (núcleo de Quasar).
+- Solo se guardan usuarios activos del cliente del proyecto (`ProjectsHooks`, `IssuesHooks`: el núcleo no valida los
+  selects múltiples dependientes). Las opciones de la incidencia salen de la vista `project_contacts` (usuarios del
+  cliente × proyectos del cliente), que crea `tools/asteroid-migrate.php`.
+
+Columnas `projects.notify_users` e `issues.notify_users` (JSON). En phpMyAdmin:
+
+```sql
+ALTER TABLE projects ADD COLUMN notify_users JSON NULL AFTER hourly_rate;
+ALTER TABLE issues ADD COLUMN notify_users JSON NULL AFTER attachments;
+CREATE OR REPLACE VIEW project_contacts AS
+  SELECT u.id, COALESCE(NULLIF(u.name, ''), u.username) AS name, p.id AS project_id
+  FROM users u JOIN projects p ON p.client_id = u.client_id
+  WHERE u.active = 1 AND u.client_id IS NOT NULL;
+```
 
 ## Instalación
 

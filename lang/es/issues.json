@@ -21,7 +21,8 @@
     "created_at": "Fecha de creación",
     "resolved_at": "Fecha de resolución",
     "send_survey": "Enviar la encuesta de satisfacción",
-    "survey_rating": "Valoración del cliente"
+    "survey_rating": "Valoración del cliente",
+    "notify_users": "Avisos al cliente"
   },
   "status": {
     "pending": "Pendiente",
@@ -39,7 +40,8 @@
   },
   "help": {
     "client_visible": "El cliente la ve, recibe los avisos y puede escribir en la conversación.",
-    "send_survey": "Al guardarla resuelta, el cliente recibe un enlace para valorar la atención (uno por usuario, caduca a los 30 días)."
+    "send_survey": "Al guardarla resuelta, el cliente recibe un enlace para valorar la atención (uno por usuario, caduca a los 30 días).",
+    "notify_users": "Usuarios del cliente que reciben los avisos de esta incidencia. Si está vacío, al guardar la incidencia (nueva o cambiada de proyecto) se rellena con los contactos del proyecto. Quien la abrió, si es del cliente, también los recibe."
   },
   "columns": {
     "visible": "Cliente"

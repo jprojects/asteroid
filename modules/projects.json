@@ -1,6 +1,7 @@
 {
   "table": "projects",
   "primaryKey": "id",
+  "hooks": "Quasar\\Hooks\\ProjectsHooks",
   "recordTitle": "title",
   "actions": [
     "view",
@@ -108,13 +109,14 @@
         "1": "teal"
       }
     },
-    "notify_user_id": {
+    "notify_users": {
       "type": "select",
+      "multiple": true,
       "width": "half",
       "access": [
         "equip"
       ],
-      "help": "help.notify_user_id",
+      "help": "help.notify_users",
       "source": {
         "table": "users",
         "value": "id",
@@ -243,7 +245,7 @@
           "modality",
           "budget",
           "hourly_rate",
-          "notify_user_id",
+          "notify_users",
           "notes"
         ]
       },
