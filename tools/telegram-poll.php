@@ -1,9 +1,10 @@
 #!/usr/bin/env php
 <?php
 /**
- * Asteroid · modo consulta del bot de Telegram ('telegram' => ['mode' => 'poll', …]): cuando el hosting no deja entrar
- * las peticiones de Telegram al webhook, el cron pregunta a Telegram por los mensajes nuevos (getUpdates) y los atiende
- * igual que el webhook (Quasar\Telegram\Poller). Cron cada minuto, con el mismo PHP que la web:
+ * Asteroid · modo consulta de los bots de Telegram ('telegram' => ['mode' => 'poll', …]): cuando el hosting no deja
+ * entrar las peticiones de Telegram al webhook, el cron pregunta a Telegram por los mensajes nuevos (getUpdates) de los
+ * dos bots (el del equipo y el de los clientes, si está) y los atiende igual que el webhook (Quasar\Telegram\Poller).
+ * Cron cada minuto, con el mismo PHP que la web:
  *
  *   * * * * * /opt/alt/php82/usr/bin/php /ruta/a/asteroid/tools/telegram-poll.php > /dev/null 2>&1
  *
@@ -27,7 +28,7 @@ use Quasar\Core\App;
 use Quasar\Telegram\Poller;
 use Quasar\Telegram\Telegram;
 
-if (!Telegram::enabled() || (($config['telegram']['mode'] ?? 'webhook') !== 'poll')) {
+if (!Telegram::bots() || (($config['telegram']['mode'] ?? 'webhook') !== 'poll')) {
     fwrite(STDERR, "Telegram no está en modo consulta ('mode' => 'poll' en la configuración de telegram)\n");
     exit(0);
 }

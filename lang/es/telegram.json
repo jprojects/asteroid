@@ -57,7 +57,8 @@
     "notes_title": "Tus notas pendientes",
     "notes_empty": "No tienes ninguna nota pendiente.",
     "note_done": "Nota {id} hecha",
-    "note_shared": "compartida"
+    "note_shared": "compartida",
+    "wrong_bot": "Este código no es para este bot: abre {bot} y envíaselo."
   },
   "bot_bad": "El token no es válido",
   "group": "Avisos al grupo",
@@ -71,7 +72,7 @@
   "webhook_redo": "Volver a configurar el webhook",
   "webhook_ok": "Webhook configurado",
   "webhook_failed": "Telegram no ha aceptado el webhook (mira el log)",
-  "secret_missing": "Falta 'secret' en la configuración de telegram (de 16 a 256 caracteres: letras, números, _ y -)",
+  "secret_missing": "Falta el secret (16-256 letras, números, _ o -) o los dos bots tienen el mismo: cada bot debe tener uno distinto.",
   "test_send": "Enviar una prueba al grupo",
   "test_ok": "Mensaje de prueba enviado",
   "test_failed": "No se ha podido enviar (revisa chat_id, thread_id y que el bot esté en el grupo)",
@@ -126,13 +127,15 @@
     "web": "al abrir esta página"
   },
   "client": {
-    "help": "Aquí recibirás los mensajes de tu chat web y nuestras respuestas a tus incidencias. Para contestar, responde al mensaje (mantenlo pulsado y elige «Responder»).",
-    "linked": "¡Hecho! A partir de ahora recibirás aquí los avisos de {client}, {name}.",
+    "help": "Aquí recibirás los mensajes de los visitantes de tu chat web. Para contestarles, responde al mensaje (mantenlo pulsado y elige «Responder»). /desvincular para dejar de recibirlos.",
+    "linked": "¡Hecho! A partir de ahora recibirás aquí los mensajes del chat web de {client}, {name}.",
     "sent": "Enviado.",
     "visitor": "Un visitante",
     "webchat": "Nuevo mensaje en el chat web · {name}",
-    "resolved": "Hemos resuelto la incidencia #{id}",
-    "reply_hint": "Responde a este mensaje para contestar."
+    "reply_hint": "Responde a este mensaje para contestar.",
+    "not_linked": "Todavía no sé quién eres. Vincúlate desde Asteroid: Soporte → Mi chat web → Vincular mi Telegram.",
+    "link_invalid": "Este código no es válido o ha caducado. Genera uno en Asteroid: Soporte → Mi chat web.",
+    "unlinked": "Hecho: ya no recibirás aquí los mensajes del chat web."
   },
   "menu": {
     "pissarra": "Por dónde empezar (Pissarra)",
@@ -149,5 +152,9 @@
   },
   "commands_sync": "Actualizar las órdenes del bot",
   "commands_help": "Menú «/» solo en el grupo y en los chats del equipo; ninguno para los clientes.",
-  "commands_synced": "Órdenes del bot actualizadas ({n} chats)"
+  "commands_synced": "Órdenes del bot actualizadas ({n} chats)",
+  "clients_bot": "Bot de los clientes",
+  "clients_bot_missing": "No configurado: los clientes no pueden recibir el chat web en Telegram ('clients' => ['token' => …, 'secret' => …]).",
+  "clients_bot_help": "Los usuarios de los clientes se vinculan en Soporte → Mi chat web y reciben allí los mensajes de su chat web.",
+  "linked_clients": "Clientes vinculados {bot}"
 }

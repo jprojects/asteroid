@@ -8,6 +8,8 @@ use Quasar\Core\FormHandler;
 use Quasar\Core\HttpException;
 use Quasar\Core\Log;
 use Quasar\Hooks\Asteroid;
+use Quasar\Telegram\Poller;
+use Quasar\Telegram\Telegram;
 use Quasar\Webchat\Webchat;
 
 /**
@@ -15,6 +17,9 @@ use Quasar\Webchat\Webchat;
  * color, saludo, posición y dominios donde se puede usar) y copia el código para su web. Los administradores pueden
  * configurar el de cualquier cliente (eligen cuál; ?client=ID). El servicio lo activa AFI en la ficha del cliente; si no
  * lo tiene, el cliente lo puede pedir con un botón que crea una incidencia (actionRequest).
+ *
+ * Cada usuario del cliente puede vincular aquí su Telegram con el bot de los clientes (Telegram::CLIENTS): recibe en
+ * el móvil los mensajes de los visitantes y, respondiendo, les contesta.
  */
 final class WebchatSettingsPage extends Page
 {
@@ -64,7 +69,58 @@ final class WebchatSettingsPage extends Page
             'previewUrl' => $this->app->url('public', ['m' => 'webchat_widget', 'k' => $site['public_key']]),
             'inboxUrl' => $this->otherModule('webchat')->url(),
             'action' => $this->pageUrl('index', $this->user()->isAdmin() ? ['client' => $clientId] : []),
+            'telegram' => $this->telegramBox(),
         ]);
+    }
+
+    /** POST: código para vincular el Telegram del usuario con el bot de los clientes (10 minutos). */
+    public function actionTgcode(): void
+    {
+        $this->requirePost();
+        if (!$this->canLinkTelegram()) {
+            throw new HttpException(403);
+        }
+        Telegram::linkCode($this->app->settings(), $this->user()->id());
+        $this->app->redirect($this->pageUrl() . '#telegram');
+    }
+
+    /** POST: el usuario deja de recibir en Telegram los mensajes del chat web. */
+    public function actionTgunlink(): void
+    {
+        $this->requirePost();
+        $this->app->db->query("DELETE FROM telegram_users WHERE user_id = ? AND bot = 'clients'", [$this->user()->id()]);
+        $this->flash('success', $this->text('tg_unlinked'));
+        $this->app->redirect($this->pageUrl() . '#telegram');
+    }
+
+    /** Solo los usuarios de un cliente con el chat web activado, y si el bot de los clientes está configurado. */
+    private function canLinkTelegram(): bool
+    {
+        $user = $this->user();
+        return Asteroid::isClient($user) && Telegram::enabled(Telegram::CLIENTS)
+            && (int) $this->app->db->fetchValue('SELECT webchat FROM clients WHERE id = ?', [(int) $user->get('client_id')]) === 1;
+    }
+
+    /** Estado del Telegram del usuario (null si no se puede vincular). */
+    private function telegramBox(): ?array
+    {
+        if (!$this->canLinkTelegram()) {
+            return null;
+        }
+        $settings = $this->app->settings();
+        $code = $settings->get('telegram.pending.' . $this->user()->id());
+        $code = is_array($code) && (int) ($code['expires'] ?? 0) > time() ? (string) $code['code'] : null;
+        if ($code !== null && (Telegram::config()['mode'] ?? 'webhook') === 'poll') {
+            Poller::run($this->app, 0, Telegram::CLIENTS); // recoge al momento el /start, sin esperar al cron
+        }
+        return [
+            'link' => $this->app->db->fetch("SELECT telegram_name, linked_at FROM telegram_users WHERE user_id = ? AND bot = 'clients'", [$this->user()->id()]),
+            'code' => $code,
+            'bot' => Telegram::botUsername($settings, Telegram::CLIENTS),
+            'codeUrl' => $this->pageUrl('tgcode'),
+            'checkUrl' => $this->pageUrl('index', ['tg' => time()]) . '#telegram', // otra URL: el navegador recarga
+            'unlinkUrl' => $this->pageUrl('tgunlink'),
+        ];
     }
 
     /**

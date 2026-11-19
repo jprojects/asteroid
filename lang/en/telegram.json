@@ -57,7 +57,8 @@
     "notes_title": "Your pending notes",
     "notes_empty": "You have no pending notes.",
     "note_done": "Note {id} done",
-    "note_shared": "shared"
+    "note_shared": "shared",
+    "wrong_bot": "This code is not for this bot: open {bot} and send it there."
   },
   "bot_bad": "The token is not valid",
   "group": "Group notices",
@@ -71,7 +72,7 @@
   "webhook_redo": "Set the webhook again",
   "webhook_ok": "Webhook set",
   "webhook_failed": "Telegram did not accept the webhook (check the log)",
-  "secret_missing": "'secret' is missing in the telegram configuration (16 to 256 characters: letters, digits, _ and -)",
+  "secret_missing": "The secret is missing (16-256 letters, digits, _ or -) or both bots share it: each bot needs a different one.",
   "test_send": "Send a test to the group",
   "test_ok": "Test message sent",
   "test_failed": "Could not send it (check chat_id, thread_id and that the bot is in the group)",
@@ -126,13 +127,15 @@
     "web": "when opening this page"
   },
   "client": {
-    "help": "You will get your website chat messages and our replies to your issues here. To answer, reply to the message (press and hold it and choose “Reply”).",
-    "linked": "Done! From now on you will get the notifications for {client} here, {name}.",
+    "help": "You will get the messages from your web chat visitors here. To answer, reply to the message (press and hold it and choose «Reply»). /desvincular to stop getting them.",
+    "linked": "Done! From now on you will get the web chat messages of {client} here, {name}.",
     "sent": "Sent.",
     "visitor": "A visitor",
     "webchat": "New website chat message · {name}",
-    "resolved": "We have resolved issue #{id}",
-    "reply_hint": "Reply to this message to answer."
+    "reply_hint": "Reply to this message to answer.",
+    "not_linked": "I don't know who you are yet. Link your account in Asteroid: Support → My web chat → Link my Telegram.",
+    "link_invalid": "This code is not valid or has expired. Create one in Asteroid: Support → My web chat.",
+    "unlinked": "Done: you will no longer get the web chat messages here."
   },
   "menu": {
     "pissarra": "Where to start (Pissarra)",
@@ -149,5 +152,9 @@
   },
   "commands_sync": "Update the bot commands",
   "commands_help": "Command menu only in the group and the team chats; none for clients.",
-  "commands_synced": "Bot commands updated ({n} chats)"
+  "commands_synced": "Bot commands updated ({n} chats)",
+  "clients_bot": "Clients bot",
+  "clients_bot_missing": "Not configured: clients cannot get the web chat on Telegram ('clients' => ['token' => …, 'secret' => …]).",
+  "clients_bot_help": "Client users link it in Support → My web chat and get their web chat messages there.",
+  "linked_clients": "Linked clients {bot}"
 }

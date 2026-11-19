@@ -27,9 +27,9 @@ use Quasar\Telegram\Telegram;
  *   - /nota TEXT (nota personal; respondiendo a un aviso, enlazada a esa incidencia) · /notes (las pendientes, con
  *     un botón «Feta» cada una)
  *
- * Los usuarios de los clientes también se pueden vincular (El meu espai): reciben en privado los mensajes de su chat
- * web y de sus incidencias, y solo pueden **responder a esos mensajes** (con sus permisos de siempre). Ninguna orden
- * del equipo les funciona; el menú «/» solo existe en el grupo y en los chats del equipo (Telegram::syncCommands).
+ * Los usuarios de los clientes usan **otro bot** (Telegram::CLIENTS; se vinculan en Suport → El meu xat web): reciben
+ * en privado los mensajes de los visitantes de su chat web y solo pueden **responder a esos mensajes** (con sus
+ * permisos de siempre) o desvincularse. Cada bot tiene su secret: el webhook sabe por él de cuál llega el mensaje.
  */
 final class TelegramHookPage extends Page
 {
@@ -40,27 +40,43 @@ final class TelegramHookPage extends Page
     private array $msg = [];
     /** Mientras se atiende un botón: su id (los avisos van en la respuesta al botón, no al grupo). */
     private ?string $callbackId = null;
+    /** Bot por el que ha llegado el mensaje (Telegram::TEAM o Telegram::CLIENTS); responde ese mismo bot. */
+    private string $bot = Telegram::TEAM;
 
     public function index(): void
     {
         // Telegram reintenta si no recibe un 200: se contesta siempre 200 y los errores van al log
         http_response_code(200);
-        $c = Telegram::config();
-        $secret = (string) ($c['secret'] ?? '');
         $header = (string) ($_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '');
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || !Telegram::enabled() || $secret === '' || !hash_equals($secret, $header)) {
+        $bot = null;
+        foreach (Telegram::bots() as $b) {
+            $secret = Telegram::secret($b);
+            if ($secret !== '' && hash_equals($secret, $header)) {
+                $bot = $b;
+                break;
+            }
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || $bot === null) {
             http_response_code(403);
             return;
         }
         $update = json_decode((string) file_get_contents('php://input'), true);
         if (is_array($update)) {
-            $this->process($update);
+            $this->process($update, $bot);
         }
     }
 
     /** Atiende una actualización de Telegram (del webhook o de tools/telegram-poll.php en el modo consulta). */
-    public function process(array $update): void
+    public function process(array $update, string $bot = Telegram::TEAM): void
     {
+        $this->bot = $bot === Telegram::CLIENTS ? Telegram::CLIENTS : Telegram::TEAM;
+        if ($this->bot === Telegram::CLIENTS && is_array($update['callback_query'] ?? null)) {
+            // El bot de los clientes no envía botones
+            if (isset($update['callback_query']['id'])) {
+                Telegram::bot($this->bot)->answer((string) $update['callback_query']['id']);
+            }
+            return;
+        }
         if (is_array($update['callback_query'] ?? null)) {
             $this->callback($update['callback_query']);
             return;
@@ -71,7 +87,8 @@ final class TelegramHookPage extends Page
         }
         $this->msg = $msg;
         try {
-            $this->handle(trim((string) ($msg['text'] ?? $msg['caption'] ?? '')));
+            $text = trim((string) ($msg['text'] ?? $msg['caption'] ?? ''));
+            $this->bot === Telegram::CLIENTS ? $this->handleClient($text) : $this->handle($text);
         } catch (\Throwable $e) {
             Log::error('Telegram: error al atender un mensaje', ['exception' => $e]);
             $this->reply(Telegram::e(Telegram::t('bot.error')));
@@ -86,11 +103,6 @@ final class TelegramHookPage extends Page
             $args = trim($args);
             if ($cmd === 'start' && $args !== '') {
                 $this->link($args); // enlace t.me/bot?start=CODI
-                return;
-            }
-            if (($client = $this->linkedClient()) !== null) {
-                // Un cliente no usa órdenes: solo puede desvincularse; lo demás, cómo contestar
-                $cmd === 'desvincular' ? $this->unlink($client) : $this->reply(Telegram::e(Telegram::t('client.help')));
                 return;
             }
             if (in_array($cmd, ['start', 'ajuda', 'help'], true)) {
@@ -126,14 +138,7 @@ final class TelegramHookPage extends Page
         if ($replyTo === null || $text === '') {
             return;
         }
-        $ref = $this->app->db->fetch(
-            'SELECT module, record_id FROM telegram_messages WHERE chat_id = ? AND message_id = ?',
-            [(string) $this->msg['chat']['id'], (int) $replyTo]
-        );
-        if (($client = $this->linkedClient()) !== null) {
-            $this->clientReply($client, $ref, $text);
-            return;
-        }
+        $ref = $this->sentMessage((int) $replyTo);
         if ($ref === null || !in_array($ref['module'], ['issues', 'hours'], true)) {
             return;
         }
@@ -141,6 +146,51 @@ final class TelegramHookPage extends Page
         if ($user !== null) {
             $ref['module'] === 'hours' ? $this->editHours($user, (string) $ref['record_id'], $text) : $this->comment($user, (string) $ref['record_id'], $text);
         }
+    }
+
+    /**
+     * Bot de los clientes: /start CODI (vincularse), /desvincular y respuestas a los mensajes del chat web. Cualquier
+     * otra cosa recibe la ayuda (o, sin vincular, cómo vincularse).
+     */
+    private function handleClient(string $text): void
+    {
+        if (($this->msg['chat']['type'] ?? 'private') !== 'private') {
+            return; // solo en privado
+        }
+        $cmd = $args = '';
+        if (str_starts_with($text, '/')) {
+            [$cmd, $args] = array_pad(preg_split('/\s+/', $text, 2), 2, '');
+            $cmd = strtolower(preg_replace('/@.*$/', '', substr($cmd, 1)) ?? '');
+            $args = trim($args);
+            if ($cmd === 'start' && $args !== '') {
+                $this->link($args);
+                return;
+            }
+        }
+        $client = $this->linkedClient();
+        if ($client === null) {
+            $this->reply(Telegram::e(Telegram::t('client.not_linked')));
+            return;
+        }
+        if ($cmd === 'desvincular') {
+            $this->unlink($client);
+            return;
+        }
+        $replyTo = $this->msg['reply_to_message']['message_id'] ?? null;
+        if ($cmd !== '' || $replyTo === null || $text === '') {
+            $this->reply(Telegram::e(Telegram::t('client.help')));
+            return;
+        }
+        $this->clientReply($client, $this->sentMessage((int) $replyTo), $text);
+    }
+
+    /** De qué es un mensaje que este bot ha enviado a este chat (module, record_id), o null. */
+    private function sentMessage(int $messageId): ?array
+    {
+        return $this->app->db->fetch(
+            'SELECT module, record_id FROM telegram_messages WHERE bot = ? AND chat_id = ? AND message_id = ?',
+            [$this->bot, (string) $this->msg['chat']['id'], $messageId]
+        );
     }
 
     // ---------------------------------------------------------------- botones
@@ -161,12 +211,12 @@ final class TelegramHookPage extends Page
             $parts = explode(':', (string) ($cq['data'] ?? ''));
             $owner = isset($parts[3]) ? (int) $parts[3] : (($parts[0] ?? '') === 'x' ? (int) ($parts[1] ?? 0) : null);
             if ($owner !== null && $owner !== (int) $cq['from']['id']) {
-                $name = (string) $this->app->db->fetchValue('SELECT telegram_name FROM telegram_users WHERE telegram_id = ?', [$owner]);
+                $name = (string) $this->app->db->fetchValue("SELECT telegram_name FROM telegram_users WHERE bot = 'team' AND telegram_id = ?", [$owner]);
                 $this->notice(Telegram::t('bot.not_yours', ['user' => $name !== '' ? $name : '?']));
                 return;
             }
             if ($parts[0] === 'x') {
-                Telegram::bot()->call('deleteMessage', ['chat_id' => $this->msg['chat']['id'], 'message_id' => (int) $this->msg['message_id']]);
+                Telegram::bot($this->bot)->call('deleteMessage', ['chat_id' => $this->msg['chat']['id'], 'message_id' => (int) $this->msg['message_id']]);
                 return;
             }
             $user = $this->linkedUser();
@@ -186,7 +236,7 @@ final class TelegramHookPage extends Page
             $this->notice(Telegram::t('bot.error'));
         } finally {
             if ($this->callbackId !== null) {
-                Telegram::bot()->answer($this->callbackId); // si no se ha contestado ya, quita el «cargando»
+                Telegram::bot($this->bot)->answer($this->callbackId); // si no se ha contestado ya, quita el «cargando»
             }
             $this->callbackId = null;
         }
@@ -233,7 +283,7 @@ final class TelegramHookPage extends Page
         $chat = (string) $this->msg['chat']['id'];
         $msgId = (int) $this->msg['message_id'];
         // Dos pulsaciones seguidas (o el mismo botón en otro dispositivo): una sola imputación
-        if ($this->app->db->fetchValue('SELECT 1 FROM telegram_messages WHERE chat_id = ? AND message_id = ?', [$chat, $msgId]) !== null) {
+        if ($this->app->db->fetchValue('SELECT 1 FROM telegram_messages WHERE bot = ? AND chat_id = ? AND message_id = ?', [$this->bot, $chat, $msgId]) !== null) {
             $this->notice(Telegram::t('bot.already'));
             return;
         }
@@ -263,7 +313,7 @@ final class TelegramHookPage extends Page
         $html = '<b>' . Telegram::e(Telegram::t('bot.hours_done', $vars)) . "</b>\n" . Telegram::e(Telegram::t('bot.hours_hint'));
         if ($button) {
             Telegram::remember($this->app->db, $chat, $msgId, (string) $result['id'], 'hours');
-            Telegram::bot()->edit($chat, $msgId, $html);
+            Telegram::bot($this->bot)->edit($chat, $msgId, $html);
             $this->notice(Telegram::t('bot.hours_done', $vars), false);
         } elseif (($reply = $this->reply($html)) !== null) {
             Telegram::remember($this->app->db, $chat, $reply, (string) $result['id'], 'hours');
@@ -294,7 +344,7 @@ final class TelegramHookPage extends Page
     private function notice(string $text, bool $alert = true): void
     {
         if ($this->callbackId !== null) {
-            Telegram::bot()->answer($this->callbackId, $text, $alert);
+            Telegram::bot($this->bot)->answer($this->callbackId, $text, $alert);
             $this->callbackId = null;
             return;
         }
@@ -318,8 +368,8 @@ final class TelegramHookPage extends Page
         $data = ['body' => mb_substr($text, 0, 2000), 'shared' => '0', 'done' => '0'];
         $replyTo = $this->msg['reply_to_message']['message_id'] ?? null;
         $issueId = $replyTo !== null ? $this->app->db->fetchValue(
-            "SELECT record_id FROM telegram_messages WHERE chat_id = ? AND message_id = ? AND module = 'issues'",
-            [(string) $this->msg['chat']['id'], (int) $replyTo]
+            "SELECT record_id FROM telegram_messages WHERE bot = ? AND chat_id = ? AND message_id = ? AND module = 'issues'",
+            [$this->bot, (string) $this->msg['chat']['id'], (int) $replyTo]
         ) : null;
         if ($issueId !== null && ($issue = Asteroid::issue($this->app->db, (string) $issueId)) !== null) {
             $data['issue_id'] = (string) $issue['id'];
@@ -361,9 +411,9 @@ final class TelegramHookPage extends Page
         $isList = str_contains((string) ($this->msg['text'] ?? ''), Telegram::t('bot.notes_title'));
         if ($isList) {
             [$html, $buttons] = $this->notesMessage($user);
-            Telegram::bot()->edit($chat, $msgId, $html, $buttons ?: null);
+            Telegram::bot($this->bot)->edit($chat, $msgId, $html, $buttons ?: null);
         } else {
-            Telegram::bot()->edit($chat, $msgId, Telegram::e(Telegram::t('bot.note_done', ['id' => $id])));
+            Telegram::bot($this->bot)->edit($chat, $msgId, Telegram::e(Telegram::t('bot.note_done', ['id' => $id])));
         }
         $this->notice(Telegram::t('bot.note_done', ['id' => $id]), false);
     }
@@ -401,14 +451,25 @@ final class TelegramHookPage extends Page
 
     // ---------------------------------------------------------------- vincular cuentas
 
-    /** /vincular CODI: el código se genera en Equip → Telegram (10 minutos). */
+    /**
+     * /vincular CODI (o /start CODI): el código se genera en Equip → Telegram (equipo, en su bot) o en Suport → El meu
+     * xat web (clientes, en el suyo), y dura 10 minutos. Un código del otro tipo de usuario dice qué bot abrir.
+     */
     private function link(string $code): void
     {
+        $clients = $this->bot === Telegram::CLIENTS;
         $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $code) ?? '');
         $key = 'telegram.link.' . $code;
         $data = $code !== '' ? $this->app->settings()->get($key) : null;
         if (!is_array($data) || (int) ($data['expires'] ?? 0) < time()) {
-            $this->reply(Telegram::e(Telegram::t('bot.link_invalid')));
+            $this->reply(Telegram::e(Telegram::t($clients ? 'client.link_invalid' : 'bot.link_invalid')));
+            return;
+        }
+        $isClient = $this->app->db->fetchValue('SELECT client_id FROM users WHERE id = ?', [(int) $data['user']]) !== null;
+        if ($isClient !== $clients) {
+            // El código sigue sirviendo en el bot que toca
+            $other = Telegram::botUsername($this->app->settings(), $clients ? Telegram::TEAM : Telegram::CLIENTS);
+            $this->reply(Telegram::e(Telegram::t('bot.wrong_bot', ['bot' => $other !== null ? '@' . $other : '?'])));
             return;
         }
         $this->app->settings()->delete($key);
@@ -416,12 +477,13 @@ final class TelegramHookPage extends Page
         $from = $this->msg['from'];
         $name = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? '')) ?: (string) ($from['username'] ?? '');
         $db = $this->app->db;
-        $db->query('DELETE FROM telegram_users WHERE telegram_id = ? OR user_id = ?', [(int) $from['id'], (int) $data['user']]);
-        $db->insert('telegram_users', ['user_id' => (int) $data['user'], 'telegram_id' => (int) $from['id'], 'telegram_name' => mb_substr($name, 0, 100)]);
+        $db->query('DELETE FROM telegram_users WHERE (bot = ? AND telegram_id = ?) OR user_id = ?', [$this->bot, (int) $from['id'], (int) $data['user']]);
+        $db->insert('telegram_users', ['user_id' => (int) $data['user'], 'bot' => $this->bot, 'telegram_id' => (int) $from['id'], 'telegram_name' => mb_substr($name, 0, 100)]);
         $u = $db->fetch('SELECT u.name, u.client_id, c.name AS client FROM users u LEFT JOIN clients c ON c.id = u.client_id WHERE u.id = ?', [(int) $data['user']]);
-        $isClient = $u !== null && $u['client_id'] !== null;
-        Log::info('Telegram: cuenta {tg} vinculada al usuario {user}', ['tg' => (int) $from['id'], 'user' => (int) $data['user'], 'client' => $isClient]);
-        Telegram::commandsFor((int) $from['id'], !$isClient); // el menú de órdenes, solo para el equipo
+        Log::info('Telegram: cuenta {tg} vinculada al usuario {user} ({bot})', ['tg' => (int) $from['id'], 'user' => (int) $data['user'], 'bot' => $this->bot]);
+        if (!$isClient) {
+            Telegram::commandsFor((int) $from['id'], true); // el menú de órdenes, solo para el equipo
+        }
         $this->reply($isClient
             ? Telegram::e(Telegram::t('client.linked', ['name' => (string) $u['name'], 'client' => (string) ($u['client'] ?? '')])) . "\n\n" . Telegram::e(Telegram::t('client.help'))
             : Telegram::e(Telegram::t('bot.linked', ['name' => (string) ($u['name'] ?? '')])) . "\n\n" . $this->help());
@@ -429,16 +491,19 @@ final class TelegramHookPage extends Page
 
     private function unlink(User $user): void
     {
-        $this->app->db->query('DELETE FROM telegram_users WHERE user_id = ?', [$user->id()]);
-        Telegram::commandsFor((int) $this->msg['from']['id'], false);
-        $this->reply(Telegram::e(Telegram::t('bot.unlinked')));
+        $this->app->db->query('DELETE FROM telegram_users WHERE user_id = ? AND bot = ?', [$user->id(), $this->bot]);
+        if ($this->bot === Telegram::TEAM) {
+            Telegram::commandsFor((int) $this->msg['from']['id'], false);
+        }
+        $this->reply(Telegram::e(Telegram::t($this->bot === Telegram::CLIENTS ? 'client.unlinked' : 'bot.unlinked')));
     }
 
-    /** Usuario de un cliente vinculado a quien escribe (la petición actúa como él), o null (equipo o sin vincular). */
+    /** Usuario de un cliente vinculado al bot de los clientes a quien escribe (la petición actúa como él), o null. */
     private function linkedClient(): ?User
     {
         $row = $this->app->db->fetch(
-            'SELECT u.* FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE t.telegram_id = ? AND u.active = 1 AND u.client_id IS NOT NULL',
+            "SELECT u.* FROM telegram_users t JOIN users u ON u.id = t.user_id
+              WHERE t.bot = 'clients' AND t.telegram_id = ? AND u.active = 1 AND u.client_id IS NOT NULL",
             [(int) $this->msg['from']['id']]
         );
         if ($row === null) {
@@ -450,12 +515,12 @@ final class TelegramHookPage extends Page
     }
 
     /**
-     * Respuesta de un cliente a un aviso privado: se publica en esa conversación (chat web o incidencia) con sus
-     * permisos de siempre ("scope"). Cualquier otra cosa recibe la ayuda.
+     * Respuesta de un cliente a un mensaje del chat web: se publica en esa conversación (el visitante la ve en la web)
+     * con sus permisos de siempre ("scope"). Cualquier otra cosa recibe la ayuda.
      */
     private function clientReply(User $user, ?array $ref, string $text): void
     {
-        $m = $ref !== null && in_array($ref['module'], ['webchat', 'issues'], true) ? $this->app->modules()->get((string) $ref['module']) : null;
+        $m = $ref !== null && $ref['module'] === 'webchat' ? $this->app->modules()->get((string) $ref['module']) : null;
         if ($m === null) {
             $this->reply(Telegram::e(Telegram::t('client.help')));
             return;
@@ -466,16 +531,16 @@ final class TelegramHookPage extends Page
             $this->reply(Telegram::e(Telegram::t('bot.forbidden')));
             return;
         }
-        $this->app->chat()->post($m, $id, $row, $user, $text); // en una incidencia, el equipo recibe el aviso de siempre
+        $this->app->chat()->post($m, $id, $row, $user, $text);
         Log::info('Telegram: respuesta del cliente {user} en {module} {id}', ['user' => $user->id(), 'module' => $m->name, 'id' => $id]);
         $this->reply(Telegram::e(Telegram::t('client.sent')));
     }
 
-    /** Usuario del equipo vinculado a quien escribe (y la petición actúa como él), o null con un aviso. */
+    /** Usuario del equipo vinculado al bot del equipo a quien escribe (y la petición actúa como él), o null con un aviso. */
     private function linkedUser(): ?User
     {
         $row = $this->app->db->fetch(
-            'SELECT u.* FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE t.telegram_id = ? AND u.active = 1',
+            "SELECT u.* FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE t.bot = 'team' AND t.telegram_id = ? AND u.active = 1",
             [(int) $this->msg['from']['id']]
         );
         if ($row === null) {
@@ -675,7 +740,7 @@ final class TelegramHookPage extends Page
     /** Responde en el mismo chat (y tema) al mensaje recibido (o al del botón pulsado). */
     private function reply(string $html, ?array $buttons = null): ?int
     {
-        return Telegram::bot()->send(
+        return Telegram::bot($this->bot)->send(
             $this->msg['chat']['id'],
             $html,
             isset($this->msg['message_thread_id']) ? (int) $this->msg['message_thread_id'] : null,

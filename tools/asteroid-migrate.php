@@ -153,6 +153,26 @@ try {
         echo "  ✓ columna issues.notify_users\n";
     }
 
+    // Dos bots de Telegram (equipo y clientes): columna "bot". Los clientes vinculados al bot del equipo se
+    // desvinculan: ahora se vinculan con el bot de los clientes (Suport → El meu xat web)
+    if (!(int) $db->fetchValue(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'telegram_users' AND COLUMN_NAME = 'bot'",
+        [$schema]
+    )) {
+        $db->pdo()->exec("ALTER TABLE telegram_users ADD COLUMN bot VARCHAR(16) NOT NULL DEFAULT 'team' AFTER user_id,
+            DROP INDEX uq_telegram_users_tg, ADD UNIQUE KEY uq_telegram_users_tg (bot, telegram_id)");
+        $n = $db->pdo()->exec("DELETE t FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE u.client_id IS NOT NULL");
+        echo "  ✓ columna telegram_users.bot ($n cuenta(s) de clientes desvinculadas del bot del equipo)\n";
+    }
+    if (!(int) $db->fetchValue(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'telegram_messages' AND COLUMN_NAME = 'bot'",
+        [$schema]
+    )) {
+        $db->pdo()->exec("ALTER TABLE telegram_messages ADD COLUMN bot VARCHAR(16) NOT NULL DEFAULT 'team' FIRST,
+            DROP PRIMARY KEY, ADD PRIMARY KEY (bot, chat_id, message_id)");
+        echo "  ✓ columna telegram_messages.bot\n";
+    }
+
     // Opciones de «Avisos al client» de la incidencia: los usuarios del cliente de cada proyecto
     $db->pdo()->exec(PROJECT_CONTACTS_VIEW);
     echo "  ✓ vista project_contacts\n";

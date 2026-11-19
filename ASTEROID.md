@@ -14,7 +14,7 @@ la siguiente actualización lo pisa: `php tools/check-core.php` comprueba que el
 | `modules/` | `issues`, `pissarra`, `agenda`, `surveys`, `survey`, `pending_billing`, `client_home`, `telegram`, `telegram_hook`, `webchat`, `webchat_settings`, `webchat_widget`, `web_audit`, `api_legacy`, `notes`, `wiki`, `wiki_pages`, `issue_from_mail`, `clients`, `projects`, `client_users`, `folders`, `files`, `hours`, `contracts`, `monthly_hours`, `billing` |
 | `src/Pages/`, `templates/default/pages/` | `PissarraPage`, `SurveyPage`, `PendingBillingPage`, `ClientHomePage`, `TelegramPage` y `TelegramHookPage` con sus plantillas (`pissarra.php`, `survey.php`, `pending_billing.php`, `client_home.php`, `telegram.php`) (con sus estilos) |
 | `src/Webchat/` | chat web para las webs de los clientes: utilidades, `loader.js` (botón en su web) y `widget.js` (el chat) |
-| `src/Telegram/` | cliente de la Bot API y avisos al grupo (sin librerías) |
+| `src/Telegram/` | cliente de la Bot API, avisos al grupo y bot del chat web de los clientes (sin librerías) |
 | `src/Hooks/` | `Asteroid` (utilidades), `Survey` (encuestas), `IssuesHooks`, `ProjectsHooks`, `HoursHooks`, `BillingHooks`, `FilesHooks`, `ClientUsersHooks` |
 | `lang/{ca,es,en}/` | un fichero por módulo y `app.json` (grupos del menú: Suport, Clients, Equip) |
 | `database/asteroid.sql` | tablas del proyecto |
@@ -104,6 +104,9 @@ Cada cliente puede poner un chat en **su** web y responder desde Asteroid.
   Cada cliente ve solo las suyas; el equipo de AFI no (los administradores sí).
 - Contra abusos: 30 mensajes por visitante cada 10 minutos, 6 conversaciones nuevas por IP y hora, trampa para bots y
   2.000 caracteres por mensaje.
+- **En el móvil**: cada usuario del cliente puede vincular su Telegram en *Suport → El meu xat web* con el **bot de
+  los clientes** (@afi_xat_bot, distinto del del equipo) y recibe ahí los mensajes de los visitantes; respondiendo al
+  mensaje, contesta al visitante. Ver «Bot de los clientes» más abajo.
 
 Código: `src/Webchat/`, `WebchatWidgetPage` (pública: `loader`, el iframe, `poll` y `send`), `WebchatSettingsPage`,
 `WebchatHooks` y el núcleo `ChatService::postExternal()` (Quasar 0.20.0). Tablas `webchat_sites` y
@@ -134,19 +137,19 @@ Sin librerías (la Bot API son peticiones HTTP con JSON): `src/Telegram/`, la p�
 - Con webhook, después de actualizar hay que volver a pulsar **Activa el webhook** para que Telegram envíe también los
   botones (`callback_query`); en modo consulta no hace falta.
 
-**Clientes** (en privado; nunca ven nada del grupo ni del equipo): cada usuario de un cliente se vincula desde
-*El meu espai → Avisos al mòbil* y recibe del bot, en su chat privado:
+**Bot de los clientes** (otro bot, solo para el chat web; nunca ven nada del grupo ni del equipo): cada usuario de un
+cliente con el chat web activado se vincula en *Suport → El meu xat web → Vincula el meu Telegram* (código de 10
+minutos, `/start CODI`) y recibe del bot, en privado, los mensajes de los visitantes de **su chat web**
+(`Telegram::webchatMessage`, desde `WebchatHooks`). Contesta **respondiendo al mensaje**: se publica en esa
+conversación con sus permisos de siempre y el visitante lo ve en la web. Una respuesta a algo que no es suyo da «No
+tens permís»; cualquier otra cosa recibe una ayuda breve; `/desvincular` lo desvincula. Los avisos de las incidencias
+le llegan solo por la campana y el correo (ya no por Telegram).
 
-- los mensajes de los visitantes de **su chat web** (`Telegram::webchatMessage`, desde `WebchatHooks`);
-- en **sus incidencias visibles**, vuestros mensajes y cuando se resuelven (a los mismos usuarios que la web,
-  `Asteroid::clientRecipients`).
-
-Contesta **respondiendo al mensaje**: se publica en esa conversación con sus permisos de siempre (el visitante lo ve en
-la web; en una incidencia, el equipo recibe el aviso de siempre). Una respuesta a algo que no es suyo da «No tens
-permís». Las órdenes no le funcionan: cualquier otra cosa recibe una ayuda breve (solo `/desvincular`).
+Los códigos de un bot no sirven en el otro (el bot dice cuál abrir). Las tablas llevan la columna `bot` (`team` o
+`clients`). *Equip → Telegram* (administrador) muestra el bot de los clientes, su webhook y los clientes vinculados.
 
 **Menú de órdenes «/»**: lo gestiona Asteroid (no BotFather): la lista del equipo en el grupo y en el chat privado de
-cada persona del equipo vinculada; ninguna en el resto (clientes incluidos). Se pone al vincular o desvincular y con
+cada persona del equipo vinculada; ninguna en el resto. El bot de los clientes no tiene menú. Se pone al vincular o desvincular y con
 *Equip → Telegram → Actualitza les ordres del bot* (hay que pulsarlo una vez después de borrar las de BotFather).
 
 **Puesta en marcha:**
@@ -166,17 +169,34 @@ cada persona del equipo vinculada; ninguna en el resto (clientes incluidos). Se 
        'events' => ['issue.new', 'issue.message', 'issue.resolved'],   // + 'issue.status' | 'issue.panic'
        'locale' => 'ca',                                // idioma de los mensajes del bot
        'mode' => 'webhook',                             // o 'poll' (cron, ver abajo)
+       'clients' => [                                   // bot del chat web de los clientes (@afi_xat_bot)
+           'token' => '654321:XYZ…',
+           'secret' => '…',                             // distinto del del equipo
+       ],
    ],
    ```
-4. *Equip → Telegram* (administrador): **Activa el webhook** y **Envia una prova al grupo**.
+4. *Equip → Telegram* (administrador): **Activa el webhook** (el de los dos bots: la misma URL; por el `secret` se
+   sabe de cuál llega cada mensaje) y **Envia una prova al grupo**. Una vez, **Actualitza les ordres del bot** (quita
+   el menú del bot de los clientes).
 5. Cada miembro del equipo: *Equip → Telegram → Vincula el meu compte* y abre el enlace al bot (o le envía
    `/vincular CODI`).
 
-Tablas `telegram_users` (cuentas vinculadas) y `telegram_messages` (qué aviso es de qué incidencia).
+Tablas `telegram_users` (cuentas vinculadas) y `telegram_messages` (qué mensaje de qué bot es de qué incidencia o
+conversación), con la columna `bot`. En phpMyAdmin (lo hace `tools/asteroid-migrate.php`):
+
+```sql
+ALTER TABLE telegram_users ADD COLUMN bot VARCHAR(16) NOT NULL DEFAULT 'team' AFTER user_id,
+  DROP INDEX uq_telegram_users_tg, ADD UNIQUE KEY uq_telegram_users_tg (bot, telegram_id);
+DELETE t FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE u.client_id IS NOT NULL;
+ALTER TABLE telegram_messages ADD COLUMN bot VARCHAR(16) NOT NULL DEFAULT 'team' FIRST,
+  DROP PRIMARY KEY, ADD PRIMARY KEY (bot, chat_id, message_id);
+```
 
 **Modo consulta** (`'mode' => 'poll'`): si el hosting no deja entrar a Telegram (en Webempresa, el webhook recibe
 **502** aunque desde fuera responda bien), el cron consulta los mensajes con `getUpdates` cada minuto, esperando hasta
-~55 s, así que las respuestas llegan casi al momento. No necesita webhook (el script lo quita). Cron:
+~55 s, así que las respuestas llegan casi al momento. No necesita webhook (el script lo quita). Con los dos bots, el
+mismo cron consulta uno y otro alternando (esperas de 5 s), así que en el peor caso un mensaje tarda unos segundos
+más. Cron:
 
 ```
 * * * * * php /home/…/sat.aficat.com/tools/telegram-poll.php > /dev/null 2>&1
@@ -413,7 +433,7 @@ Cada token actúa como su usuario, así que un cliente solo ve y crea sus incide
 | Se hace visible para el cliente | a sus usuarios |
 | Mensaje en la conversación | técnico, quien ya ha escrito, mencionados y el cliente si es visible |
 
-**El cliente** recibe los avisos de sus incidencias visibles (campana, correo, Telegram, encuesta) según
+**El cliente** recibe los avisos de sus incidencias visibles (campana, correo, encuesta) según
 `Asteroid::contactIds()`:
 
 - **Contactes per als avisos** del proyecto (*Projectes → ficha*, varios usuarios activos del cliente del proyecto;

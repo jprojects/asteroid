@@ -21,14 +21,24 @@ use Quasar\Hooks\Asteroid;
  *       'secret'    => '…',                      // lo comprueba el webhook (cabecera de Telegram)
  *       'events'    => ['issue.new', 'issue.message', 'issue.resolved'],   // también: issue.status (todos), issue.panic
  *       'locale'    => 'ca',
+ *       'clients'   => ['token' => '…', 'secret' => '…'],   // bot del chat web de los clientes (opcional)
  *   ],
  *
- * Avisos al grupo (IssuesHooks): incidencias nuevas y mensajes de las conversaciones, con botones (imputar horas,
- * asignársela, resolverla). Responder a un aviso en Telegram publica la respuesta en la conversación de la incidencia
- * (TelegramHookPage), como el usuario de Asteroid vinculado a esa cuenta de Telegram.
+ * Dos bots: el del equipo (TEAM) y el de los clientes (CLIENTS), con su token y su secret; el modo (webhook o
+ * consulta) y el idioma son los mismos.
+ *
+ * Bot del equipo. Avisos al grupo (IssuesHooks): incidencias nuevas y mensajes de las conversaciones, con botones
+ * (imputar horas, asignársela, resolverla). Responder a un aviso en Telegram publica la respuesta en la conversación de
+ * la incidencia (TelegramHookPage), como el usuario de Asteroid vinculado a esa cuenta de Telegram.
+ *
+ * Bot de los clientes: cada usuario de un cliente se vincula en Suport → El meu xat web y recibe en privado los
+ * mensajes de los visitantes de su chat web; respondiendo, contesta al visitante.
  */
 final class Telegram
 {
+    public const TEAM = 'team';
+    public const CLIENTS = 'clients';
+
     /** Mientras se publica un mensaje que viene de Telegram, no se avisa de él a Telegram (no rebota). */
     public static bool $muted = false;
 
@@ -49,15 +59,39 @@ final class Telegram
         return self::$config;
     }
 
-    public static function enabled(): bool
+    /** Configuración de uno de los bots: token y secret (el del equipo, en la raíz de 'telegram'; el otro, en 'clients'). */
+    private static function botConfig(string $bot): array
     {
-        return trim((string) (self::config()['token'] ?? '')) !== '';
+        $c = self::config();
+        return $bot === self::CLIENTS ? (array) ($c['clients'] ?? []) : $c;
     }
 
-    public static function bot(): Bot
+    public static function enabled(string $bot = self::TEAM): bool
+    {
+        return trim((string) (self::botConfig($bot)['token'] ?? '')) !== '';
+    }
+
+    public static function secret(string $bot = self::TEAM): string
+    {
+        return (string) (self::botConfig($bot)['secret'] ?? '');
+    }
+
+    public static function bot(string $bot = self::TEAM): Bot
     {
         $api = self::config()['api_url'] ?? null; // solo para pruebas locales
-        return new Bot((string) self::config()['token'], is_string($api) && $api !== '' ? $api : null);
+        return new Bot((string) (self::botConfig($bot)['token'] ?? ''), is_string($api) && $api !== '' ? $api : null);
+    }
+
+    /** Bots configurados. @return list<string> */
+    public static function bots(): array
+    {
+        return array_values(array_filter([self::TEAM, self::CLIENTS], static fn (string $b) => self::enabled($b)));
+    }
+
+    /** Clave de Settings de un bot: "telegram.offset" (equipo) o "telegram.clients.offset". */
+    public static function key(string $bot, string $name): string
+    {
+        return 'telegram.' . ($bot === self::CLIENTS ? 'clients.' : '') . $name;
     }
 
     /** ¿Está activado ese aviso al grupo? */
@@ -137,12 +171,12 @@ final class Telegram
     }
 
     /** De qué es un mensaje del bot: incidencia ('issues') o horas imputadas desde Telegram ('hours'). */
-    public static function remember(Database $db, string $chatId, int $messageId, string $recordId, string $module = 'issues'): void
+    public static function remember(Database $db, string $chatId, int $messageId, string $recordId, string $module = 'issues', string $bot = self::TEAM): void
     {
         try {
             $db->query(
-                'INSERT IGNORE INTO telegram_messages (chat_id, message_id, module, record_id) VALUES (?, ?, ?, ?)',
-                [$chatId, $messageId, $module, $recordId]
+                'INSERT IGNORE INTO telegram_messages (bot, chat_id, message_id, module, record_id) VALUES (?, ?, ?, ?, ?)',
+                [$bot, $chatId, $messageId, $module, $recordId]
             );
         } catch (\Throwable $e) {
             Log::warning('Telegram: no se ha podido guardar el mensaje', ['exception' => $e]);
@@ -249,12 +283,12 @@ final class Telegram
         return implode(' · ', array_filter([(string) ($issue['client_name'] ?? ''), $project, $worker !== '' ? $worker : self::t('unassigned')]));
     }
 
-    // ---------------------------------------------------------------- clientes (avisos privados)
+    // ---------------------------------------------------------------- clientes (bot del chat web)
 
     /** Órdenes del menú «/» del equipo (en el grupo y en el chat privado de cada persona del equipo). */
     private const MENU = ['pissarra', 'meves', 'noves', 'incidencia', 'agafa', 'resol', 'hores', 'nota', 'notes', 'ajuda', 'desvincular'];
 
-    /** @return array<int,int> user_id => telegram_id de los vinculados de entre esos usuarios */
+    /** @return array<int,int> user_id => telegram_id de los vinculados al bot de los clientes de entre esos usuarios */
     public static function linkedIds(Database $db, array $userIds): array
     {
         $userIds = array_values(array_unique(array_map('intval', $userIds)));
@@ -263,23 +297,24 @@ final class Telegram
         }
         $rows = $db->fetchAll(
             'SELECT t.user_id, t.telegram_id FROM telegram_users t JOIN users u ON u.id = t.user_id
-              WHERE u.active = 1 AND t.user_id IN (' . implode(',', array_fill(0, count($userIds), '?')) . ')',
-            $userIds
+              WHERE u.active = 1 AND t.bot = ? AND t.user_id IN (' . implode(',', array_fill(0, count($userIds), '?')) . ')',
+            [self::CLIENTS, ...$userIds]
         );
         return array_combine(array_map('intval', array_column($rows, 'user_id')), array_map('intval', array_column($rows, 'telegram_id'))) ?: [];
     }
 
-    /** Mensaje privado a cada usuario vinculado; responder a él contesta en ese registro (module/record). */
+    /** Mensaje privado del bot de los clientes a cada usuario vinculado; responder a él contesta en ese registro. */
     public static function toUsers(Database $db, array $userIds, string $html, string $module, string $recordId): void
     {
-        if (!self::enabled()) {
+        if (!self::enabled(self::CLIENTS)) {
             return;
         }
+        $bot = self::bot(self::CLIENTS);
         foreach (self::linkedIds($db, $userIds) as $telegramId) {
             try {
-                $msgId = self::bot()->send($telegramId, $html);
+                $msgId = $bot->send($telegramId, $html);
                 if ($msgId !== null) {
-                    self::remember($db, (string) $telegramId, $msgId, $recordId, $module);
+                    self::remember($db, (string) $telegramId, $msgId, $recordId, $module, self::CLIENTS);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Telegram: no se ha podido avisar en privado', ['exception' => $e]);
@@ -290,6 +325,9 @@ final class Telegram
     /** Mensaje de un visitante en el chat web: a los usuarios del cliente vinculados (WebchatHooks). */
     public static function webchatMessage(Database $db, string $conversationId): void
     {
+        if (!self::enabled(self::CLIENTS)) {
+            return;
+        }
         $c = $db->fetch('SELECT id, client_id, visitor_name, visitor_email, page_url FROM webchat_conversations WHERE id = ?', [(int) $conversationId]);
         $m = $c !== null ? $db->fetch(
             "SELECT body FROM messages WHERE module = 'webchat' AND record_id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1",
@@ -303,36 +341,6 @@ final class Telegram
             . ($c['visitor_email'] ? ' · ' . self::e((string) $c['visitor_email']) : '') . "\n\n"
             . self::e(mb_substr(trim((string) $m['body']), 0, 1500)) . "\n\n<i>" . self::e(self::t('client.reply_hint')) . '</i>';
         self::toUsers($db, Asteroid::clientUserIds($db, $c['client_id']), $html, 'webchat', (string) $c['id']);
-    }
-
-    /** Mensaje en una incidencia visible para el cliente: a sus usuarios vinculados (menos a quien lo escribe). */
-    public static function issueMessageToClients(Database $db, array $issue, User $author): void
-    {
-        $id = (string) $issue['id'];
-        $msg = $db->fetch(
-            "SELECT kind, body FROM messages WHERE module = 'issues' AND record_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1",
-            [$id, $author->id()]
-        );
-        if ($msg === null || $msg['kind'] === 'system') {
-            return;
-        }
-        $recipients = array_values(array_diff(Asteroid::clientRecipients($db, $issue), [$author->id()]));
-        if (!$recipients) {
-            return;
-        }
-        $body = $msg['kind'] === 'meet' ? self::t('notify.meet') : trim((string) $msg['body']);
-        $html = '<b>#' . self::e($id) . ' · ' . self::e((string) $issue['title']) . "</b>\n"
-            . '<b>' . self::e($author->name()) . ':</b> ' . self::e(mb_substr($body, 0, 1500)) . "\n\n<i>" . self::e(self::t('client.reply_hint')) . '</i>';
-        self::toUsers($db, $recipients, $html, 'issues', $id);
-    }
-
-    /** Incidencia resuelta: a los usuarios del cliente vinculados, si es visible para ellos. */
-    public static function issueResolvedToClients(Database $db, array $issue): void
-    {
-        $id = (string) $issue['id'];
-        $html = '<b>' . self::e(self::t('client.resolved', ['id' => $id])) . "</b>\n" . self::e((string) $issue['title']) . "\n\n<i>"
-            . self::e(self::t('client.reply_hint')) . '</i>';
-        self::toUsers($db, Asteroid::clientRecipients($db, $issue), $html, 'issues', $id);
     }
 
     // ---------------------------------------------------------------- menú de órdenes y vinculación
@@ -352,17 +360,17 @@ final class Telegram
     }
 
     /** Nombre del bot (para el enlace t.me/…), guardado un día. */
-    public static function botUsername(\Quasar\Core\Settings $settings): ?string
+    public static function botUsername(\Quasar\Core\Settings $settings, string $bot = self::TEAM): ?string
     {
-        $cached = $settings->get('telegram.bot_username');
+        $cached = $settings->get(self::key($bot, 'bot_username'));
         if (is_array($cached) && (int) ($cached['until'] ?? 0) > time()) {
             return (string) $cached['name'];
         }
-        $me = self::enabled() ? self::bot()->call('getMe') : null;
+        $me = self::enabled($bot) ? self::bot($bot)->call('getMe') : null;
         if (!isset($me['username'])) {
             return null;
         }
-        $settings->set('telegram.bot_username', ['name' => (string) $me['username'], 'until' => time() + 86400]);
+        $settings->set(self::key($bot, 'bot_username'), ['name' => (string) $me['username'], 'until' => time() + 86400]);
         return (string) $me['username'];
     }
 
@@ -372,7 +380,7 @@ final class Telegram
         return array_map(static fn (string $c) => ['command' => $c, 'description' => mb_substr(self::t('menu.' . $c), 0, 256)], self::MENU);
     }
 
-    /** Menú de órdenes de un chat privado: el del equipo, o ninguno (clientes, desvinculados). */
+    /** Menú de órdenes de un chat privado con el bot del equipo: el del equipo, o ninguno (desvinculados). */
     public static function commandsFor(int $telegramId, bool $team): void
     {
         if (!self::enabled()) {
@@ -384,8 +392,8 @@ final class Telegram
     }
 
     /**
-     * Pone el menú «/» del bot: el del equipo en el grupo y en el chat de cada persona del equipo vinculada; ninguno
-     * para los demás (clientes incluidos). @return int chats con menú
+     * Pone el menú «/» del bot del equipo en el grupo y en el chat de cada persona del equipo vinculada; ninguno para
+     * los demás. El bot de los clientes no tiene menú. @return int chats con menú
      */
     public static function syncCommands(Database $db): int
     {
@@ -399,7 +407,12 @@ final class Telegram
             $bot->call('setMyCommands', ['commands' => self::menu(), 'scope' => ['type' => 'chat', 'chat_id' => $c['chat_id']]]);
             $n++;
         }
-        foreach ($db->fetchAll('SELECT t.telegram_id, u.client_id, u.active FROM telegram_users t JOIN users u ON u.id = t.user_id') as $r) {
+        if (self::enabled(self::CLIENTS)) {
+            foreach (['default', 'all_private_chats', 'all_group_chats', 'all_chat_administrators'] as $type) {
+                self::bot(self::CLIENTS)->call('deleteMyCommands', ['scope' => ['type' => $type]]);
+            }
+        }
+        foreach ($db->fetchAll("SELECT t.telegram_id, u.client_id, u.active FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE t.bot = 'team'") as $r) {
             $team = $r['client_id'] === null && (int) $r['active'] === 1;
             self::commandsFor((int) $r['telegram_id'], $team);
             $n += $team ? 1 : 0;

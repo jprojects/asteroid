@@ -13,6 +13,10 @@
  * @var bool $groupOk
  * @var list<string> $events
  * @var list<array> $linked
+ * @var bool $clients            ¿bot de los clientes configurado? ('clients' => ['token' => …])
+ * @var ?string $clientsBotName
+ * @var ?array $clientsWebhook
+ * @var list<array> $linkedClients
  * @var array<string,string> $urls
  * @var string $mode       webhook | poll
  * @var int $polledAt      última consulta del cron (modo poll)
@@ -46,6 +50,10 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
     'thread_id' => 42,
     'secret'    => '<?= $this->e(bin2hex(random_bytes(16))) ?>',
     'events'    => ['issue.new', 'issue.message'],
+    'clients'   => [               // bot del chat web de los clientes (opcional)
+        'token'  => '654321:XYZ…',
+        'secret' => '<?= $this->e(bin2hex(random_bytes(16))) ?>',
+    ],
 ],</pre>
       <p class="qs-help"><?= $this->e($this->t('setup_help')) ?></p>
     </fieldset>
@@ -83,6 +91,23 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
           <dd><?= $botName ? $this->icon('circle-check', 'ast-tg-ok') . ' @' . $this->e($botName) : $this->icon('circle-x', 'ast-tg-bad') . ' ' . $this->e($this->t('bot_bad')) ?></dd>
           <dt><?= $this->e($this->t('group')) ?></dt>
           <dd><?= $groupOk ? $this->e(implode(', ', array_map(fn ($e) => $this->t('events.' . $e), $events))) : $this->e($this->t('group_missing')) ?></dd>
+          <dt><?= $this->e($this->t('clients_bot')) ?></dt>
+          <dd>
+            <?php if (!$clients): ?>
+              <?= $this->icon('circle-minus') ?> <?= $this->e($this->t('clients_bot_missing')) ?>
+            <?php else: ?>
+              <?= $clientsBotName ? $this->icon('circle-check', 'ast-tg-ok') . ' @' . $this->e($clientsBotName) : $this->icon('circle-x', 'ast-tg-bad') . ' ' . $this->e($this->t('bot_bad')) ?>
+              <?php if ($mode === 'webhook'): ?>
+                <?php $clientsActive = ($clientsWebhook['url'] ?? '') === $hookUrl; ?>
+                <br><?= $clientsActive ? $this->icon('circle-check', 'ast-tg-ok') : $this->icon('circle-x', 'ast-tg-bad') ?>
+                <?= $this->e($clientsActive ? $this->t('webhook_active') : $this->t('webhook_inactive')) ?>
+                <?php if (!empty($clientsWebhook['last_error_message'])): ?>
+                  <br><span class="ast-tg-bad"><?= $this->e($this->t('webhook_error', ['error' => (string) $clientsWebhook['last_error_message'], 'date' => date($dtFmt, (int) ($clientsWebhook['last_error_date'] ?? 0))])) ?></span>
+                <?php endif ?>
+              <?php endif ?>
+              <br><span class="qs-muted"><?= $this->e($this->t('clients_bot_help')) ?></span>
+            <?php endif ?>
+          </dd>
           <?php if ($mode === 'poll'): ?>
           <dt><?= $this->e($this->t('mode_poll')) ?></dt>
           <dd>
@@ -124,7 +149,7 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
         <div class="ast-tg-actions ast-tg-gap">
           <?php if ($mode === 'webhook'): ?>
             <form method="post" action="<?= $this->e($urls['webhook']) ?>"><?= $this->csrfField() ?>
-              <button type="submit" class="qs-btn qs-btn-sm"><?= $this->icon('refresh-cw') ?> <?= $this->e($this->t($active ? 'webhook_redo' : 'webhook_set')) ?></button>
+              <button type="submit" class="qs-btn qs-btn-sm"><?= $this->icon('refresh-cw') ?> <?= $this->e($this->t($active && (!$clients || $clientsActive) ? 'webhook_redo' : 'webhook_set')) ?></button>
             </form>
           <?php endif ?>
           <?php if ($groupOk): ?>
@@ -141,6 +166,14 @@ $dt = static fn (?string $d): string => $d ? date($dtFmt, (int) strtotime($d)) :
           <dl class="ast-tg-kv">
             <?php foreach ($linked as $l): ?>
               <dt><?= $this->e((string) $l['name']) ?></dt><dd><?= $this->e((string) $l['telegram_name']) ?> <span class="qs-muted">· <?= $this->e($dt($l['linked_at'])) ?></span></dd>
+            <?php endforeach ?>
+          </dl>
+        <?php endif ?>
+        <?php if ($linkedClients): ?>
+          <h3 class="qs-subtitle"><?= $this->e($this->t('linked_clients', ['bot' => $clientsBotName ? '@' . $clientsBotName : ''])) ?></h3>
+          <dl class="ast-tg-kv">
+            <?php foreach ($linkedClients as $l): ?>
+              <dt><?= $this->e((string) $l['name']) ?> <span class="qs-muted">· <?= $this->e((string) $l['client']) ?></span></dt><dd><?= $this->e((string) $l['telegram_name']) ?> <span class="qs-muted">· <?= $this->e($dt($l['linked_at'])) ?></span></dd>
             <?php endforeach ?>
           </dl>
         <?php endif ?>

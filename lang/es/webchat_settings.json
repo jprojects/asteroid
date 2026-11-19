@@ -38,5 +38,16 @@
   "pick": "Configurar",
   "pick_help": "Como administrador, elige de qué cliente quieres ver o configurar el chat. Primero salen los que lo tienen activado.",
   "state_active": "chat activo",
-  "state_enabled": "activado, sin configurar"
+  "state_enabled": "activado, sin configurar",
+  "tg_title": "Mensajes en el móvil (Telegram)",
+  "tg_intro": "Recibe en Telegram los mensajes de los visitantes de tu chat web y contéstales desde el móvil: basta con responder al mensaje. Cada usuario vincula su Telegram.",
+  "tg_link": "Vincular mi Telegram",
+  "tg_code_intro": "Abre el bot y pulsa «Iniciar»:",
+  "tg_open": "Abrir {bot}",
+  "tg_code_help": "También puedes enviar /start {code} al bot. El código caduca en 10 minutos.",
+  "tg_check": "Ya lo he hecho",
+  "tg_linked": "Vinculado con el Telegram de {name}: recibirás los mensajes en {bot}.",
+  "tg_unlink": "Dejar de recibir los mensajes",
+  "tg_unlink_confirm": "Dejarás de recibir en Telegram los mensajes del chat web. ¿Quieres continuar?",
+  "tg_unlinked": "Ya no recibirás en Telegram los mensajes del chat web"
 }

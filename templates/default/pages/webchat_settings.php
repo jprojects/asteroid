@@ -15,6 +15,7 @@
  * @var ?array $request          incidencia abierta con la que el cliente ya lo pidió
  * @var bool $canRequest
  * @var string $requestUrl
+ * @var ?array $telegram         vincular el Telegram del usuario con el bot de los clientes (null si no se puede)
  */
 $errors ??= [];
 $enabled ??= false;
@@ -33,7 +34,9 @@ $field = function (string $name, string $label, string $control, ?string $help =
 .ast-wcs-color { display: flex; gap: 8px; align-items: center; }
 .ast-wcs-color input[type=color] { width: 46px; height: 34px; padding: 2px; }
 .ast-wcs-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-@media (max-width: 640px) { .ast-wcs .qs-grid { grid-template-columns: 1fr; } }
+.ast-wcs-tg p { margin: 0 0 10px; }
+.ast-wcs-tg form { margin: 0; }
+.ast-wcs-ok { color: var(--success); }@media (max-width: 640px) { .ast-wcs .qs-grid { grid-template-columns: 1fr; } }
 </style>
 
 <div class="ast-wcs">
@@ -109,5 +112,29 @@ $field = function (string $name, string $label, string $control, ?string $help =
         <p class="qs-help"><?= $this->icon('triangle-alert') ?> <?= $this->e($this->t('inactive_note')) ?></p>
       <?php endif ?>
     </fieldset>
+
+    <?php if (!empty($telegram)): ?>
+      <fieldset class="qs-section qs-form ast-wcs-tg" id="telegram">
+        <legend><?= $this->e($this->t('tg_title')) ?></legend>
+        <?php if ($telegram['link']): ?>
+          <p><?= $this->icon('circle-check', 'ast-wcs-ok') ?> <?= $this->e($this->t('tg_linked', ['name' => trim((string) $telegram['link']['telegram_name']) ?: 'Telegram', 'bot' => $telegram['bot'] ? '@' . $telegram['bot'] : 'Telegram'])) ?></p>
+          <form method="post" action="<?= $this->e($telegram['unlinkUrl']) ?>"><?= $this->csrfField() ?>
+            <button type="submit" class="qs-btn qs-btn-sm" data-confirm="<?= $this->e($this->t('tg_unlink_confirm')) ?>"><?= $this->e($this->t('tg_unlink')) ?></button>
+          </form>
+        <?php elseif ($telegram['code']): ?>
+          <p><?= $this->e($this->t('tg_code_intro')) ?></p>
+          <?php if ($telegram['bot']): ?>
+            <p><a class="qs-btn qs-btn-primary" href="https://t.me/<?= $this->e($telegram['bot']) ?>?start=<?= $this->e($telegram['code']) ?>" target="_blank" rel="noopener"><?= $this->icon('send') ?> <?= $this->e($this->t('tg_open', ['bot' => '@' . $telegram['bot']])) ?></a></p>
+          <?php endif ?>
+          <p class="qs-help"><?= $this->e($this->t('tg_code_help', ['code' => $telegram['code']])) ?></p>
+          <p class="qs-help"><a href="<?= $this->e($telegram['checkUrl']) ?>"><?= $this->icon('refresh-cw') ?> <?= $this->e($this->t('tg_check')) ?></a></p>
+        <?php else: ?>
+          <p><?= $this->e($this->t('tg_intro')) ?></p>
+          <form method="post" action="<?= $this->e($telegram['codeUrl']) ?>"><?= $this->csrfField() ?>
+            <button type="submit" class="qs-btn qs-btn-primary"><?= $this->icon('smartphone') ?> <?= $this->e($this->t('tg_link')) ?></button>
+          </form>
+        <?php endif ?>
+      </fieldset>
+    <?php endif ?>
   <?php endif ?>
 </div>

@@ -46,7 +46,7 @@ final class Asteroid
     }
 
     /**
-     * Usuarios del cliente a los que avisar de una incidencia visible (campana, correo, Telegram y mensajes
+     * Usuarios del cliente a los que avisar de una incidencia visible (campana, correo y mensajes
      * de la conversación). Ver contactIds().
      * @return list<int>
      */
@@ -168,9 +168,6 @@ final class Asteroid
             'urgent' => $to === self::STATUS_RESOLVED,
         ]);
         Telegram::statusChanged($db, $issue, $to, $user);
-        if ($to === self::STATUS_RESOLVED) {
-            Telegram::issueResolvedToClients($db, $issue);
-        }
     }
 
     /** Apunte y aviso al técnico al que se le asigna una incidencia. */

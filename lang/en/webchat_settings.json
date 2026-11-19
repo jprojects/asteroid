@@ -38,5 +38,16 @@
   "pick": "Set up",
   "pick_help": "As an administrator, choose which client's chat to view or set up. Clients with it enabled come first.",
   "state_active": "chat active",
-  "state_enabled": "enabled, not set up"
+  "state_enabled": "enabled, not set up",
+  "tg_title": "Messages on your phone (Telegram)",
+  "tg_intro": "Get the messages from your web chat visitors on Telegram and answer them from your phone: just reply to the message. Each user links their own Telegram.",
+  "tg_link": "Link my Telegram",
+  "tg_code_intro": "Open the bot and press «Start»:",
+  "tg_open": "Open {bot}",
+  "tg_code_help": "You can also send /start {code} to the bot. The code expires in 10 minutes.",
+  "tg_check": "I've done it",
+  "tg_linked": "Linked to {name}'s Telegram: you will get the messages at {bot}.",
+  "tg_unlink": "Stop getting the messages",
+  "tg_unlink_confirm": "You will stop getting the web chat messages on Telegram. Continue?",
+  "tg_unlinked": "You will no longer get the web chat messages on Telegram"
 }

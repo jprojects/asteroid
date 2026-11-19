@@ -31,7 +31,9 @@ final class TelegramPage extends Page
             Poller::run($this->app); // recoge al momento lo que haya pendiente (p. ej. el /vincular), sin esperar al cron
         }
         $bot = $enabled ? Telegram::bot()->call('getMe') : null;
-        $link = $this->app->db->fetch('SELECT telegram_name, linked_at FROM telegram_users WHERE user_id = ?', [$user->id()]);
+        $clients = $enabled && Telegram::enabled(Telegram::CLIENTS);
+        $clientsBot = $clients ? Telegram::bot(Telegram::CLIENTS)->call('getMe') : null;
+        $link = $this->app->db->fetch("SELECT telegram_name, linked_at FROM telegram_users WHERE user_id = ? AND bot = 'team'", [$user->id()]);
         $code = $this->app->settings()->get('telegram.pending.' . $user->id());
         $code = is_array($code) && (int) ($code['expires'] ?? 0) > time() ? (string) $code['code'] : null;
 
@@ -43,6 +45,9 @@ final class TelegramPage extends Page
             'code' => $code,
             'admin' => $admin,
             'webhook' => $admin && $enabled ? Telegram::bot()->call('getWebhookInfo') : null,
+            'clients' => $clients,
+            'clientsBotName' => $clientsBot['username'] ?? null,
+            'clientsWebhook' => $admin && $clients ? Telegram::bot(Telegram::CLIENTS)->call('getWebhookInfo') : null,
             'mode' => ($c['mode'] ?? 'webhook') === 'poll' ? 'poll' : 'webhook',
             'polledAt' => (int) $this->app->settings()->get('telegram.polled_at', 0),
             'cronAt' => (int) $this->app->settings()->get('telegram.cron_at', 0),
@@ -53,7 +58,11 @@ final class TelegramPage extends Page
             'groupOk' => !empty($c['chat_id']),
             'events' => (array) ($c['events'] ?? ['issue.new', 'issue.message']),
             'linked' => $admin ? $this->app->db->fetchAll(
-                'SELECT u.name, t.telegram_name, t.linked_at FROM telegram_users t JOIN users u ON u.id = t.user_id ORDER BY u.name'
+                "SELECT u.name, t.telegram_name, t.linked_at FROM telegram_users t JOIN users u ON u.id = t.user_id WHERE t.bot = 'team' ORDER BY u.name"
+            ) : [],
+            'linkedClients' => $admin && $clients ? $this->app->db->fetchAll(
+                "SELECT u.name, c.name AS client, t.telegram_name, t.linked_at FROM telegram_users t JOIN users u ON u.id = t.user_id
+                   LEFT JOIN clients c ON c.id = u.client_id WHERE t.bot = 'clients' ORDER BY c.name, u.name"
             ) : [],
             'urls' => [
                 'code' => $this->pageUrl('code'),
@@ -90,32 +99,42 @@ final class TelegramPage extends Page
     public function actionUnlink(): void
     {
         $this->requirePost();
-        $tg = $this->app->db->fetchValue('SELECT telegram_id FROM telegram_users WHERE user_id = ?', [$this->user()->id()]);
+        $tg = $this->app->db->fetchValue("SELECT telegram_id FROM telegram_users WHERE user_id = ? AND bot = 'team'", [$this->user()->id()]);
         if ($tg !== null) {
             Telegram::commandsFor((int) $tg, false);
         }
-        $this->app->db->query('DELETE FROM telegram_users WHERE user_id = ?', [$this->user()->id()]);
+        $this->app->db->query("DELETE FROM telegram_users WHERE user_id = ? AND bot = 'team'", [$this->user()->id()]);
         $this->flash('success', $this->text('unlinked'));
         $this->app->redirect($this->pageUrl());
     }
 
-    /** POST (administradores): apunta el webhook del bot a esta instalación, con el 'secret'. */
+    /**
+     * POST (administradores): apunta el webhook de los bots (el del equipo y el de los clientes) a esta instalación,
+     * cada uno con su 'secret' (tienen que ser distintos: por él se sabe de qué bot llega cada mensaje).
+     */
     public function actionWebhook(): void
     {
         $this->requirePost();
         $this->requireAdmin();
-        $secret = (string) (Telegram::config()['secret'] ?? '');
-        if ($secret === '' || !preg_match('/^[A-Za-z0-9_-]{16,256}$/', $secret)) {
-            $this->flash('error', $this->text('secret_missing'));
-            $this->app->redirect($this->pageUrl());
+        $bots = Telegram::bots();
+        $secrets = array_map([Telegram::class, 'secret'], $bots);
+        foreach ($secrets as $secret) {
+            if ($secret === '' || !preg_match('/^[A-Za-z0-9_-]{16,256}$/', $secret) || count(array_unique($secrets)) < count($secrets)) {
+                $this->flash('error', $this->text('secret_missing'));
+                $this->app->redirect($this->pageUrl());
+            }
         }
-        $ok = Telegram::bot()->call('setWebhook', [
-            'url' => $this->hookUrl(),
-            'secret_token' => $secret,
-            'allowed_updates' => ['message', 'callback_query'],
-            'drop_pending_updates' => true,
-        ]) !== null;
-        Log::info('Telegram: webhook {result} en {url}', ['result' => $ok ? 'configurado' : 'NO configurado', 'url' => $this->hookUrl()]);
+        $ok = true;
+        foreach ($bots as $b) {
+            $set = Telegram::bot($b)->call('setWebhook', [
+                'url' => $this->hookUrl(),
+                'secret_token' => Telegram::secret($b),
+                'allowed_updates' => ['message', 'callback_query'],
+                'drop_pending_updates' => true,
+            ]) !== null;
+            $ok = $ok && $set;
+            Log::info('Telegram: webhook {result} en {url} ({bot})', ['result' => $set ? 'configurado' : 'NO configurado', 'url' => $this->hookUrl(), 'bot' => $b]);
+        }
         $this->flash($ok ? 'success' : 'error', $this->text($ok ? 'webhook_ok' : 'webhook_failed'));
         $this->app->redirect($this->pageUrl());
     }
