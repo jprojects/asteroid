@@ -12,3 +12,5 @@ storage/remote/
 *.swp
 .DS_Store
 Thumbs.db
+credentials.local.md
+credencials.local.md

@@ -214,6 +214,12 @@ cuenta funciona aunque el cron falle). El cron tiene que usar el **mismo PHP que
 `/opt/alt/php82/usr/bin/php` o el de la versión elegida en cPanel): el `php` a secas suele ser otro. Los avisos al
 grupo no cambian (salen del servidor).
 
+## Horas imputadas en la ficha de la incidencia
+
+En la ficha de una incidencia ya creada, la sección **Hores imputades** (solo el equipo) muestra el total (*Temps
+dedicat*) y una línea por imputación, de la más reciente a la más antigua: fecha · técnico · tiempo · comentario.
+Es el campo calculado `worked_detail` (`IssuesHooks::workedDetail`); sin imputaciones, solo sale el total vacío.
+
 ## Visibilidad para el cliente desde la tabla
 
 En *Incidències*, la columna **Visible pel client** es un interruptor (`"toggle": true` en `modules/issues.json`,

@@ -10,6 +10,7 @@
     "priority": "Prioridad",
     "worker_id": "Técnico",
     "estimated_minutes": "Tiempo previsto",
+    "worked_detail": "Imputaciones",
     "worked_minutes": "Tiempo dedicado",
     "starts_on": "Fecha inicio",
     "due_on": "Fecha límite",
@@ -48,6 +49,7 @@
   },
   "sections": {
     "general": "Incidencia",
+    "hours": "Horas imputadas",
     "planning": "Planificación",
     "description": "Descripción",
     "attachments": "Adjuntos",

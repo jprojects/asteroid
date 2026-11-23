@@ -10,6 +10,7 @@
     "priority": "Priority",
     "worker_id": "Assignee",
     "estimated_minutes": "Estimated time",
+    "worked_detail": "Time entries",
     "worked_minutes": "Time spent",
     "starts_on": "Start date",
     "due_on": "Due date",
@@ -48,6 +49,7 @@
   },
   "sections": {
     "general": "Issue",
+    "hours": "Logged hours",
     "planning": "Planning",
     "description": "Description",
     "attachments": "Attachments",

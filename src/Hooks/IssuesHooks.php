@@ -8,6 +8,7 @@ use Quasar\Core\HtmlSanitizer;
 use Quasar\Core\ModuleHooks;
 use Quasar\Core\Notify;
 use Quasar\Core\User;
+use Quasar\Fields\DurationField;
 use Quasar\Telegram\Telegram;
 
 /**
@@ -97,6 +98,29 @@ final class IssuesHooks extends ModuleHooks
      * «Avisos al client»: al crearla o cambiarla de proyecto, los contactos del proyecto (si el equipo no ha
      * elegido otros); y siempre, solo usuarios activos del cliente del proyecto.
      */
+    /** Campo "worked_detail": una línea por imputación (fecha · técnico · tiempo · comentario), de la más reciente a la más antigua. */
+    public function workedDetail(array $row): ?string
+    {
+        if (empty($row['id'])) {
+            return null;
+        }
+        $rows = $this->db->fetchAll(
+            'SELECT h.worked_on, h.minutes, h.comment, u.name FROM hours h LEFT JOIN users u ON u.id = h.user_id
+             WHERE h.issue_id = ? ORDER BY h.worked_on DESC, h.id DESC',
+            [(int) $row['id']]
+        );
+        $lines = [];
+        foreach ($rows as $h) {
+            $parts = [date('d/m/Y', strtotime((string) $h['worked_on'])), (string) $h['name'], DurationField::hm((int) $h['minutes'])];
+            $comment = trim(preg_replace('/\s+/u', ' ', (string) $h['comment']) ?? '');
+            if ($comment !== '') {
+                $parts[] = $comment;
+            }
+            $lines[] = implode(' · ', $parts);
+        }
+        return $lines ? implode("\n", $lines) : null;
+    }
+
     private function notifyUsers(array &$data, ?string $id, ?array $existing): void
     {
         $projectId = $data['project_id'] ?? ($existing['project_id'] ?? null);

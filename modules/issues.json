@@ -36,6 +36,8 @@
     "estimated_minutes": { "type": "duration", "width": "quarter", "access": ["equip"] },
     "worked_minutes":    { "type": "duration", "width": "quarter", "access": ["equip"],
                            "sql": "SELECT SUM(h.minutes) FROM hours h WHERE h.issue_id = issues.id" },
+    "worked_detail":     { "type": "textarea", "rows": 4, "access": ["equip"], "compute": "workedDetail",
+                           "showon": "worked_minutes!:" },
     "starts_on":         { "type": "date", "width": "quarter", "access": ["equip"] },
     "due_on":            { "type": "date", "width": "quarter", "access": ["equip"] },
     "client_visible":    { "type": "checkbox", "default": 0, "width": "half", "access": ["equip"], "help": "help.client_visible",
@@ -98,7 +100,8 @@
   "form": {
     "sections": [
       { "title": "sections.general", "fields": ["title", "project_id", "client_id", "status", "priority", "worker_id", "notify_users", "send_survey"] },
-      { "title": "sections.planning", "access": ["equip"], "fields": ["estimated_minutes", "worked_minutes", "starts_on", "due_on", "client_visible", "created_by_client", "survey_rating"] },
+      { "title": "sections.hours", "access": ["equip"], "fields": ["worked_minutes", "worked_detail"] },
+      { "title": "sections.planning", "access": ["equip"], "fields": ["estimated_minutes", "starts_on", "due_on", "client_visible", "created_by_client", "survey_rating"] },
       { "title": "sections.description", "fields": ["description"] },
       { "title": "sections.attachments", "fields": ["attachments"] },
       { "title": "sections.info", "fields": ["created_by", "created_at", "resolved_at"] }

@@ -10,6 +10,7 @@
     "priority": "Prioritat",
     "worker_id": "Tècnic",
     "estimated_minutes": "Temps previst",
+    "worked_detail": "Imputacions",
     "worked_minutes": "Temps dedicat",
     "starts_on": "Data inici",
     "due_on": "Data límit",
@@ -48,6 +49,7 @@
   },
   "sections": {
     "general": "Incidència",
+    "hours": "Hores imputades",
     "planning": "Planificació",
     "description": "Descripció",
     "attachments": "Adjunts",
