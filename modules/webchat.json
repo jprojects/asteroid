@@ -16,6 +16,7 @@
     "id":              { "type": "number", "readonly": true, "grouping": false },
     "visitor_name":    { "type": "text", "maxlength": 80, "width": "half" },
     "visitor_email":   { "type": "email", "maxlength": 150, "width": "half" },
+    "visitor_phone":   { "type": "text", "maxlength": 30, "width": "half" },
     "status":          { "type": "select", "required": true, "default": "1", "width": "quarter",
                          "options": { "1": "status.open", "2": "status.closed" }, "colors": { "1": "green", "2": "gray" } },
     "client_id":       { "type": "select", "readonly": true, "width": "half", "access": ["equip"],
@@ -30,19 +31,20 @@
     "columns": [
       { "field": "visitor_name", "minWidth": "180px" },
       { "field": "visitor_email", "maxWidth": "220px" },
+      { "field": "visitor_phone", "width": "130px" },
       { "field": "client_id", "maxWidth": "200px" },
       { "field": "status", "width": "100px" },
       { "field": "last_message_at", "width": "140px" },
       { "field": "page_url", "maxWidth": "260px" }
     ],
     "defaultSort": { "field": "last_message_at", "dir": "desc" },
-    "search": ["visitor_name", "visitor_email", "page_url"],
+    "search": ["visitor_name", "visitor_email", "visitor_phone", "page_url"],
     "filters": [{ "field": "status" }, { "field": "client_id" }, { "field": "last_message_at", "operator": "between" }]
   },
 
   "form": {
     "sections": [
-      { "title": "sections.visitor", "fields": ["visitor_name", "visitor_email", "status", "client_id"] },
+      { "title": "sections.visitor", "fields": ["visitor_name", "visitor_email", "visitor_phone", "status", "client_id"] },
       { "title": "sections.info", "fields": ["page_url", "user_agent", "last_message_at", "created_at"] }
     ]
   }

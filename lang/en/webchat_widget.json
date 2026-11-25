@@ -6,12 +6,27 @@
     "send": "Send",
     "name": "Name",
     "email": "Email (optional)",
-    "intro": "Leave your name and, if you like, your email in case we're away.",
+    "phone": "Phone (optional)",
+    "phone_offline": "Phone",
+    "email_offline": "Email",
+    "intro": "Leave your name and, if you like, your phone or email in case we're away.",
+    "intro_offline": "Leave us your name and your phone or email, and we'll call or write to you.",
     "error": "Couldn't send it. Please try again.",
     "closed": "This conversation is closed. Writing will reopen it.",
     "close": "Close",
     "you": "You",
     "too_many": "You've sent too many messages in a row. Please wait a moment.",
-    "visitor": "Visitor"
+    "visitor": "Visitor",
+    "need_contact": "We're out of office hours: leave us your phone or email so we can get back to you.",
+    "offline": "We're out of office hours right now. Leave us your message with your phone or email and we'll call or write to you as soon as we can."
+  },
+  "days": {
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat",
+    "7": "Sun"
   }
 }

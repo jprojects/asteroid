@@ -5,6 +5,7 @@
     "id": "Núm.",
     "visitor_name": "Visitante",
     "visitor_email": "Correo electrónico",
+    "visitor_phone": "Teléfono",
     "status": "Estado",
     "client_id": "Cliente",
     "page_url": "Página",
@@ -22,6 +23,7 @@
   },
   "log": {
     "closed": "Conversación cerrada por {user}",
-    "reopened": "Conversación reabierta por {user}"
+    "reopened": "Conversación reabierta por {user}",
+    "offline": "Mensaje recibido fuera de horario. Te llamaremos o te escribiremos lo antes posible."
   }
 }

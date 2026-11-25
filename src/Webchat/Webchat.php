@@ -115,6 +115,87 @@ final class Webchat
         return preg_match('#^[a-z0-9.-]+(:\d+)?(/|$)#i', $page) ? 'https://' . $page : '';
     }
 
+    /**
+     * Horario de atención (webchat_sites.schedule): JSON {"1": [["09:00","14:00"], ["15:00","18:00"]], …, "7": []}, con
+     * los días ISO (1 = lunes) y hasta dos franjas por día. Sin ninguna franja (o sin horario) = siempre abierto.
+     *
+     * @return array<int,list<array{0:string,1:string}>> los siete días, con sus franjas válidas
+     */
+    public static function schedule(array $site): array
+    {
+        $raw = json_decode((string) ($site['schedule'] ?? ''), true);
+        $out = [];
+        for ($d = 1; $d <= 7; $d++) {
+            $out[$d] = [];
+            foreach (is_array($raw) && is_array($raw[(string) $d] ?? null) ? $raw[(string) $d] : [] as $r) {
+                if (is_array($r) && self::validTime($r[0] ?? null) && self::validTime($r[1] ?? null) && $r[0] < $r[1]) {
+                    $out[$d][] = [(string) $r[0], (string) $r[1]];
+                }
+            }
+        }
+        return $out;
+    }
+
+    public static function hasSchedule(array $site): bool
+    {
+        return (bool) array_filter(self::schedule($site));
+    }
+
+    /** ¿Se atiende ahora? Sin horario, siempre. La hora es la de la aplicación (config "timezone"). */
+    public static function isOpen(array $site, ?int $now = null): bool
+    {
+        if (!self::hasSchedule($site)) {
+            return true;
+        }
+        $now ??= time();
+        $hm = date('H:i', $now);
+        foreach (self::schedule($site)[(int) date('N', $now)] as [$from, $to]) {
+            if ($hm >= $from && $hm < $to) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Horario en una línea, agrupando los días seguidos con las mismas franjas: «dl–dv 9:00–14:00, 15:00–18:00 · ds 10:00–13:00».
+     * @param array<int,string> $dayNames abreviatura de cada día ISO (1 = lunes)
+     */
+    public static function scheduleText(array $site, array $dayNames): string
+    {
+        $groups = [];
+        foreach (self::schedule($site) as $d => $ranges) {
+            if (!$ranges) {
+                continue;
+            }
+            $text = implode(', ', array_map(static fn ($r) => ltrim($r[0], '0') . '–' . ltrim($r[1], '0'), $ranges));
+            $last = count($groups) - 1;
+            if ($last >= 0 && $groups[$last]['text'] === $text && $groups[$last]['to'] === $d - 1) {
+                $groups[$last]['to'] = $d;
+            } else {
+                $groups[] = ['from' => $d, 'to' => $d, 'text' => $text];
+            }
+        }
+        return implode(' · ', array_map(static fn ($g) => ($dayNames[$g['from']] ?? $g['from'])
+            . ($g['to'] > $g['from'] ? ($g['to'] === $g['from'] + 1 ? ', ' : '–') . ($dayNames[$g['to']] ?? $g['to']) : '')
+            . ' ' . $g['text'], $groups));
+    }
+
+    public static function validTime(mixed $t): bool
+    {
+        return is_string($t) && (bool) preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $t);
+    }
+
+    /** Teléfono del visitante: dígitos, espacios, +, (, ), - y punto; al menos 6 dígitos. Null si no es válido. */
+    public static function phone(string $phone): ?string
+    {
+        $phone = trim((string) preg_replace('/\s+/', ' ', $phone));
+        if (!preg_match('/^\+?[0-9 ().-]{6,30}$/', $phone) || preg_match_all('/\d/', $phone) < 6) {
+            return null;
+        }
+        return $phone;
+    }
+
     public static function ipHash(): string
     {
         return hash('sha256', 'webchat|' . ($_SERVER['REMOTE_ADDR'] ?? ''));

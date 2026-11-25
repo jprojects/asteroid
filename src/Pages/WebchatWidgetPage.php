@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Quasar\Pages;
 
 use Quasar\Controllers\Page;
+use Quasar\Core\Chat;
 use Quasar\Core\Log;
 use Quasar\Webchat\Webchat;
 
@@ -15,11 +16,16 @@ use Quasar\Webchat\Webchat;
  *   (index)&k=CLAVE    el chat (iframe); solo se puede incrustar en los dominios del cliente (frame-ancestors)
  *   a=js               script del iframe (src/Webchat/widget.js)
  *   a=poll&k=&after=   mensajes nuevos de la conversación del visitante (JSON)
- *   a=send&k=          POST JSON {body, name?, email?, page?}: mensaje del visitante (crea la conversación)
+ *   a=send&k=          POST JSON {body, name?, email?, phone?, page?}: mensaje del visitante (crea la conversación)
+ *
+ * Fuera del horario de atención (webchat_sites.schedule) el chat lo avisa y pide el teléfono o el correo: sin uno de
+ * los dos no se acepta el mensaje. El mensaje llega igual (campana, correo y Telegram), marcado «fora d'horari», y el
+ * visitante recibe una respuesta automática (una cada OFFLINE_ACK_HOURS horas).
  */
 final class WebchatWidgetPage extends Page
 {
     private const LOCALES = ['ca', 'es', 'en'];
+    private const OFFLINE_ACK_HOURS = 8;
 
     public function index(): void
     {
@@ -40,12 +46,16 @@ final class WebchatWidgetPage extends Page
                 'key' => $site['public_key'],
                 'poll' => $this->pageUrl('poll', ['k' => $site['public_key']]),
                 'send' => $this->pageUrl('send', ['k' => $site['public_key']]),
+                'offline' => !Webchat::isOpen($site),
                 'page' => (string) preg_replace('#^https?://#i', '', mb_substr((string) $this->param('page', ''), 0, 500)), // se reenvía al enviar: sin esquema (WAF)
                 'i18n' => array_map(fn ($k) => $this->text('widget.' . $k), [
                     'placeholder' => 'placeholder', 'send' => 'send', 'name' => 'name', 'email' => 'email',
                     'intro' => 'intro', 'error' => 'error', 'closed' => 'closed', 'close' => 'close', 'you' => 'you', 'too_many' => 'too_many',
+                    'phone' => 'phone', 'phone_offline' => 'phone_offline', 'email_offline' => 'email_offline', 'intro_offline' => 'intro_offline', 'need_contact' => 'need_contact',
                 ]),
             ],
+            'offlineText' => trim((string) $site['offline_message']) !== '' ? trim((string) $site['offline_message']) : $this->text('widget.offline'),
+            'scheduleText' => Webchat::scheduleText($site, $this->dayNames()),
             'version' => (string) filemtime(QS_ROOT . '/src/Webchat/widget.js'),
         ], null);
     }
@@ -93,6 +103,8 @@ final class WebchatWidgetPage extends Page
         $conv = $this->conversation($site, $hash);
         $this->json([
             'status' => $conv !== null ? ((int) $conv['status'] === 2 ? 'closed' : 'open') : 'new',
+            'offline' => !Webchat::isOpen($site),
+            'contact' => $conv !== null && $this->hasContact($conv),
             'messages' => $conv !== null ? $this->messages((int) $conv['id'], max(0, (int) $this->param('after', '0'))) : [],
         ]);
     }
@@ -120,6 +132,15 @@ final class WebchatWidgetPage extends Page
         }
         $db = $this->app->db;
         $conv = $this->conversation($site, $hash);
+        $offline = !Webchat::isOpen($site);
+        $email = trim((string) ($in['email'] ?? ''));
+        $email = filter_var($email, FILTER_VALIDATE_EMAIL) ? mb_substr($email, 0, 150) : null;
+        $phone = Webchat::phone((string) ($in['phone'] ?? ''));
+        $name = mb_substr(trim((string) ($in['name'] ?? '')), 0, 80);
+        if ($offline && $email === null && $phone === null && ($conv === null || !$this->hasContact($conv))) {
+            $this->json(['error' => $this->text('widget.need_contact'), 'contact' => false], 422);
+            return;
+        }
         if ($conv === null) {
             $recent = (int) $db->fetchValue(
                 'SELECT COUNT(*) FROM webchat_conversations WHERE ip_hash = ? AND created_at > ?',
@@ -129,12 +150,12 @@ final class WebchatWidgetPage extends Page
                 $this->json(['error' => $this->text('widget.too_many')], 429);
                 return;
             }
-            $email = trim((string) ($in['email'] ?? ''));
             $id = (int) $db->insert('webchat_conversations', [
                 'client_id' => (int) $site['client_id'],
                 'visitor_hash' => $hash,
-                'visitor_name' => mb_substr(trim((string) ($in['name'] ?? '')) ?: $this->text('widget.visitor'), 0, 80),
-                'visitor_email' => filter_var($email, FILTER_VALIDATE_EMAIL) ? mb_substr($email, 0, 150) : null,
+                'visitor_name' => $name !== '' ? $name : $this->text('widget.visitor'),
+                'visitor_email' => $email,
+                'visitor_phone' => $phone,
                 'page_url' => $page !== '' ? $page : null,
                 'ip_hash' => Webchat::ipHash(),
                 'user_agent' => mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
@@ -150,23 +171,59 @@ final class WebchatWidgetPage extends Page
                 $this->json(['error' => $this->text('widget.too_many')], 429);
                 return;
             }
+            // El contacto que deja después (fuera de horario se le vuelve a pedir si no lo tenía)
+            $contact = array_filter(['visitor_email' => $email, 'visitor_phone' => $phone, 'visitor_name' => $name !== '' ? $name : null]);
+            if ($contact) {
+                $db->update('webchat_conversations', $contact, 'id', (int) $conv['id']);
+                $conv = $contact + $conv;
+            }
         }
 
         $module = $this->otherModule('webchat');
         $id = (string) $conv['id'];
         $row = $conv;
         try {
-            $this->app->chat()->postExternal($module, $id, $row, (string) $conv['visitor_name'], $body);
+            $this->app->chat()->postExternal($module, $id, $row, (string) $conv['visitor_name'], $body, $offline ? ['offline' => true] : []);
         } catch (\InvalidArgumentException) {
             $this->json(['error' => $this->text('widget.error')], 422);
             return;
         }
         // Un mensaje del visitante reabre la conversación
         $db->update('webchat_conversations', ['status' => 1, 'last_message_at' => date('Y-m-d H:i:s')], 'id', (int) $id);
+        if ($offline) {
+            $this->offlineAck($id);
+        }
         $this->json(['ok' => true, 'messages' => $this->messages((int) $id, max(0, (int) ($in['after'] ?? 0)))]);
     }
 
     // ---------------------------------------------------------------- utilidades
+
+    /** Respuesta automática fuera de horario (la ven el visitante y el cliente), si no hay otra reciente. */
+    private function offlineAck(string $id): void
+    {
+        $recent = (int) $this->app->db->fetchValue(
+            "SELECT COUNT(*) FROM messages WHERE module = 'webchat' AND record_id = ? AND kind = 'system' AND meta LIKE ? AND created_at > ?",
+            [$id, '%webchat:log.offline%', date('Y-m-d H:i:s', time() - self::OFFLINE_ACK_HOURS * 3600)]
+        );
+        if ($recent === 0) {
+            Chat::system('webchat', $id, ['webchat:log.offline', []]);
+        }
+    }
+
+    private function hasContact(array $conv): bool
+    {
+        return trim((string) ($conv['visitor_email'] ?? '')) !== '' || trim((string) ($conv['visitor_phone'] ?? '')) !== '';
+    }
+
+    /** @return array<int,string> abreviatura de cada día ISO (1 = lunes) en el idioma del visitante */
+    private function dayNames(): array
+    {
+        $out = [];
+        for ($d = 1; $d <= 7; $d++) {
+            $out[$d] = $this->text('days.' . $d);
+        }
+        return $out;
+    }
 
     private function site(): ?array
     {

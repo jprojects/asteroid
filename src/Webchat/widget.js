@@ -10,6 +10,7 @@
   var T = cfg.i18n;
   var $ = function (s) { return document.querySelector(s); };
   var list = $('#wc-list'), form = $('#wc-form'), input = $('#wc-body'), who = $('#wc-who'), note = $('#wc-note'), err = $('#wc-error');
+  var offlineBox = $('#wc-offline'), intro = $('#wc-intro'), nameIn = $('#wc-name'), phoneIn = $('#wc-phone'), emailIn = $('#wc-email');
   function fail(text) { err.textContent = text || T.error; err.hidden = false; }
   var tokenKey = 'asteroid-webchat-token:' + cfg.key;
   var token = null;
@@ -22,6 +23,8 @@
   }
   var lang = new URLSearchParams(location.search).get('lang') || 'ca';
   var last = 0, open = false, unread = 0, status = 'new', timer = null, sending = false;
+  // Fuera de horario se pide el teléfono o el correo (también a quien ya escribía y no lo había dejado)
+  var offline = !!cfg.offline, contact = false;
 
   function tell(msg) { parent.postMessage(Object.assign({ type: 'asteroid-webchat' }, msg), '*'); }
   function time(iso) { var d = new Date(iso); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
@@ -54,9 +57,21 @@
     if (stick || msgs.some(function (m) { return m.from === 'visitor'; })) list.scrollTop = list.scrollHeight;
   }
 
+  function needsContact() { return offline && !contact; }
+
+  function setOffline(off, hasContact) {
+    offline = !!off;
+    if (typeof hasContact === 'boolean') contact = hasContact;
+    offlineBox.hidden = !offline;
+    intro.textContent = offline ? T.intro_offline : T.intro;
+    emailIn.placeholder = offline ? T.email_offline : T.email;
+    phoneIn.placeholder = offline ? T.phone_offline : T.phone;
+    who.hidden = status !== 'new' && !needsContact();
+  }
+
   function setStatus(s) {
     status = s;
-    who.hidden = s !== 'new';
+    who.hidden = s !== 'new' && !needsContact();
     note.hidden = s !== 'closed';
     if (s !== 'new') tell({ active: true });
   }
@@ -65,7 +80,7 @@
     clearTimeout(timer);
     fetch(cfg.poll + '&lang=' + encodeURIComponent(lang) + '&after=' + last, { headers: { 'X-Visitor': token } })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { if (d) { render(d.messages || []); setStatus(d.status); } })
+      .then(function (d) { if (d) { render(d.messages || []); setStatus(d.status); setOffline(d.offline, d.contact); } })
       .catch(function () {})
       .then(function () { timer = setTimeout(poll, open ? 4000 : 25000); });
   }
@@ -74,6 +89,7 @@
     e.preventDefault();
     var body = input.value.trim();
     if (!body || sending) return;
+    if (needsContact() && !phoneIn.value.trim() && !emailIn.value.trim()) { fail(T.need_contact); phoneIn.focus(); return; }
     sending = true;
     form.classList.add('is-sending');
     fetch(cfg.send + '&lang=' + encodeURIComponent(lang), {
@@ -81,14 +97,19 @@
       headers: { 'Content-Type': 'application/json', 'X-Visitor': token },
       body: JSON.stringify({
         body: body, after: last, page: cfg.page,
-        name: ($('#wc-name') || {}).value || '', email: ($('#wc-email') || {}).value || '',
+        name: nameIn.value || '', email: emailIn.value || '', phone: phoneIn.value || '',
         website: ($('#wc-website') || {}).value || '',
       }),
     }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
-        if (!res.ok) { fail(res.d && res.d.error); return; }
+        if (!res.ok) {
+          if (res.d && res.d.contact === false) { contact = false; setOffline(true); }
+          fail(res.d && res.d.error);
+          return;
+        }
         err.hidden = true;
         input.value = '';
+        if (phoneIn.value.trim() || emailIn.value.trim()) contact = true;
         render(res.d.messages || []);
         setStatus('open');
       })

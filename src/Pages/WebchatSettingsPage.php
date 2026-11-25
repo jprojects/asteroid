@@ -70,6 +70,9 @@ final class WebchatSettingsPage extends Page
             'inboxUrl' => $this->otherModule('webchat')->url(),
             'action' => $this->pageUrl('index', $this->user()->isAdmin() ? ['client' => $clientId] : []),
             'telegram' => $this->telegramBox(),
+            'schedule' => $this->scheduleRows($site, $errors ? ($_POST['schedule'] ?? null) : null),
+            'scheduleNow' => Webchat::hasSchedule($site) ? Webchat::isOpen($site) : null,
+            'offlineDefault' => $this->text('webchat_widget:widget.offline'),
         ]);
     }
 
@@ -198,6 +201,14 @@ final class WebchatSettingsPage extends Page
         if (mb_strlen($greeting) > 500) {
             $errors['greeting'] = $this->text('errors.greeting');
         }
+        $offline = trim((string) ($in['offline_message'] ?? ''));
+        if (mb_strlen($offline) > 500) {
+            $errors['offline_message'] = $this->text('errors.greeting');
+        }
+        [$schedule, $scheduleError] = $this->parseSchedule($in['schedule'] ?? null);
+        if ($scheduleError) {
+            $errors['schedule'] = $this->text('errors.schedule');
+        }
         $domains = Webchat::domains(['domains' => (string) ($in['domains'] ?? '')]);
         $data = [
             'active' => !empty($in['active']) ? 1 : 0,
@@ -206,7 +217,58 @@ final class WebchatSettingsPage extends Page
             'greeting' => $greeting,
             'domains' => implode("\n", $domains),
             'position' => ($in['position'] ?? '') === 'left' ? 'left' : 'right',
+            'schedule' => $schedule,
+            'offline_message' => $offline,
         ];
         return [$data, $errors];
+    }
+
+    /**
+     * Las siete filas del horario para el formulario: [día => [[from, to], [from, to]]]. Con errores, lo que se envió.
+     * @return array<int,list<array{0:string,1:string}>>
+     */
+    private function scheduleRows(array $site, mixed $posted): array
+    {
+        $saved = Webchat::schedule($site);
+        $rows = [];
+        for ($d = 1; $d <= 7; $d++) {
+            for ($r = 0; $r < 2; $r++) {
+                $rows[$d][$r] = is_array($posted)
+                    ? [(string) ($posted[$d][$r]['from'] ?? ''), (string) ($posted[$d][$r]['to'] ?? '')]
+                    : ($saved[$d][$r] ?? ['', '']);
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * Horario del formulario: schedule[día][franja][from|to] (día ISO 1-7, dos franjas). Una franja a medias o con el
+     * final antes del inicio es un error; sin ninguna franja, null (siempre abierto).
+     *
+     * @return array{0:?string,1:bool} JSON para webchat_sites.schedule y si hay algún error
+     */
+    private function parseSchedule(mixed $in): array
+    {
+        $in = is_array($in) ? $in : [];
+        $out = [];
+        $error = false;
+        for ($d = 1; $d <= 7; $d++) {
+            $ranges = [];
+            for ($r = 0; $r < 2; $r++) {
+                $from = trim((string) ($in[$d][$r]['from'] ?? ''));
+                $to = trim((string) ($in[$d][$r]['to'] ?? ''));
+                if ($from === '' && $to === '') {
+                    continue;
+                }
+                if (!Webchat::validTime($from) || !Webchat::validTime($to) || $from >= $to) {
+                    $error = true;
+                    continue;
+                }
+                $ranges[] = [$from, $to];
+            }
+            usort($ranges, static fn ($a, $b) => strcmp($a[0], $b[0]));
+            $out[(string) $d] = $ranges;
+        }
+        return [array_filter($out) ? json_encode($out, JSON_THROW_ON_ERROR) : null, $error];
     }
 }

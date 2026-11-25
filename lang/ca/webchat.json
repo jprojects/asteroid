@@ -5,6 +5,7 @@
     "id": "Núm.",
     "visitor_name": "Visitant",
     "visitor_email": "Correu electrònic",
+    "visitor_phone": "Telèfon",
     "status": "Estat",
     "client_id": "Client",
     "page_url": "Pàgina",
@@ -22,6 +23,7 @@
   },
   "log": {
     "closed": "Conversa tancada per {user}",
-    "reopened": "Conversa reoberta per {user}"
+    "reopened": "Conversa reoberta per {user}",
+    "offline": "Missatge rebut fora d'horari. Et trucarem o t'escriurem tan aviat com puguem."
   }
 }

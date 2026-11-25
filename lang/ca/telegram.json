@@ -132,6 +132,7 @@
     "sent": "Enviat.",
     "visitor": "Un visitant",
     "webchat": "Nou missatge al xat web · {name}",
+    "offline": "Fora d'horari: el visitant espera que el truquin o li escriguin.",
     "reply_hint": "Respon aquest missatge per contestar.",
     "not_linked": "Encara no sé qui ets. Vincula't des d'Asteroid: Suport → El meu xat web → Vincula el meu Telegram.",
     "link_invalid": "Aquest codi no és vàlid o ha caducat. Genera'n un a Asteroid: Suport → El meu xat web.",

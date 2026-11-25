@@ -16,6 +16,9 @@
  * @var bool $canRequest
  * @var string $requestUrl
  * @var ?array $telegram         vincular el Telegram del usuario con el bot de los clientes (null si no se puede)
+ * @var array $schedule          [día ISO => [[from, to], [from, to]]]
+ * @var ?bool $scheduleNow       con horario, si ahora se atiende; null sin horario
+ * @var string $offlineDefault   aviso fuera de horario por defecto
  */
 $errors ??= [];
 $enabled ??= false;
@@ -36,7 +39,15 @@ $field = function (string $name, string $label, string $control, ?string $help =
 .ast-wcs-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .ast-wcs-tg p { margin: 0 0 10px; }
 .ast-wcs-tg form { margin: 0; }
-.ast-wcs-ok { color: var(--success); }@media (max-width: 640px) { .ast-wcs .qs-grid { grid-template-columns: 1fr; } }
+.ast-wcs-ok { color: var(--success); }
+.ast-wcs-hours { display: grid; grid-template-columns: minmax(90px, auto) 1fr 1fr; gap: 6px 16px; align-items: center; }
+.ast-wcs-hours .ast-wcs-hhead { font-size: .85em; color: var(--text-muted); }
+.ast-wcs-range { display: flex; align-items: center; gap: 6px; }
+.ast-wcs-range input { width: auto; min-width: 0; flex: 1; max-width: 130px; }
+.ast-wcs-offline { margin-top: 12px; }
+.ast-wcs-now { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; }
+#horari { min-width: 0; }
+@media (max-width: 640px) { .ast-wcs-hours { grid-template-columns: minmax(0, 1fr); } .ast-wcs-hours .ast-wcs-day { font-weight: 600; margin-top: 6px; } .ast-wcs-hours .ast-wcs-hhead { display: none; } .ast-wcs-range input { max-width: none; } }@media (max-width: 640px) { .ast-wcs .qs-grid { grid-template-columns: 1fr; } }
 </style>
 
 <div class="ast-wcs">
@@ -100,6 +111,35 @@ $field = function (string $name, string $label, string $control, ?string $help =
           </div>
           <?= $field('greeting', $this->t('greeting'), '<textarea class="qs-input" id="wc-greeting" name="greeting" rows="3" maxlength="500">' . $this->e((string) $site['greeting']) . '</textarea>', $this->t('greeting_help')) ?>
           <?= $field('domains', $this->t('domains'), '<textarea class="qs-input" id="wc-domains" name="domains" rows="3" placeholder="www.example.com">' . $this->e((string) $site['domains']) . '</textarea>', $this->t('domains_help')) ?>
+        </div>
+      </fieldset>
+
+      <fieldset class="qs-section" id="horari">
+        <legend><?= $this->e($this->t('section_hours')) ?></legend>
+        <?php if ($scheduleNow !== null): ?>
+          <p class="ast-wcs-now"><?= $scheduleNow ? $this->icon('circle-check', 'ast-wcs-ok') . ' ' . $this->e($this->t('hours_now_open')) : $this->icon('moon') . ' ' . $this->e($this->t('hours_now_closed')) ?></p>
+        <?php endif ?>
+        <p class="qs-help"><?= $this->e($this->t('hours_help')) ?></p>
+        <div class="qs-field<?= isset($errors['schedule']) ? ' has-error' : '' ?>">
+          <div class="ast-wcs-hours">
+            <span class="ast-wcs-hhead"></span>
+            <span class="ast-wcs-hhead"><?= $this->e($this->t('hours_range1')) ?></span>
+            <span class="ast-wcs-hhead"><?= $this->e($this->t('hours_range2')) ?></span>
+            <?php foreach ($schedule as $d => $ranges): ?>
+              <span class="ast-wcs-day"><?= $this->e($this->t('days.' . $d)) ?></span>
+              <?php foreach ($ranges as $r => [$from, $to]): ?>
+                <span class="ast-wcs-range">
+                  <input type="time" class="qs-input" name="schedule[<?= (int) $d ?>][<?= (int) $r ?>][from]" value="<?= $this->e($from) ?>" aria-label="<?= $this->e($this->t('days.' . $d) . ' · ' . $this->t('hours_range' . ($r + 1)) . ' · ' . $this->t('hours_from')) ?>">
+                  –
+                  <input type="time" class="qs-input" name="schedule[<?= (int) $d ?>][<?= (int) $r ?>][to]" value="<?= $this->e($to) ?>" aria-label="<?= $this->e($this->t('days.' . $d) . ' · ' . $this->t('hours_range' . ($r + 1)) . ' · ' . $this->t('hours_to')) ?>">
+                </span>
+              <?php endforeach ?>
+            <?php endforeach ?>
+          </div>
+          <?php if (isset($errors['schedule'])): ?><div class="qs-error"><?= $this->e($errors['schedule']) ?></div><?php endif ?>
+        </div>
+        <div class="qs-grid ast-wcs-offline">
+          <?= $field('offline_message', $this->t('offline_message'), '<textarea class="qs-input" id="wc-offline_message" name="offline_message" rows="3" maxlength="500" placeholder="' . $this->e($offlineDefault) . '">' . $this->e((string) ($site['offline_message'] ?? '')) . '</textarea>', $this->t('offline_message_help')) ?>
         </div>
       </fieldset>
     </form>

@@ -5,6 +5,7 @@
     "id": "No.",
     "visitor_name": "Visitor",
     "visitor_email": "Email",
+    "visitor_phone": "Phone",
     "status": "Status",
     "client_id": "Client",
     "page_url": "Page",
@@ -22,6 +23,7 @@
   },
   "log": {
     "closed": "Conversation closed by {user}",
-    "reopened": "Conversation reopened by {user}"
+    "reopened": "Conversation reopened by {user}",
+    "offline": "Message received out of office hours. We'll call or write to you as soon as we can."
   }
 }

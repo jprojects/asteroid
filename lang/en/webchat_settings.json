@@ -21,10 +21,30 @@
   "section_code": "Code for your website",
   "code_help": "Paste this line into your website, before </body> (or in your site builder's custom code field: WordPress, Shopify, Wix…).",
   "inactive_note": "The chat is disabled: enable it so it shows on the website.",
+  "section_hours": "Office hours",
+  "hours_help": "Outside these hours, the chat says so and asks the visitor for a phone or email; the message still reaches you (and Telegram). With no time slots, the chat always shows as open.",
+  "hours_range1": "Morning",
+  "hours_range2": "Afternoon",
+  "hours_from": "from",
+  "hours_to": "to",
+  "hours_now_open": "It is within office hours now.",
+  "hours_now_closed": "It is out of office hours now.",
+  "offline_message": "Out-of-hours message",
+  "offline_message_help": "What the visitor sees out of hours, above the schedule. Empty: the default text.",
   "errors": {
     "color": "Choose a valid colour",
     "name": "Enter a name (up to 80 characters)",
-    "greeting": "500 characters at most"
+    "greeting": "500 characters at most",
+    "schedule": "Check the schedule: each time slot needs a start and an end time, and the end must be after the start."
+  },
+  "days": {
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday",
+    "7": "Sunday"
   },
   "request": "Ask AFI for it",
   "requested": "Request sent to AFI (issue #{id}). We'll let you know when it's enabled.",

@@ -21,10 +21,30 @@
   "section_code": "Código para tu web",
   "code_help": "Pega esta línea en tu web, antes de </body> (o en el campo de código personalizado de tu gestor: WordPress, Shopify, Wix…).",
   "inactive_note": "El chat está desactivado: actívalo para que aparezca en la web.",
+  "section_hours": "Horario de atención",
+  "hours_help": "Fuera de este horario, el chat lo avisa y pide al visitante el teléfono o el correo; el mensaje os llega igual (y a Telegram). Sin ninguna franja, el chat siempre se muestra como abierto.",
+  "hours_range1": "Mañana",
+  "hours_range2": "Tarde",
+  "hours_from": "de",
+  "hours_to": "a",
+  "hours_now_open": "Ahora es dentro del horario.",
+  "hours_now_closed": "Ahora es fuera de horario.",
+  "offline_message": "Mensaje fuera de horario",
+  "offline_message_help": "Lo que ve el visitante fuera de horario, encima del horario. Vacío: el texto por defecto.",
   "errors": {
     "color": "Elige un color válido",
     "name": "Pon un nombre (hasta 80 caracteres)",
-    "greeting": "Como máximo 500 caracteres"
+    "greeting": "Como máximo 500 caracteres",
+    "schedule": "Revisa el horario: cada franja necesita la hora de inicio y la de final, y el final tiene que ser después del inicio."
+  },
+  "days": {
+    "1": "Lunes",
+    "2": "Martes",
+    "3": "Miércoles",
+    "4": "Jueves",
+    "5": "Viernes",
+    "6": "Sábado",
+    "7": "Domingo"
   },
   "request": "Pedirlo a AFI",
   "requested": "Solicitud enviada a AFI (incidencia #{id}). Te avisaremos cuando esté activado.",

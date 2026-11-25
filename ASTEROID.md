@@ -97,11 +97,18 @@ Cada cliente puede poner un chat en **su** web y responder desde Asteroid.
   bienvenida y webs donde se puede usar (un dominio por línea; vacío = cualquiera). Ahí copia el código:
   `<script src="https://sat.aficat.com/index.php?r=public&m=webchat_widget&a=loader&k=CLAVE" async></script>`
 - **En su web** sale un botón flotante con su color; el chat se abre en un iframe de Asteroid (solo se puede incrustar
-  en sus dominios: `frame-ancestors`). El visitante deja su nombre y, si quiere, el correo; se identifica con un token
+  en sus dominios: `frame-ancestors`). El visitante deja su nombre y, si quiere, el teléfono o el correo; se identifica con un token
   aleatorio de su navegador (no hay cookies). Las respuestas le llegan en unos segundos.
 - **Los usuarios del cliente responden** en *Suport → Xat web*: una conversación por visitante, con la conversación de
   siempre (avisos en la campana y por correo a todos los usuarios del cliente, no leídos en el listado, cerrar/reabrir).
   Cada cliente ve solo las suyas; el equipo de AFI no (los administradores sí).
+- **Horario de atención** (en *El meu xat web*): hasta dos franjas por día (mañana y tarde); sin ninguna franja, el
+  chat siempre está «abierto». Fuera de horario el chat lo avisa (texto propio del cliente o el de por defecto, con el
+  horario debajo) y **pide el teléfono o el correo**: sin uno de los dos no se acepta el mensaje (en el servidor; a
+  quien ya escribía sin dejar contacto se le vuelve a pedir). El mensaje llega igual (campana, correo y Telegram,
+  marcado «Fora d'horari» y con el teléfono y el correo) y el visitante recibe una respuesta automática (una cada 8 h
+  como máximo). La hora es la de `timezone` (Europe/Madrid). Columnas `webchat_sites.schedule` (JSON por día ISO) y
+  `offline_message`, `webchat_conversations.visitor_phone`.
 - Contra abusos: 30 mensajes por visitante cada 10 minutos, 6 conversaciones nuevas por IP y hora, trampa para bots y
   2.000 caracteres por mensaje.
 - **En el móvil**: cada usuario del cliente puede vincular su Telegram en *Suport → El meu xat web* con el **bot de

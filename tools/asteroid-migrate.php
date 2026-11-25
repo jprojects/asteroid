@@ -99,6 +99,22 @@ try {
         echo "  ✓ columna clients.webchat\n";
     }
 
+    // Chat web: horario de atención y teléfono del visitante (fuera de horario se le pide el contacto)
+    foreach ([
+        ['webchat_sites', 'schedule', "ALTER TABLE webchat_sites ADD COLUMN schedule TEXT NULL AFTER position"],
+        ['webchat_sites', 'offline_message', "ALTER TABLE webchat_sites ADD COLUMN offline_message VARCHAR(500) NOT NULL DEFAULT '' AFTER schedule"],
+        ['webchat_conversations', 'visitor_phone', "ALTER TABLE webchat_conversations ADD COLUMN visitor_phone VARCHAR(30) NULL AFTER visitor_email"],
+    ] as [$table, $column, $ddl]) {
+        $exists = (int) $db->fetchValue(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+            [$schema, $table, $column]
+        );
+        if (!$exists) {
+            $db->pdo()->exec($ddl);
+            echo "  ✓ columna $table.$column\n";
+        }
+    }
+
     // Datos fiscales del cliente (los textos legales de sus webs; se pueden volcar de FactuSOL: tools/import-factusol.php)
     foreach ([
         'legal_name' => "ALTER TABLE clients ADD COLUMN legal_name VARCHAR(150) NULL AFTER phone",

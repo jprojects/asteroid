@@ -21,10 +21,30 @@
   "section_code": "Codi per a la teva web",
   "code_help": "Enganxa aquesta línia a la teva web, abans de </body> (o al camp de codi personalitzat del teu gestor: WordPress, Shopify, Wix…).",
   "inactive_note": "El xat està desactivat: activa'l perquè aparegui a la web.",
+  "section_hours": "Horari d'atenció",
+  "hours_help": "Fora d'aquest horari, el xat ho avisa i demana al visitant el telèfon o el correu; el missatge us arriba igual (i al Telegram). Sense cap franja, el xat sempre es mostra com a obert.",
+  "hours_range1": "Matí",
+  "hours_range2": "Tarda",
+  "hours_from": "de",
+  "hours_to": "a",
+  "hours_now_open": "Ara és dins de l'horari.",
+  "hours_now_closed": "Ara és fora d'horari.",
+  "offline_message": "Missatge fora d'horari",
+  "offline_message_help": "El que veu el visitant fora d'horari, a sobre de l'horari. Buit: el text per defecte.",
   "errors": {
     "color": "Tria un color vàlid",
     "name": "Posa un nom (fins a 80 caràcters)",
-    "greeting": "Com a màxim 500 caràcters"
+    "greeting": "Com a màxim 500 caràcters",
+    "schedule": "Revisa l'horari: cada franja necessita l'hora d'inici i la de final, i el final ha de ser després de l'inici."
+  },
+  "days": {
+    "1": "Dilluns",
+    "2": "Dimarts",
+    "3": "Dimecres",
+    "4": "Dijous",
+    "5": "Divendres",
+    "6": "Dissabte",
+    "7": "Diumenge"
   },
   "request": "Demana-ho a AFI",
   "requested": "Sol·licitud enviada a AFI (incidència #{id}). T'avisarem quan estigui activat.",

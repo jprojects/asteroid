@@ -328,17 +328,20 @@ final class Telegram
         if (!self::enabled(self::CLIENTS)) {
             return;
         }
-        $c = $db->fetch('SELECT id, client_id, visitor_name, visitor_email, page_url FROM webchat_conversations WHERE id = ?', [(int) $conversationId]);
+        $c = $db->fetch('SELECT id, client_id, visitor_name, visitor_email, visitor_phone, page_url FROM webchat_conversations WHERE id = ?', [(int) $conversationId]);
         $m = $c !== null ? $db->fetch(
-            "SELECT body FROM messages WHERE module = 'webchat' AND record_id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1",
+            "SELECT body, meta FROM messages WHERE module = 'webchat' AND record_id = ? AND user_id IS NULL AND kind = 'text' ORDER BY id DESC LIMIT 1",
             [(string) $conversationId]
         ) : null;
         if ($c === null || $m === null) {
             return;
         }
         $who = trim((string) $c['visitor_name']) !== '' ? (string) $c['visitor_name'] : self::t('client.visitor');
+        $offline = !empty(((array) json_decode((string) $m['meta'], true))['offline']);
+        $contact = array_filter([(string) $c['visitor_phone'], (string) $c['visitor_email']]);
         $html = '<b>' . self::e(self::t('client.webchat', ['name' => $who])) . '</b>'
-            . ($c['visitor_email'] ? ' · ' . self::e((string) $c['visitor_email']) : '') . "\n\n"
+            . ($contact ? ' · ' . self::e(implode(' · ', $contact)) : '')
+            . ($offline ? "\n<i>" . self::e(self::t('client.offline')) . '</i>' : '') . "\n\n"
             . self::e(mb_substr(trim((string) $m['body']), 0, 1500)) . "\n\n<i>" . self::e(self::t('client.reply_hint')) . '</i>';
         self::toUsers($db, Asteroid::clientUserIds($db, $c['client_id']), $html, 'webchat', (string) $c['id']);
     }

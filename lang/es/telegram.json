@@ -132,6 +132,7 @@
     "sent": "Enviado.",
     "visitor": "Un visitante",
     "webchat": "Nuevo mensaje en el chat web · {name}",
+    "offline": "Fuera de horario: el visitante espera que lo llamen o le escriban.",
     "reply_hint": "Responde a este mensaje para contestar.",
     "not_linked": "Todavía no sé quién eres. Vincúlate desde Asteroid: Soporte → Mi chat web → Vincular mi Telegram.",
     "link_invalid": "Este código no es válido o ha caducado. Genera uno en Asteroid: Soporte → Mi chat web.",

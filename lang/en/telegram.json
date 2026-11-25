@@ -132,6 +132,7 @@
     "sent": "Sent.",
     "visitor": "A visitor",
     "webchat": "New website chat message · {name}",
+    "offline": "Out of hours: the visitor is waiting for a call or an email.",
     "reply_hint": "Reply to this message to answer.",
     "not_linked": "I don't know who you are yet. Link your account in Asteroid: Support → My web chat → Link my Telegram.",
     "link_invalid": "This code is not valid or has expired. Create one in Asteroid: Support → My web chat.",

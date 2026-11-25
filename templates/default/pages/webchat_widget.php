@@ -6,6 +6,8 @@
  * @var \Quasar\Core\View $this
  * @var array $site
  * @var array $config
+ * @var string $offlineText    aviso fuera de horario
+ * @var string $scheduleText   horario en una línea (vacío sin horario)
  * @var string $version
  */
 $color = \Quasar\Webchat\Webchat::validColor((string) $site['color']) ? (string) $site['color'] : \Quasar\Webchat\Webchat::COLOR;
@@ -37,11 +39,16 @@ body { display: flex; flex-direction: column; font: 14px/1.45 system-ui, -apple-
 .wc-visitor { align-self: flex-end; align-items: flex-end; }
 .wc-visitor .wc-bubble { background: var(--c); color: #fff; border-bottom-right-radius: 4px; }
 .wc-system { align-self: center; max-width: 90%; font-size: 12px; color: var(--muted); text-align: center; }
+#wc-offline { margin: 0 12px 8px; padding: 10px 12px; border-radius: 8px; font-size: 13px; background: #fff8e6; border: 1px solid #f3dfa8; color: #5c4a12; display: flex; gap: 8px; }
+#wc-offline svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+#wc-offline p { margin: 0; white-space: pre-line; }
+#wc-offline small { display: block; margin-top: 4px; opacity: .8; }
 #wc-note, #wc-error { margin: 0 12px 8px; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; }
 #wc-note { background: #fff; border: 1px solid var(--line); color: var(--muted); }
 #wc-error { background: #fdecec; color: #b42318; }
 form { padding: 10px 12px 12px; background: #fff; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
 #wc-who { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#wc-name { grid-column: 1 / -1; }
 #wc-who p { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); }
 input, textarea { width: 100%; font: inherit; color: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 input:focus, textarea:focus { outline: 2px solid var(--c); outline-offset: -1px; border-color: transparent; }
@@ -67,14 +74,19 @@ form.is-sending .wc-send button { opacity: .6; cursor: wait; }
     <?php endif ?>
   </div>
 
+  <div id="wc-offline"<?= $config['offline'] ? '' : ' hidden' ?>>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+    <p><?= $this->e($offlineText) ?><?php if ($scheduleText !== ''): ?><small><?= $this->e($scheduleText) ?></small><?php endif ?></p>
+  </div>
   <p id="wc-note" hidden><?= $this->e($config['i18n']['closed']) ?></p>
   <p id="wc-error" hidden role="alert"></p>
 
   <form id="wc-form" autocomplete="on">
     <div id="wc-who">
-      <p><?= $this->e($config['i18n']['intro']) ?></p>
+      <p id="wc-intro"><?= $this->e($config['i18n'][$config['offline'] ? 'intro_offline' : 'intro']) ?></p>
       <input id="wc-name" name="name" maxlength="80" autocomplete="name" placeholder="<?= $this->e($config['i18n']['name']) ?>" aria-label="<?= $this->e($config['i18n']['name']) ?>">
-      <input id="wc-email" name="email" type="email" maxlength="150" autocomplete="email" placeholder="<?= $this->e($config['i18n']['email']) ?>" aria-label="<?= $this->e($config['i18n']['email']) ?>">
+      <input id="wc-phone" name="phone" type="tel" maxlength="30" autocomplete="tel" placeholder="<?= $this->e($config['i18n'][$config['offline'] ? 'phone_offline' : 'phone']) ?>" aria-label="<?= $this->e($config['i18n']['phone']) ?>">
+      <input id="wc-email" name="email" type="email" maxlength="150" autocomplete="email" placeholder="<?= $this->e($config['i18n'][$config['offline'] ? 'email_offline' : 'email']) ?>" aria-label="<?= $this->e($config['i18n']['email']) ?>">
     </div>
     <div class="wc-trap" aria-hidden="true"><input id="wc-website" name="website" tabindex="-1" autocomplete="off"></div>
     <div class="wc-send">
